@@ -22,7 +22,7 @@ Before setting up the project, ensure you have the following tools installed:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/your-repository.git
+git clone https://github.com/Kurvidah/shm-streaming.git
 cd your-repository
 ```
 
