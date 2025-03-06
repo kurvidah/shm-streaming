@@ -23,7 +23,7 @@ Before setting up the project, ensure you have the following tools installed:
 
 ```bash
 git clone https://github.com/Kurvidah/shm-streaming.git
-cd your-repository
+cd shm-streaming
 ```
 
 ### 2. Configure `.env` file
