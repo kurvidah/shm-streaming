@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Check if .env exists, if not, create it from .env.example
+echo "Starting setup..."
+
+# Check if .env exists, if not, copy from .env.example
 if [ ! -f ".env" ]; then
     echo "Creating .env file from .env.example..."
     cp .env.example .env
@@ -8,28 +10,36 @@ if [ ! -f ".env" ]; then
 fi
 
 # Load environment variables from .env
-if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
+export $(grep -v '^#' .env | xargs)
+
+# Check if Docker is running
+echo "Checking if Docker is running..."
+if ! docker info > /dev/null 2>&1; then
+    echo "Error: Docker is not running. Please start Docker and try again."
+    exit 1
 fi
 
-# Set defaults if variables are missing
-HOST=${HOST:-"127.0.0.1"}
-PORT=${PORT:-"8000"}
-DB_HOST=${DB_HOST:-"remote-database-host"}
-DB_NAME=${DB_NAME:-"your_database"}
-DB_USER=${DB_USER:-"your_user"}
-DB_PASS=${DB_PASS:-"your_password"}
+# Stop and remove existing containers
+echo "Stopping and removing existing containers..."
+docker-compose down
 
-# Apply schema.sql
-echo "Applying database schema to remote server..."
-mysql -u"$DB_USER" -p"$DB_PASS" -h"$DB_HOST" "$DB_NAME" < db/schema.sql
-echo "Schema applied!"
+# Remove only the volume used by the MySQL container
+echo "Removing MySQL data volume..."
+docker volume rm "shm_mysql_data" 2>/dev/null || true
 
-# Apply seed.sql
-echo "Seeding remote database with sample data..."
-mysql -u"$DB_USER" -p"$DB_PASS" -h"$DB_HOST" "$DB_NAME" < db/seed.sql
-echo "Database seeded!"
+# Start fresh containers
+echo "Starting fresh containers..."
+docker-compose up --build -d
 
-# Start PHP built-in server
-echo "Starting PHP server on http://$HOST:$PORT"
-php -S "$HOST:$PORT" -t public
+# Wait for containers to start
+sleep 5
+
+# Show running containers
+echo "Running containers:"
+docker ps
+
+# Show URLs for the application and phpMyAdmin
+echo "Application is available at: http://localhost:${PORT}"
+echo "phpMyAdmin is available at: http://localhost:${PMA_PORT}"
+
+echo "Setup completed successfully!"

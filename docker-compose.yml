@@ -1,0 +1,47 @@
+name: shm-streaming
+
+services:
+  app:
+    build: .
+    container_name: shm-app
+    ports:
+      - "${PORT}:80"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+    volumes:
+      - ./public:/var/www/html
+
+  db:
+    image: mysql:8.0
+    container_name: shm-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    ports:
+      - "3306:3306"
+    volumes:
+      - shm_mysql_data:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: shm-phpmyadmin
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: ${DB_HOST}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    ports:
+      - "${PMA_PORT}:80"
+
+volumes:
+  shm_mysql_data:
