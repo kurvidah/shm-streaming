@@ -29,7 +29,7 @@ docker-compose down
 
 :: Remove only the volume used by the MySQL container
 echo Removing MySQL data volume...
-docker volume rm shm_mysql_data
+docker volume rm shm-streaming_shm_mysql_data
 
 :: Start fresh containers
 echo Starting fresh containers...
