@@ -16,7 +16,7 @@ initial-scale=1.0">
         <a href="reports.php">View Reports</a> |
         <a href="login.php">Logout</a>
     </nav>
-    <p>Welcome to the admin dashboard. Select an option above.</p>
+    <p>Welcome to the Kawaeii admin dashboard. Select an option above.</p>
 </body>
 
 </html>
