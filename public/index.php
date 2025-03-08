@@ -34,7 +34,7 @@ $movies = $result->fetch_all(MYSQLI_ASSOC);
         <div class="container">
             <a class="navbar-brand" href="#" style="font-weight:bold; color:white;">SHM Streaming</a>
             <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
+                data-bs-target="#collapsibleNavId" aria-controls="#collapsibleNavId" aria-expanded="false"
                 aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -48,7 +48,7 @@ $movies = $result->fetch_all(MYSQLI_ASSOC);
                         </form>
                     </li>
                 </ul>
-                <a href="./scripts/logout.php" class="btn btn-light" style="font-weight:bolder;color:green;">Logout</a>
+                <a href="./logout.php" class="btn btn-light" style="font-weight:bolder;color:green;">Logout</a>
             </div>
         </div>
     </nav>
@@ -59,8 +59,8 @@ $movies = $result->fetch_all(MYSQLI_ASSOC);
             <?php foreach ($movies as $movie): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="<?php echo htmlspecialchars($movie['thumbnail']); ?>" class="card-img-top"
-                            alt="Movie Thumbnail">
+                        <img src="<?php echo htmlspecialchars($movie['poster']); ?>" class="card-img-top"
+                            alt="Movie Poster">
                         <div class="card-body">
                             <h5 class="card-title"> <?php echo htmlspecialchars($movie['title']); ?> </h5>
                             <p class="card-text"> <?php echo htmlspecialchars($movie['description']); ?> </p>
