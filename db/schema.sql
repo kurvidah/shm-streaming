@@ -50,6 +50,7 @@ CREATE TABLE billing (
 CREATE TABLE movies (
     movie_id INTEGER PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
+    poster VARCHAR(255),
     description TEXT,
     release_year INTEGER,
     genre VARCHAR(100),

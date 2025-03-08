@@ -45,9 +45,9 @@ VALUES
 -- Insert sample movies
 INSERT INTO movies (movie_id, title, description, release_year, genre, duration, is_available, imdb_id)
 VALUES
-(1, 'The Matrix', 'A hacker discovers the world is a simulation.', 1999, 'Sci-Fi', 136, TRUE, 'tt0133093'),
-(2, 'Inception', 'A thief who steals corporate secrets through the use of dream-sharing technology.', 2010, 'Sci-Fi', 148, TRUE, 'tt1375666'),
-(3, 'The Godfather', 'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.', 1972, 'Crime', 175, TRUE, 'tt0068646');
+(1, 'The Matrix', 'https://m.media-amazon.com/images/M/MV5BN2NmN2VhMTQtMDNiOS00NDlhLTliMjgtODE2ZTY0ODQyNDRhXkEyXkFqcGc@._V1_SX300.jpg', 'A hacker discovers the world is a simulation.', 1999, 'Sci-Fi', 136, TRUE, 'tt0133093'),
+(2, 'Inception', 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg', 'A thief who steals corporate secrets through the use of dream-sharing technology.', 2010, 'Sci-Fi', 148, TRUE, 'tt1375666'),
+(3, 'The Godfather', 'https://m.media-amazon.com/images/M/MV5BNGEwYjgwOGQtYjg5ZS00Njc1LTk2ZGEtM2QwZWQ2NjdhZTE5XkEyXkFqcGc@._V1_SX300.jpg', 'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.', 1972, 'Crime', 175, TRUE, 'tt0068646');
 
 -- Insert sample watch history
 INSERT INTO watch_history (user_id, movie_id, timestamp, watch_duration)
