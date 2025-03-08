@@ -10,7 +10,7 @@ if (!isset($_SESSION['email'])) {
 include './scripts/db.php'; // Include database connection
 
 // Fetch movies from the database
-$query = "SELECT title, thumbnail, description FROM movies";
+$query = "SELECT title, poster, description FROM movies";
 $result = $conn->query($query);
 $movies = $result->fetch_all(MYSQLI_ASSOC);
 ?>
