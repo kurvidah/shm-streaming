@@ -9,10 +9,10 @@ services:
     depends_on:
       - db
     environment:
-      - DB_HOST=${DB_HOST}
+      - DB_HOST=db
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
+      - DB_NAME=shmdb
     volumes:
       - ./public:/var/www/html
 
@@ -22,7 +22,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_DATABASE: shmdb
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
     ports:
@@ -38,7 +38,7 @@ services:
     depends_on:
       - db
     environment:
-      PMA_HOST: ${DB_HOST}
+      PMA_HOST: db
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
     ports:
       - "${PMA_PORT}:80"
