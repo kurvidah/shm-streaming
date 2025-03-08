@@ -1,5 +1,4 @@
-CREATE DATABASE shm_database;
-USE shm_database;
+USE shmdb;
 
 CREATE TABLE users (
     user_id INTEGER AUTO_INCREMENT PRIMARY KEY,

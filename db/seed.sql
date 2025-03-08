@@ -1,4 +1,4 @@
-USE shm_database;
+USE shmdb;
 
 -- Insert sample users
 INSERT INTO users (user_id, username, email, password, gender, age, religion, created_at)
