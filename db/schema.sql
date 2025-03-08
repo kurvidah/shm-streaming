@@ -2,7 +2,7 @@ CREATE DATABASE shm_database;
 USE shm_database;
 
 CREATE TABLE users (
-    user_id INTEGER PRIMARY KEY,
+    user_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
