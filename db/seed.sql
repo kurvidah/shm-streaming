@@ -1,25 +1,18 @@
 USE shmdb;
 
 -- Insert sample users
-INSERT INTO users (user_id, username, email, password, gender, age, religion, created_at)
+INSERT INTO users (user_id, username, email, password, role_id, gender, age, religion, created_at)
 VALUES
-(1, 'john_doe', 'john.doe@example.com', 'password123', 'Male', 30, 'Christianity', '2025-03-01 10:00:00'),
-(2, 'jane_smith', 'jane.smith@example.com', 'password123', 'Female', 25, 'Atheist', '2025-02-20 12:30:00'),
-(3, 'bob_jones', 'bob.jones@example.com', 'password123', 'Male', 35, 'Hindu', '2025-01-15 08:00:00');
+(1, 'admin', 'admin@shm.app', '$2y$10$DIRJgsc.nuXFW3Z7xBMPiO3ZHuvctx/Kp1QbSYaz4sAu.djwNXGmO', 1, NULL, NULL, NULL, '2025-01-01 00:00:00'),
+(2, 'mod', 'mod@shm.app', '$2y$10$p/wXLYeKnDtcb2LqoQJA6OLJq/mXO.CmfDKx67NCPq6tO7gR0AVN2 ', 2, NULL, NULL, NULL, '2025-02-20 12:30:00'),
+(3, 'bob_jones', 'bob.jones@example.com', 'password123', 3, 'Male', 35, 'Hindu', '2025-01-15 08:00:00');
 
 -- Insert sample roles
 INSERT INTO roles (role_id, role_name)
 VALUES
 (1, 'Admin'),
-(2, 'User'),
-(3, 'Moderator');
-
--- Assign roles to users
-INSERT INTO user_roles (user_id, role_id)
-VALUES
-(1, 1), -- John is an Admin
-(2, 2), -- Jane is a User
-(3, 3); -- Bob is a Moderator
+(2, 'Moderator'),
+(3, 'User');
 
 -- Insert sample subscription plans
 INSERT INTO subscription_plan (plan_id, plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days)

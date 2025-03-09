@@ -21,17 +21,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $checkEmailStmt->execute();
     $checkEmailStmt->store_result();
 
+    // Check if username already exists
+    $checkUsernameStmt = $conn->prepare("SELECT user_id FROM users WHERE username = ?");
+    if (!$checkUsernameStmt) {
+        die("Prepare failed: " . $conn->error);
+    }
+    $checkUsernameStmt->bind_param("s", $username);
+    $checkUsernameStmt->execute();
+    $checkUsernameStmt->store_result();
+
+    // If email or username already exists, show error message
     if ($checkEmailStmt->num_rows > 0) {
         $message = "Email ID already exists";
         $toastClass = "#007bff"; // Primary color
+    } elseif ($checkUsernameStmt->num_rows > 0) {
+        $message = "Username already exists";
+        $toastClass = "#007bff"; // Primary color
     } else {
-        // Prepare and bind
+        // Prepare and bind for inserting new user
         $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
         if (!$stmt) {
             die("Prepare failed: " . $conn->error);
         }
         $stmt->bind_param("sss", $username, $email, $hashedPassword);
-
         if ($stmt->execute()) {
             $message = "Account created successfully";
             $toastClass = "#28a745"; // Success color
@@ -40,11 +52,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $toastClass = "#dc3545"; // Danger color
         }
 
+        // Close user creation statement
         $stmt->close();
     }
 
     $checkEmailStmt->close();
+    $checkUsernameStmt->close();
     $conn->close();
+
+    header("Location: login.php");
+    exit();
 }
 ?>
 

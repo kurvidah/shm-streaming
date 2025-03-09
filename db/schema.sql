@@ -2,9 +2,10 @@ USE shmdb;
 
 CREATE TABLE users (
     user_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    role_id INTEGER DEFAULT 1 FOREIGN KEY REFERENCES roles(role_id),
     gender VARCHAR(50),
     age INTEGER,
     religion VARCHAR(100),
@@ -95,12 +96,4 @@ CREATE TABLE media (
     episode INTEGER,
     description TEXT,
     FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
-);
-
-CREATE TABLE user_roles (
-    user_id INTEGER,
-    role_id INTEGER,
-    PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (role_id) REFERENCES roles(role_id)
 );
