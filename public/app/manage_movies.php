@@ -10,7 +10,7 @@ if (!isset($_SESSION['email'])) {
 include '../scripts/db.php'; // Include database connection
 
 // Redirect non-admin users to the regular dashboard
-if ($_SESSION['role_id'] > 2) {
+if ($_SESSION['role_id'] !== 1) { // 1 = Admin
     header("Location: user_dashboard.php");
     exit();
 }
@@ -24,23 +24,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_movie'])) {
     $stmt = $conn->prepare("INSERT INTO movies (title, poster, description) VALUES (?, ?, ?)");
     $stmt->bind_param("sss", $title, $poster, $description);
     $stmt->execute();
-    $stmt->close();
-    header("Location: admin.php");
+    header("Location: manage_movies.php");
     exit();
 }
 
 // Handle movie deletion
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    $stmt = $conn->prepare("DELETE FROM movies WHERE id = ?");
-    $stmt->bind_param("i", $id);
+    $movie_id = $_GET['delete'];
+    $stmt = $conn->prepare("DELETE FROM movies WHERE movie_id = ?");
+    $stmt->bind_param("i", $movie_id);
     $stmt->execute();
-    $stmt->close();
-    header("Location: admin.php");
+    header("Location: manage_movies.php");
     exit();
 }
 
-// Fetch movies from the database
+// Handle movie editing
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_movie'])) {
+    $movie_id = $_POST['movie_id'];
+    $title = $_POST['title'];
+    $poster = $_POST['poster'];
+    $description = $_POST['description'];
+
+    $stmt = $conn->prepare("UPDATE movies SET title = ?, poster = ?, description = ? WHERE movie_id = ?");
+    $stmt->bind_param("sssi", $title, $poster, $description, $movie_id);
+    $stmt->execute();
+    header("Location: manage_movies.php");
+    exit();
+}
+
+// Fetch movies
 $query = "SELECT movie_id, title, poster, description FROM movies";
 $result = $conn->query($query);
 $movies = $result->fetch_all(MYSQLI_ASSOC);
@@ -102,6 +114,10 @@ $movies = $result->fetch_all(MYSQLI_ASSOC);
                         <td><img src="<?php echo htmlspecialchars($movie['poster']); ?>" width="50"></td>
                         <td><?php echo htmlspecialchars($movie['description']); ?></td>
                         <td>
+                            <!-- Edit Button (opens modal) -->
+                            <button class="btn btn-warning btn-sm"
+                                onclick="editMovie(<?php echo $movie['movie_id']; ?>, '<?php echo htmlspecialchars($movie['title']); ?>', '<?php echo htmlspecialchars($movie['poster']); ?>', '<?php echo htmlspecialchars($movie['description']); ?>')">Edit</button>
+                            <!-- Delete Button -->
                             <a href="?delete=<?php echo $movie['movie_id']; ?>" class="btn btn-danger btn-sm">Delete</a>
                         </td>
                     </tr>
@@ -109,6 +125,47 @@ $movies = $result->fetch_all(MYSQLI_ASSOC);
             </tbody>
         </table>
     </div>
+
+    <!-- Edit Movie Modal -->
+    <div id="editMovieModal" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Movie</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST">
+                        <input type="hidden" name="movie_id" id="edit_movie_id">
+                        <div class="mb-3">
+                            <label>Title:</label>
+                            <input type="text" name="title" id="edit_title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Poster URL:</label>
+                            <input type="text" name="poster" id="edit_poster" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Description:</label>
+                            <textarea name="description" id="edit_description" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" name="edit_movie" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to populate the modal with movie data for editing
+        function editMovie(movieId, title, poster, description) {
+            document.getElementById('edit_movie_id').value = movieId;
+            document.getElementById('edit_title').value = title;
+            document.getElementById('edit_poster').value = poster;
+            document.getElementById('edit_description').value = description;
+            new bootstrap.Modal(document.getElementById('editMovieModal')).show();
+        }
+    </script>
 </body>
 
 </html>
