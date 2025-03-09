@@ -6,7 +6,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 <nav class="navbar navbar-expand-sm navbar-light bg-success">
     <div class="container">
-        <a class="navbar-brand" href="#" style="font-weight:bold; color:white;">SHM Streaming</a>
+        <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">SHM Streaming</a>
         <div>
             <?php if ($role_id == 1): // Admin ?>
                 <a href="admin_dashboard.php"

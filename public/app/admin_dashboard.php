@@ -10,7 +10,7 @@ if (!isset($_SESSION['email'])) {
 include '../scripts/db.php'; // Include database connection
 
 // Redirect non-admin users to the regular dashboard
-if ($_SESSION['role_id'] > 2) {
+if ($_SESSION['role_id'] !== 1) {
     header("Location: user_dashboard.php");
     exit();
 }
