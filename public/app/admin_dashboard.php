@@ -52,7 +52,26 @@ $total_billing_query = "SELECT SUM(amount) AS total_billing FROM billing";
 $total_billing_result = $conn->query($total_billing_query);
 $total_billing = $total_billing_result->fetch_assoc()['total_billing'];
 
+// Fetch users and their roles
+$query = "SELECT users.user_id, users.username, users.email, roles.role_name, users.role_id FROM users LEFT JOIN roles ON users.role_id = roles.role_id";
+$result = $conn->query($query);
+$users = $result->fetch_all(MYSQLI_ASSOC);
+
+// Fetch roles
+$roleQuery = "SELECT * FROM roles";
+$roleResult = $conn->query($roleQuery);
+$roles = $roleResult->fetch_all(MYSQLI_ASSOC);
+
+// Fetch Movie Rating
+$movierating_query = "SELECT m.movie_id, m.title AS movie_name, COUNT(wh.movie_id) AS total_views 
+                FROM movies m 
+                LEFT JOIN watch_history wh ON m.movie_id = wh.movie_id 
+                GROUP BY m.movie_id, m.title 
+                ORDER BY total_views DESC";
+$movieratingresult = $conn->query($movierating_query);
+$movierating = $movieratingresult->fetch_all(MYSQLI_ASSOC);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -65,7 +84,7 @@ $total_billing = $total_billing_result->fetch_assoc()['total_billing'];
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHM - Admin Dashboard</title>
+    <title>SHM - User Management</title>
 </head>
 
 <body>
@@ -147,6 +166,32 @@ $total_billing = $total_billing_result->fetch_assoc()['total_billing'];
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="container mt-5">
+        <h2>Analytics Table</h2>
+
+        <h4>Movies Rating</h4>
+
+        <!-- Analytics Table -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Movie Title</th>
+                    <th>Views</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($movierating as $row): ?>
+                    <tr>
+                        <td><?php echo $row['movie_id']; ?></td>
+                        <td><?php echo $row['movie_name']; ?></td>
+                        <td><?php echo $row['total_views']; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </body>
 
