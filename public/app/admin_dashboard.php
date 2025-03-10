@@ -68,8 +68,17 @@ $movierating_query = "SELECT m.movie_id, m.title AS movie_name, COUNT(wh.movie_i
                 LEFT JOIN watch_history wh ON m.movie_id = wh.movie_id 
                 GROUP BY m.movie_id, m.title 
                 ORDER BY total_views DESC";
-$movieratingresult = $conn->query($movierating_query);
-$movierating = $movieratingresult->fetch_all(MYSQLI_ASSOC);
+$movieratingResult = $conn->query($movierating_query);
+$movierating = $movieratingResult->fetch_all(MYSQLI_ASSOC);
+
+$billingsum_query = "SELECT sp.plan_name, COUNT(b.billing_id) AS total_subscriptions, FORMAT(SUM(b.amount), 2) AS total_revenue
+                    FROM billing b
+                    JOIN user_subscription us ON b.user_subscription_id = us.user_subscription_id
+                    JOIN subscription_plan sp ON us.plan_id = sp.plan_id
+                    WHERE b.payment_status = 'Paid'
+                    GROUP BY sp.plan_name";
+$billingsumResult = $conn->query($billingsum_query);
+$billingsum = $billingsumResult->fetch_all(MYSQLI_ASSOC);
 ?>
 
 
@@ -173,7 +182,7 @@ $movierating = $movieratingresult->fetch_all(MYSQLI_ASSOC);
 
         <h4>Movies Rating</h4>
 
-        <!-- Analytics Table -->
+        <!-- Movies Rating -->
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -188,6 +197,28 @@ $movierating = $movieratingresult->fetch_all(MYSQLI_ASSOC);
                         <td><?php echo $row['movie_id']; ?></td>
                         <td><?php echo $row['movie_name']; ?></td>
                         <td><?php echo $row['total_views']; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <h4>Billing Summary</h4>
+
+        <!-- Billing Summary -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Plan Name</th>
+                    <th>Total Subscriptions</th>
+                    <th>Total Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($billingsum as $row): ?>
+                    <tr>
+                        <td><?php echo $row['plan_name']; ?></td>
+                        <td><?php echo $row['total_subscriptions']; ?></td>
+                        <td><?php echo $row['total_revenue']; ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
