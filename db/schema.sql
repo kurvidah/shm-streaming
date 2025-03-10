@@ -5,7 +5,7 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role_id INTEGER DEFAULT 1 REFERENCES roles(role_id),
+    role_id INTEGER DEFAULT 3 REFERENCES roles(role_id),
     gender VARCHAR(50),
     age INTEGER,
     religion VARCHAR(100),
