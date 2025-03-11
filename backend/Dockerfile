@@ -1,29 +1,26 @@
-# Use the official Python runtime image
-FROM python:3.9-slim
- 
-# Create the app directory
-RUN mkdir /app
- 
-# Set the working directory inside the container
+FROM python:3.11-slim
+
 WORKDIR /app
- 
-# Set environment variables 
-# Prevents Python from writing pyc files to disk
-ENV PYTHONDONTWRITEBYTECODE=1
-#Prevents Python from buffering stdout and stderr
-ENV PYTHONUNBUFFERED=1 
- 
-# Upgrade pip
-RUN pip install --upgrade pip 
- 
-# Copy the Django project  and install dependencies
-COPY requirements.txt  /app/
- 
-# run this command to install all dependencies 
+
+# Install system dependencies including pkg-config
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    default-libmysqlclient-dev \
+    python3-dev \
+    mariadb-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
- 
-# Expose the Django port
-EXPOSE 8000
- 
-# Run Django’s development server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# Copy project
+COPY . .
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Run migrations and start server
+CMD ["/start.sh"]
+

@@ -1,70 +1,64 @@
 name: shm-streaming
 
 services:
-  db:
-    container_name: shm_db
-    image: postgres:13
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - shm_db_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - ${DB_PORT}:5432
-
-  backend:
-    container_name: shm_backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend:/app
-    environment:
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: db
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DJANGO_DEBUG: ${DJANGO_DEBUG}
-      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
-    ports:
-      - ${DJANGO_PORT}:8000
-    depends_on:
-      - db
-
   frontend:
-    container_name: shm_frontend
+    container_name: shm-streaming-frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - 3000:3000
+      - "${FRONTEND_PORT:-3000}:3000"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://backend:8000 # Link to backend API
+      - VITE_API_URL=${API_URL:-http://localhost:8000}
     depends_on:
       - backend
+    networks:
+      - shm-network
 
-  pgadmin:
-    container_name: shm_pgadmin
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+  backend:
+    container_name: shm-streaming-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "${PGADMIN_PORT}:80" # pgAdmin will be accessible on port 5050
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DJANGO_DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-your_secret_key}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-shm_db}
+      - DB_USER=${DB_USER:-shm_user}
+      - DB_PASSWORD=${DB_PASSWORD:-shm_password}
     depends_on:
       - db
-    # networks:
-    #   - shmstreaming_net
+    networks:
+      - shm-network
 
-# networks:
-#   shmstreaming_net:
-#     driver: bridge
+  db:
+    container_name: shm-streaming-db
+    image: mariadb:latest
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/2-seed.sql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
+      - MYSQL_DATABASE=${DB_NAME:-shm_db}
+      - MYSQL_USER=${DB_USER:-shm_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-shm_password}
+    networks:
+      - shm-network
+
+networks:
+  shm-network:
+    driver: bridge
 
 volumes:
-  postgres_data: {}
-  shm_db_data: {}
+  mariadb_data:
