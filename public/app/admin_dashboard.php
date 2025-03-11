@@ -63,22 +63,24 @@ $roleResult = $conn->query($roleQuery);
 $roles = $roleResult->fetch_all(MYSQLI_ASSOC);
 
 // Fetch Movie Rating
-$movierating_query = "SELECT m.movie_id, m.title AS movie_name, COUNT(wh.movie_id) AS total_views 
-                FROM movies m 
-                LEFT JOIN watch_history wh ON m.movie_id = wh.movie_id 
-                GROUP BY m.movie_id, m.title 
-                ORDER BY total_views DESC";
-$movieratingResult = $conn->query($movierating_query);
-$movierating = $movieratingResult->fetch_all(MYSQLI_ASSOC);
+$moviesRatingQuery = "SELECT movies.movie_id, movies.title,
+    COUNT(watch_history.movie_id) AS views,
+    AVG(reviews.rating) AS average_rating
+    FROM movies
+    LEFT JOIN watch_history ON movies.movie_id = watch_history.movie_id
+    LEFT JOIN reviews ON movies.movie_id = reviews.movie_id
+    GROUP BY movies.movie_id;";
+$moviesRatingResult = $conn->query($moviesRatingQuery);
+$moviesRating = $moviesRatingResult->fetch_all(MYSQLI_ASSOC);
 
-$billingsum_query = "SELECT sp.plan_name, COUNT(b.billing_id) AS total_subscriptions, FORMAT(SUM(b.amount), 2) AS total_revenue
-                    FROM billing b
-                    JOIN user_subscription us ON b.user_subscription_id = us.user_subscription_id
-                    JOIN subscription_plan sp ON us.plan_id = sp.plan_id
-                    WHERE b.payment_status = 'Paid'
-                    GROUP BY sp.plan_name";
-$billingsumResult = $conn->query($billingsum_query);
-$billingsum = $billingsumResult->fetch_all(MYSQLI_ASSOC);
+$billingSummaryQuery = "SELECT subscription_plan.plan_name, COUNT(*) AS total_subscriptions, FORMAT(SUM(billing.amount), 2) AS total_revenue
+                        FROM billing
+                        JOIN user_subscription ON billing.user_subscription_id = user_subscription.user_subscription_id
+                        JOIN subscription_plan ON user_subscription.plan_id = subscription_plan.plan_id
+                        WHERE billing.payment_status = 'Paid'
+                        GROUP BY subscription_plan.plan_name";
+$billingSummaryResult = $conn->query($billingSummaryQuery);
+$billingSummary = $billingSummaryResult->fetch_all(MYSQLI_ASSOC);
 ?>
 
 
@@ -189,14 +191,16 @@ $billingsum = $billingsumResult->fetch_all(MYSQLI_ASSOC);
                     <th>ID</th>
                     <th>Movie Title</th>
                     <th>Views</th>
+                    <th>Ratings</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($movierating as $row): ?>
+                <?php foreach ($moviesRating as $row): ?>
                     <tr>
                         <td><?php echo $row['movie_id']; ?></td>
-                        <td><?php echo $row['movie_name']; ?></td>
-                        <td><?php echo $row['total_views']; ?></td>
+                        <td><?php echo $row['title']; ?></td>
+                        <td><?php echo $row['views']; ?></td>
+                        <td><?php echo $row['average_rating']; ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -214,7 +218,7 @@ $billingsum = $billingsumResult->fetch_all(MYSQLI_ASSOC);
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($billingsum as $row): ?>
+                <?php foreach ($billingSummary as $row): ?>
                     <tr>
                         <td><?php echo $row['plan_name']; ?></td>
                         <td><?php echo $row['total_subscriptions']; ?></td>
