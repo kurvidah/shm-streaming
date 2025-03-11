@@ -266,27 +266,67 @@ Security protections implemented throughout the admin journey:
 ## 5. Flow Diagram
 
 ```
-[Start] → [Login] → [Enter Credentials] → [Authenticate]
-   │
-   ├── [Success] → [Dashboard] → [Select Section] → [Check Permission]
-   │      │
-   │      ├── [Allowed] → [Section Page (e.g., User Management)]
-   │      │      │
-   │      │      ├── [Add User] → [Fill Form] → [Submit] → [Validate]
-   │      │      │      ├── [Valid] → [Add User] → [Success Message]
-   │      │      │      └── [Invalid] → [Show Errors] → [Correct Form]
-   │      │      │
-   │      │      ├── [Edit User] → [Select User] → [Modify] → [Submit]
-   │      │      │      ├── [Success] → [Update User] → [Success Message]
-   │      │      │      └── [Failure] → [Error Message] → [Retry]
-   │      │      │
-   │      │      └── [Delete User] → [Select User] → [Confirm]
-   │      │             ├── [Confirmed] → [Delete User] → [Confirmation]
-   │      │             └── [Canceled] → [Return to List]
-   │      │
-   │      └── [Denied] → [Access Denied] → [Return to Dashboard]
-   │
-   └── [Failure] → [Error Message] → [Retry Login]
+flowchart TD
+    Start --> Login
+    Login --> EnterCred[Enter Credentials]
+    EnterCred --> Authenticate
+    Authenticate --> Success
+    Authenticate --> Failure
+    
+    Success --> Dashboard
+    Dashboard --> SelectSection[Select Section]
+    SelectSection --> CheckPerm[Check Permission]
+    
+    CheckPerm --> Allowed
+    CheckPerm --> Denied
+    
+    Allowed --> SectionPage[Section Page]
+    SectionPage --> AddUser[Add User]
+    SectionPage --> EditUser[Edit User]
+    SectionPage --> DeleteUser[Delete User]
+    
+    AddUser --> FillForm[Fill Form]
+    FillForm --> Submit1[Submit]
+    Submit1 --> Validate
+    Validate --> Valid
+    Validate --> Invalid
+    
+    Valid --> AddUserAction[Add User]
+    AddUserAction --> SuccessMsg1[Success Message]
+    
+    Invalid --> ShowErrors[Show Errors]
+    ShowErrors --> CorrectForm[Correct Form]
+    CorrectForm --> Submit1
+    
+    EditUser --> SelectUser1[Select User]
+    SelectUser1 --> Modify
+    Modify --> Submit2[Submit]
+    Submit2 --> EditSuccess[Success]
+    Submit2 --> EditFailure[Failure]
+    
+    EditSuccess --> UpdateUser[Update User]
+    UpdateUser --> SuccessMsg2[Success Message]
+    
+    EditFailure --> ErrorMsg[Error Message]
+    ErrorMsg --> Retry
+    Retry --> Modify
+    
+    DeleteUser --> SelectUser2[Select User]
+    SelectUser2 --> Confirm
+    Confirm --> Confirmed
+    Confirm --> Canceled
+    
+    Confirmed --> DeleteUserAction[Delete User]
+    DeleteUserAction --> Confirmation
+    
+    Canceled --> ReturnList[Return to List]
+    
+    Denied --> AccessDenied[Access Denied]
+    AccessDenied --> ReturnDash[Return to Dashboard]
+    
+    Failure --> ErrorMsg2[Error Message]
+    ErrorMsg2 --> RetryLogin[Retry Login]
+    RetryLogin --> Login
 ```
 
 ## 6. Conclusion
