@@ -1,1 +1,33 @@
-.env
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.db
+*.sqlite3
+*.log
+
+# Django
+*.log
+*.pot
+*.pyc
+*.pyo
+__pycache__/
+db.sqlite3
+*.sqlite3
+
+# React
+node_modules/
+build/
+*.log
+
+# Docker
+*.env
+docker-compose.override.yml
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Bun lock file
+bun.lockb
