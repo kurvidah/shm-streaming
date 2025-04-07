@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React from "react";
 
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import { User, Mail, Lock, AlertCircle } from "lucide-react"
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { User, Mail, Lock, AlertCircle } from "lucide-react";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,51 +13,53 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
-  })
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const { register } = useAuth()
-  const navigate = useNavigate()
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validation
     if (!formData.username || !formData.email || !formData.password) {
-      setError("All fields are required")
-      return
+      setError("All fields are required");
+      return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
-      return
+      setError("Passwords do not match");
+      return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long")
-      return
+      setError("Password must be at least 8 characters long");
+      return;
     }
 
     try {
-      setError(null)
-      setLoading(true)
-      await register(formData.username, formData.email, formData.password)
-      navigate("/")
+      setError(null);
+      setLoading(true);
+      await register(formData.username, formData.email, formData.password);
+      navigate("/");
     } catch (err: any) {
-      console.error("Registration error:", err)
-      setError(err.response?.data?.message || "Registration failed. Please try again.")
+      console.error("Registration error:", err);
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4 py-12">
@@ -77,7 +79,10 @@ const Register = () => {
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-gray-400 text-sm font-medium mb-2">
+              <label
+                htmlFor="username"
+                className="block text-gray-400 text-sm font-medium mb-2"
+              >
                 Username
               </label>
               <div className="relative">
@@ -97,7 +102,10 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-gray-400 text-sm font-medium mb-2">
+              <label
+                htmlFor="email"
+                className="block text-gray-400 text-sm font-medium mb-2"
+              >
                 Email
               </label>
               <div className="relative">
@@ -117,7 +125,10 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-gray-400 text-sm font-medium mb-2">
+              <label
+                htmlFor="password"
+                className="block text-gray-400 text-sm font-medium mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -137,7 +148,10 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-gray-400 text-sm font-medium mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-gray-400 text-sm font-medium mb-2"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -162,7 +176,10 @@ const Register = () => {
                 type="checkbox"
                 className="h-4 w-4 bg-gray-700 border-gray-600 rounded text-red-600 focus:ring-red-500"
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-400">
+              <label
+                htmlFor="terms"
+                className="ml-2 block text-sm text-gray-400"
+              >
                 I agree to the{" "}
                 <Link to="#" className="text-red-500 hover:text-red-400">
                   Terms of Service
@@ -201,8 +218,7 @@ const Register = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Register
-
+export default Register;

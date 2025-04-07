@@ -5,6 +5,7 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { Play, Star, Clock, Calendar, Film } from "lucide-react";
+import React from "react";
 
 const MovieDetail = () => {
   const { slug } = useParams<{ slug: string }>();

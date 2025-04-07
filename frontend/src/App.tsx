@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import axios from "axios";
 
 import { Routes, Route, Navigate } from "react-router-dom";

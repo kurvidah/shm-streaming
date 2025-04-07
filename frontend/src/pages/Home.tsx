@@ -1,43 +1,50 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import axios from "axios"
-import HeroSlider from "../components/HeroSlider"
-import MovieCard from "../components/MovieCard"
-import LoadingSpinner from "../components/LoadingSpinner"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import HeroSlider from "../components/HeroSlider";
+import MovieCard from "../components/MovieCard";
+import LoadingSpinner from "../components/LoadingSpinner";
+import React from "react";
 
 const Home = () => {
-  const [featuredMovies, setFeaturedMovies] = useState([])
-  const [recentMovies, setRecentMovies] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [featuredMovies, setFeaturedMovies] = useState([]);
+  const [recentMovies, setRecentMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // Fetch featured movies
-        const featuredResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/movies/featured/`)
-        setFeaturedMovies(featuredResponse.data.results || featuredResponse.data)
+        const featuredResponse = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/movies/featured/`
+        );
+        setFeaturedMovies(
+          featuredResponse.data.results || featuredResponse.data
+        );
 
         // Fetch recent movies
-        const recentResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/movies/recent/`)
-        setRecentMovies(recentResponse.data.results || recentResponse.data)
+        const recentResponse = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/movies/recent/`
+        );
+        setRecentMovies(recentResponse.data.results || recentResponse.data);
 
-        setLoading(false)
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching movies:", err)
-        setError("Failed to load movies")
-        setLoading(false)
+        console.error("Error fetching movies:", err);
+        setError("Failed to load movies");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMovies()
-  }, [])
+    fetchMovies();
+  }, []);
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -46,7 +53,7 @@ const Home = () => {
         <p className="text-red-500 text-xl mb-4">{error}</p>
         <p>Please try again later.</p>
       </div>
-    )
+    );
   }
 
   // For demo purposes, if API doesn't return data
@@ -67,10 +74,11 @@ const Home = () => {
           title: "Inception",
           description:
             "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
-          banner: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
+          banner:
+            "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
           slug: "inception",
         },
-      ]
+      ];
 
   const demoRecentMovies = recentMovies.length
     ? recentMovies
@@ -87,7 +95,8 @@ const Home = () => {
         {
           movie_id: 2,
           title: "Inception",
-          poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
+          poster:
+            "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
           release_year: 2010,
           genre: "Sci-Fi",
           slug: "inception",
@@ -110,7 +119,7 @@ const Home = () => {
           genre: "Crime",
           slug: "pulp-fiction",
         },
-      ]
+      ];
 
   return (
     <div>
@@ -137,8 +146,7 @@ const Home = () => {
         </div>
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default Home
-
+export default Home;
