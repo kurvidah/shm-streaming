@@ -1,70 +1,84 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import axios from "axios"
-import MovieCard from "../components/MovieCard"
-import LoadingSpinner from "../components/LoadingSpinner"
-import { Search } from "lucide-react"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import MovieCard from "../components/MovieCard";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { Search } from "lucide-react";
 
 const Browse = () => {
-  const [movies, setMovies] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [genre, setGenre] = useState("")
-  const [year, setYear] = useState("")
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [genre, setGenre] = useState("");
+  const [year, setYear] = useState("");
 
-  const genres = ["Action", "Comedy", "Drama", "Sci-Fi", "Horror", "Romance", "Thriller", "Animation"]
-  const years = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i)
+  const genres = [
+    "Action",
+    "Comedy",
+    "Drama",
+    "Sci-Fi",
+    "Horror",
+    "Romance",
+    "Thriller",
+    "Animation",
+  ];
+  const years = Array.from(
+    { length: 30 },
+    (_, i) => new Date().getFullYear() - i
+  );
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // Build query parameters
-        const params = new URLSearchParams()
-        if (searchTerm) params.append("search", searchTerm)
-        if (genre) params.append("genre", genre)
-        if (year) params.append("release_year", year)
+        const params = new URLSearchParams();
+        if (searchTerm) params.append("search", searchTerm);
+        if (genre) params.append("genre", genre);
+        if (year) params.append("release_year", year);
 
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/movies/?${params.toString()}`)
-        setMovies(response.data.results || response.data)
-        setLoading(false)
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/movies/?${params.toString()}`
+        );
+        setMovies(response.data.results || response.data);
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching movies:", err)
-        setError("Failed to load movies")
-        setLoading(false)
+        console.error("Error fetching movies:", err);
+        setError("Failed to load movies");
+        setLoading(false);
       }
-    }
+    };
 
     // Debounce search
     const timeoutId = setTimeout(() => {
-      fetchMovies()
-    }, 500)
+      fetchMovies();
+    }, 500);
 
-    return () => clearTimeout(timeoutId)
-  }, [searchTerm, genre, year])
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, genre, year]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
   const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setGenre(e.target.value)
-  }
+    setGenre(e.target.value);
+  };
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setYear(e.target.value)
-  }
+    setYear(e.target.value);
+  };
 
   const resetFilters = () => {
-    setSearchTerm("")
-    setGenre("")
-    setYear("")
-  }
+    setSearchTerm("");
+    setGenre("");
+    setYear("");
+  };
 
   // For demo purposes, if API doesn't return data
   const demoMovies = movies.length
@@ -82,7 +96,8 @@ const Browse = () => {
         {
           movie_id: 2,
           title: "Inception",
-          poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
+          poster:
+            "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
           release_year: 2010,
           genre: "Sci-Fi",
           slug: "inception",
@@ -108,7 +123,8 @@ const Browse = () => {
         {
           movie_id: 5,
           title: "The Dark Knight",
-          poster: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
+          poster:
+            "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
           release_year: 2008,
           genre: "Action",
           slug: "the-dark-knight",
@@ -122,7 +138,7 @@ const Browse = () => {
           genre: "Drama",
           slug: "forrest-gump",
         },
-      ]
+      ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -132,7 +148,10 @@ const Browse = () => {
       <div className="bg-gray-800 rounded-lg p-6 mb-8">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search movies..."
@@ -190,7 +209,9 @@ const Browse = () => {
       ) : (
         <>
           <div className="mb-6 flex justify-between items-center">
-            <h2 className="text-xl font-semibold">{searchTerm || genre || year ? "Search Results" : "All Movies"}</h2>
+            <h2 className="text-xl font-semibold">
+              {searchTerm || genre || year ? "Search Results" : "All Movies"}
+            </h2>
             <p className="text-gray-400">{demoMovies.length} movies found</p>
           </div>
 
@@ -202,8 +223,7 @@ const Browse = () => {
         </>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Browse
-
+export default Browse;

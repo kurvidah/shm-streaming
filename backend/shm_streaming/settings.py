@@ -85,9 +85,9 @@ WSGI_APPLICATION = 'shm_streaming.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'shm_streaming_db'),
-        'USER': os.environ.get('DB_USER', 'shm_streaming_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'shm_streaming_password'),
+        'NAME': os.environ.get('DB_NAME', 'shm_db'),
+        'USER': os.environ.get('DB_USER', 'shm_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'shm_password'),
         'HOST': os.environ.get('DB_HOST', 'db'),
         'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
