@@ -1,36 +1,38 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
-import axios from "axios"
-import LoadingSpinner from "../components/LoadingSpinner"
-import { Play, Star, Clock, Calendar, Film } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import axios from "axios";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { Play, Star, Clock, Calendar, Film } from "lucide-react";
 
 const MovieDetail = () => {
-  const { slug } = useParams<{ slug: string }>()
-  const [movie, setMovie] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { slug } = useParams<{ slug: string }>();
+  const [movie, setMovie] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMovie = async () => {
       try {
-        setLoading(true)
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/movies/${slug}/`)
-        setMovie(response.data)
-        setLoading(false)
+        setLoading(true);
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/movies/${slug}/`
+        );
+        setMovie(response.data);
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching movie:", err)
-        setError("Failed to load movie details")
-        setLoading(false)
+        console.error("Error fetching movie:", err);
+        setError("Failed to load movie details");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMovie()
-  }, [slug])
+    fetchMovie();
+  }, [slug]);
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -41,7 +43,7 @@ const MovieDetail = () => {
           Back to Browse
         </Link>
       </div>
-    )
+    );
   }
 
   // For demo purposes, if API doesn't return data
@@ -75,7 +77,7 @@ const MovieDetail = () => {
         review_date: "2023-02-20T15:45:00Z",
       },
     ],
-  }
+  };
 
   return (
     <div>
@@ -83,14 +85,18 @@ const MovieDetail = () => {
       <div
         className="relative h-[70vh] bg-cover bg-center"
         style={{
-          backgroundImage: `url(${demoMovie.banner || "/placeholder.svg?height=1080&width=1920"})`,
+          backgroundImage: `url(${
+            demoMovie.banner || "/placeholder.svg?height=1080&width=1920"
+          })`,
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent"></div>
 
         <div className="absolute bottom-0 left-0 right-0 p-8">
           <div className="container mx-auto">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{demoMovie.title}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              {demoMovie.title}
+            </h1>
 
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300 mb-6">
               {demoMovie.release_year && (
@@ -114,15 +120,21 @@ const MovieDetail = () => {
                 </div>
               )}
 
-              {demoMovie.rating && <div className="px-2 py-1 bg-gray-800 rounded text-xs">{demoMovie.rating}</div>}
+              {demoMovie.rating && (
+                <div className="px-2 py-1 bg-gray-800 rounded text-xs">
+                  {demoMovie.rating}
+                </div>
+              )}
 
               <div className="flex items-center">
                 <Star size={16} className="mr-1 text-yellow-500" />
                 <span>
                   {demoMovie.reviews && demoMovie.reviews.length > 0
                     ? (
-                        demoMovie.reviews.reduce((acc: number, review: any) => acc + review.rating, 0) /
-                        demoMovie.reviews.length
+                        demoMovie.reviews.reduce(
+                          (acc: number, review: any) => acc + review.rating,
+                          0
+                        ) / demoMovie.reviews.length
                       ).toFixed(1)
                     : "N/A"}
                 </span>
@@ -164,10 +176,15 @@ const MovieDetail = () => {
               {demoMovie.reviews && demoMovie.reviews.length > 0 ? (
                 <div className="space-y-4">
                   {demoMovie.reviews.map((review: any) => (
-                    <div key={review.review_id} className="bg-gray-800 rounded-lg p-4">
+                    <div
+                      key={review.review_id}
+                      className="bg-gray-800 rounded-lg p-4"
+                    >
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center">
-                          <div className="font-semibold">{review.user.username}</div>
+                          <div className="font-semibold">
+                            {review.user.username}
+                          </div>
                           <div className="ml-2 text-gray-400 text-sm">
                             {new Date(review.review_date).toLocaleDateString()}
                           </div>
@@ -177,7 +194,11 @@ const MovieDetail = () => {
                             <Star
                               key={i}
                               size={16}
-                              className={i < review.rating ? "text-yellow-500" : "text-gray-600"}
+                              className={
+                                i < review.rating
+                                  ? "text-yellow-500"
+                                  : "text-gray-600"
+                              }
                               fill={i < review.rating ? "currentColor" : "none"}
                             />
                           ))}
@@ -195,8 +216,7 @@ const MovieDetail = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MovieDetail
-
+export default MovieDetail;
