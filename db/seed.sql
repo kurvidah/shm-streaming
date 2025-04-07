@@ -1,11 +1,4 @@
-USE shmdb;
-
--- Insert sample users
-INSERT INTO users (user_id, username, email, password, role_id, gender, age, religion, created_at)
-VALUES
-(1, 'admin', 'admin@shm.app', '$2y$10$DIRJgsc.nuXFW3Z7xBMPiO3ZHuvctx/Kp1QbSYaz4sAu.djwNXGmO', 1, NULL, NULL, NULL, '2025-01-01 00:00:00'),
-(2, 'mod', 'mod@shm.app', '$2y$10$p/wXLYeKnDtcb2LqoQJA6OLJq/mXO.CmfDKx67NCPq6tO7gR0AVN2 ', 2, NULL, NULL, NULL, '2025-02-20 12:30:00'),
-(3, 'bob_jones', 'bob.jones@example.com', 'password123', 3, 'Male', 35, 'Hindu', '2025-01-15 08:00:00');
+USE shm_db;
 
 -- Insert sample roles
 INSERT INTO roles (role_id, role_name)
@@ -13,6 +6,13 @@ VALUES
 (1, 'Admin'),
 (2, 'Moderator'),
 (3, 'User');
+
+-- Insert sample users
+INSERT INTO users (user_id, username, email, password, role_id, gender, age, religion, created_at)
+VALUES
+(1, 'admin', 'admin@shm.app', '$2y$10$DIRJgsc.nuXFW3Z7xBMPiO3ZHuvctx/Kp1QbSYaz4sAu.djwNXGmO', 1, NULL, NULL, NULL, '2025-01-01 00:00:00'),
+(2, 'mod', 'mod@shm.app', '$2y$10$p/wXLYeKnDtcb2LqoQJA6OLJq/mXO.CmfDKx67NCPq6tO7gR0AVN2', 2, NULL, NULL, NULL, '2025-02-20 12:30:00'),
+(3, 'bob_jones', 'bob.jones@example.com', 'password123', 3, 'Male', 35, 'Hindu', '2025-01-15 08:00:00');
 
 -- Insert sample subscription plans
 INSERT INTO subscription_plan (plan_id, plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days)

@@ -1,4 +1,9 @@
-USE shmdb;
+USE shm_db;
+
+CREATE TABLE roles (
+    role_id INTEGER PRIMARY KEY,
+    role_name VARCHAR(100) NOT NULL
+);
 
 CREATE TABLE users (
     user_id INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -10,11 +15,6 @@ CREATE TABLE users (
     age INTEGER,
     religion VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE roles (
-    role_id INTEGER PRIMARY KEY,
-    role_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE subscription_plan (

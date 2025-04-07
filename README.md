@@ -1,163 +1,139 @@
-# SHM-streaming
+# SHM Streaming
 
----
+SHM Streaming is a full-stack streaming platform that allows users to browse, watch, and manage their subscriptions for movies and TV shows. The platform includes user and admin functionalities, such as content management, subscription management, and billing.
 
-# Project Setup
+## Features
 
-This project uses **Docker** to containerize a PHP application with a MySQL database. It includes automated setup scripts to manage environment variables, MySQL schema, seed data, and the container lifecycle.
+### Frontend
 
----
+- **User Features**:
 
-## Prerequisites
+  - Browse movies and TV shows.
+  - Watch content with a built-in video player.
+  - Manage subscriptions, watch history, and registered devices.
+  - User authentication (login, registration, and profile management).
 
-Before setting up the project, ensure you have the following tools installed:
+- **Admin Features**:
+  - Manage users, movies, and subscriptions.
+  - View and process billing information.
+  - Moderate user reviews and manage content availability.
 
-- [Docker](https://www.docker.com/products/docker-desktop) (with Docker Compose)
-- [Git](https://git-scm.com/downloads)
+### Backend
 
----
+- **API**:
 
-## Setup Instructions
+  - RESTful API for user and admin operations.
+  - Secure endpoints for authentication and authorization.
+  - Handles subscription plans, billing, and user data.
 
-### 1. Clone the repository
+- **Database**:
+  - Relational database schema for users, subscriptions, movies, and billing.
+  - Pre-seeded data for testing and development.
 
-```bash
-git clone https://github.com/Kurvidah/shm-streaming.git
-cd shm-streaming
+## Tech Stack
+
+### Frontend
+
+- **Framework**: React with TypeScript
+- **Routing**: React Router
+- **Styling**: Tailwind CSS
+- **State Management**: Context API
+- **Video Playback**: HLS.js and React Player
+
+### Backend
+
+- **Framework**: Django with Django REST Framework
+- **Database**: MySQL
+- **Authentication**: Token-based authentication
+
+### DevOps
+
+- **Containerization**: Docker and Docker Compose
+- **Environment Management**: `.env` files for configuration
+- **Build Tools**: Vite for frontend
+
+## Installation
+
+### Prerequisites
+
+- Docker and Docker Compose installed.
+- Node.js and npm installed (for local frontend development).
+
+### Setup
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-repo/shm-streaming.git
+   cd shm-streaming
+   ```
+
+2. Create a `.env` file in the root directory based on `.env.example`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Run the setup script:
+
+- For MacOS/Linux
+  ```bash
+  ./setup.sh
+  ```
+- For Windows
+  ```bash
+  ./setup.bat
+  ```
+
+4. Access the application:
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend API: [http://localhost:8000/api/](http://localhost:8000/api/)
+   - Admin Panel: [http://localhost:8000/admin/](http://localhost:8000/admin/)
+
+## Usage
+
+### Frontend
+
+- Start the development server:
+  ```bash
+  cd frontend
+  npm install
+  npm run dev
+  ```
+
+### Backend
+
+- Run the Django development server:
+  ```bash
+  cd backend
+  python manage.py runserver
+  ```
+
+### Database
+
+- MySQL is used as the database. The schema and seed data are located in the `db` directory:
+  - `schema.sql`: Defines the database structure.
+  - `seed.sql`: Inserts sample data for testing.
+
+## Project Structure
+
 ```
-
-### 2. Configure `.env` file
-
-The project uses a `.env` file for configuration. If the `.env` file does not exist, the setup script will automatically copy the `.env.example` file and prompt you to update it.
-
-#### Example `.env` content:
-
-```ini
-DB_HOST=db
-DB_NAME=mydatabase
-DB_USER=myuser
-DB_PASS=mypassword
-DB_ROOT_PASS=rootpassword
-
-PORT=8080
-PMA_PORT=8081
+shm-streaming/
+├── backend/                # Django backend
+├── db/                     # Database schema and seed files
+├── frontend/               # React frontend
+├── .env                    # Environment variables
+├── docker-compose.yml      # Docker Compose configuration
+├── setup.sh                # Setup script
+└── README.md               # Project documentation
 ```
-
-- **DB_HOST**: MySQL container name (usually `db`)
-- **DB_NAME**: Database name (e.g., `mydatabase`)
-- **DB_USER**: MySQL user for the application
-- **DB_PASS**: Password for the MySQL user
-- **DB_ROOT_PASS**: Root password for MySQL
-- **PORT**: The port on which the PHP app will run (default: `8080`)
-- **PMA_PORT**: The port on which phpMyAdmin will be accessible (default: `8081`)
-
-You can manually edit the `.env` file or use the provided `setup.sh` or `setup.bat` to automatically copy it from `.env.example`.
-
-### 3. Run the setup script
-
-#### For **Linux/macOS**:
-Use the `setup.sh` script to start the project:
-
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-#### For **Windows**:
-Run the `setup.bat` script by double-clicking it or executing it in Command Prompt:
-
-```cmd
-setup.bat
-```
-
-The script will:
-
-- **Check if Docker is running**.
-- **Create the `.env` file** from `.env.example` if it doesn't already exist.
-- **Stop and remove any existing containers**.
-- **Clear the MySQL data volume**.
-- **Rebuild and start the containers**.
-- **Show the URLs** for accessing the app and phpMyAdmin.
-
----
-
-## Containerized Services
-
-### 1. **PHP Application**
-
-Once the containers are up and running, the PHP app will be available at:
-
-```
-http://localhost:8080
-```
-
-### 2. **phpMyAdmin**
-
-phpMyAdmin will be available for managing the MySQL database at:
-
-```
-http://localhost:8081
-```
-
----
-
-## Database Setup
-
-The MySQL container will automatically:
-
-1. **Create the database** from the `schema.sql` file.
-2. **Populate it with seed data** from the `seed.sql` file.
-
-Both the `schema.sql` and `seed.sql` files are located in the `db/` directory and are executed when the MySQL container starts for the first time.
-
----
-
-## Troubleshooting
-
-### Docker is not running
-
-Ensure that **Docker Desktop** is running on your machine. You can verify this by running the following command:
-
-```bash
-docker info
-```
-
-If Docker is not running, start Docker Desktop and try running the setup script again.
-
-### Containers are not starting correctly
-
-To troubleshoot, view the logs of a specific container by running:
-
-```bash
-docker-compose logs <container_name>
-```
-
-Replace `<container_name>` with the name of the container, e.g., `mysql_db` or `php_app`.
-
----
-
-## Customizing the Setup
-
-You can modify the following files to change the default configuration:
-
-- **`docker-compose.yml`**: Modify this file to adjust services, volumes, and other settings.
-- **`db/schema.sql`**: Add or modify database schema and table definitions.
-- **`db/seed.sql`**: Customize initial data inserted into the database.
-
----
-
-## Stopping the Containers
-
-To stop and remove the containers, run the following:
-
-```bash
-docker-compose down
-```
-
----
 
 ## Contributing
 
-If you'd like to contribute to the project, feel free to fork the repository and submit pull requests. Please make sure your code passes the basic tests and adheres to the project’s coding standards.
-
----
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix:
+   ```bash
+   git checkout -b feature-name
+   ```
+3. Commit your changes and push to your fork.
+4. Submit a pull request.
