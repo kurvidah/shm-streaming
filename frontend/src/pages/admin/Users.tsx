@@ -1,22 +1,31 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React from "react";
 
-import { useState, useEffect } from "react"
-import AdminSidebar from "../../components/AdminSidebar"
-import LoadingSpinner from "../../components/LoadingSpinner"
-import { Search, Edit, Trash2, UserPlus, MoreHorizontal } from "lucide-react"
+import { useState, useEffect } from "react";
+import AdminSidebar from "../../components/AdminSidebar";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { Search, Edit, Trash2, UserPlus, MoreHorizontal } from "lucide-react";
 
 const AdminUsers = () => {
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [users, setUsers] = useState<
+    {
+      user_id: number;
+      username: string;
+      email: string;
+      role: string;
+      subscription: string;
+      created_at: string;
+    }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         // In a real app, you would fetch this data from your API
         // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users/`);
         // setUsers(response.data);
@@ -64,29 +73,29 @@ const AdminUsers = () => {
               subscription: "Standard",
               created_at: "2025-02-28",
             },
-          ])
-          setLoading(false)
-        }, 1000)
+          ]);
+          setLoading(false);
+        }, 1000);
       } catch (err) {
-        console.error("Error fetching users:", err)
-        setError("Failed to load users")
-        setLoading(false)
+        console.error("Error fetching users:", err);
+        setError("Failed to load users");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
   const filteredUsers = users.filter(
     (user: any) =>
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex">
@@ -105,7 +114,10 @@ const AdminUsers = () => {
         {/* Search */}
         <div className="mb-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search users..."
@@ -119,7 +131,9 @@ const AdminUsers = () => {
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
-          <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">{error}</div>
+          <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">
+            {error}
+          </div>
         ) : (
           <div className="bg-gray-800 rounded-lg overflow-hidden">
             <table className="w-full">
@@ -148,7 +162,9 @@ const AdminUsers = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="font-medium">{user.username}</div>
-                        <div className="text-sm text-gray-400">{user.email}</div>
+                        <div className="text-sm text-gray-400">
+                          {user.email}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -157,8 +173,8 @@ const AdminUsers = () => {
                           user.role === "Admin"
                             ? "bg-red-500/20 text-red-500"
                             : user.role === "Moderator"
-                              ? "bg-blue-500/20 text-blue-500"
-                              : "bg-gray-500/20 text-gray-300"
+                            ? "bg-blue-500/20 text-blue-500"
+                            : "bg-gray-500/20 text-gray-300"
                         }`}
                       >
                         {user.role}
@@ -170,14 +186,16 @@ const AdminUsers = () => {
                           user.subscription === "Premium"
                             ? "bg-purple-500/20 text-purple-500"
                             : user.subscription === "Standard"
-                              ? "bg-green-500/20 text-green-500"
-                              : "bg-yellow-500/20 text-yellow-500"
+                            ? "bg-green-500/20 text-green-500"
+                            : "bg-yellow-500/20 text-yellow-500"
                         }`}
                       >
                         {user.subscription}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-400">{user.created_at}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-400">
+                      {user.created_at}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex justify-end space-x-2">
                         <button className="p-1 text-gray-400 hover:text-blue-500">
@@ -199,8 +217,7 @@ const AdminUsers = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminUsers
-
+export default AdminUsers;

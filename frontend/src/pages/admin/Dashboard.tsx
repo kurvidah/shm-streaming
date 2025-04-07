@@ -1,20 +1,21 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import AdminSidebar from "../../components/AdminSidebar"
-import StatCard from "../../components/StatCard"
-import LoadingSpinner from "../../components/LoadingSpinner"
-import { Users, Film, CreditCard, TrendingUp } from "lucide-react"
+import { useState, useEffect } from "react";
+import AdminSidebar from "../../components/AdminSidebar";
+import StatCard from "../../components/StatCard";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { Users, Film, CreditCard, TrendingUp } from "lucide-react";
+import React from "react";
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         // In a real app, you would fetch this data from your API
         // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/stats/`);
         // setStats(response.data);
@@ -30,18 +31,18 @@ const AdminDashboard = () => {
             revenue: "$12,458",
             revenueChange: "8.2%",
             positiveRevenue: true,
-          })
-          setLoading(false)
-        }, 1000)
+          });
+          setLoading(false);
+        }, 1000);
       } catch (err) {
-        console.error("Error fetching stats:", err)
-        setError("Failed to load dashboard statistics")
-        setLoading(false)
+        console.error("Error fetching stats:", err);
+        setError("Failed to load dashboard statistics");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchStats()
-  }, [])
+    fetchStats();
+  }, []);
 
   return (
     <div className="flex">
@@ -53,7 +54,9 @@ const AdminDashboard = () => {
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
-          <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">{error}</div>
+          <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">
+            {error}
+          </div>
         ) : (
           <>
             {/* Stats Cards */}
@@ -100,7 +103,9 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <p className="font-medium">New user registered</p>
-                    <p className="text-sm text-gray-400">john_doe@example.com</p>
+                    <p className="text-sm text-gray-400">
+                      john_doe@example.com
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
                   </div>
                 </div>
@@ -111,7 +116,9 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <p className="font-medium">New movie added</p>
-                    <p className="text-sm text-gray-400">The Shawshank Redemption</p>
+                    <p className="text-sm text-gray-400">
+                      The Shawshank Redemption
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">5 hours ago</p>
                   </div>
                 </div>
@@ -122,7 +129,9 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <p className="font-medium">New subscription</p>
-                    <p className="text-sm text-gray-400">Premium Plan - jane_smith@example.com</p>
+                    <p className="text-sm text-gray-400">
+                      Premium Plan - jane_smith@example.com
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">1 day ago</p>
                   </div>
                 </div>
@@ -139,7 +148,10 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">42%</p>
                     <div className="w-2/3 bg-gray-600 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "42%" }}></div>
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{ width: "42%" }}
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -149,7 +161,10 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">68%</p>
                     <div className="w-2/3 bg-gray-600 rounded-full h-2">
-                      <div className="bg-yellow-500 h-2 rounded-full" style={{ width: "68%" }}></div>
+                      <div
+                        className="bg-yellow-500 h-2 rounded-full"
+                        style={{ width: "68%" }}
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -159,7 +174,10 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">23%</p>
                     <div className="w-2/3 bg-gray-600 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "23%" }}></div>
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{ width: "23%" }}
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -169,8 +187,7 @@ const AdminDashboard = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminDashboard
-
+export default AdminDashboard;

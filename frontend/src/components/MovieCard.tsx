@@ -1,14 +1,15 @@
-import { Link } from "react-router-dom"
+import React from "react";
+import { Link } from "react-router-dom";
 
 interface MovieCardProps {
   movie: {
-    movie_id: number
-    title: string
-    poster: string
-    release_year: number
-    genre: string
-    slug: string
-  }
+    movie_id: number;
+    title: string;
+    poster: string;
+    release_year: number;
+    genre: string;
+    slug: string;
+  };
 }
 
 const MovieCard = ({ movie }: MovieCardProps) => {
@@ -32,8 +33,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
         </div>
       </div>
     </Link>
-  )
-}
+  );
+};
 
-export default MovieCard
-
+export default MovieCard;

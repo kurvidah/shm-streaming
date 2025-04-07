@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { Link } from "react-router-dom"
-import { useState } from "react"
-import { useAuth } from "../context/AuthContext"
+import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <nav className="bg-black py-4 px-6 shadow-md">
@@ -20,7 +20,10 @@ const Navbar = () => {
           <Link to="/" className="text-white hover:text-red-500 transition">
             Home
           </Link>
-          <Link to="/browse" className="text-white hover:text-red-500 transition">
+          <Link
+            to="/browse"
+            className="text-white hover:text-red-500 transition"
+          >
             Browse
           </Link>
 
@@ -38,7 +41,12 @@ const Navbar = () => {
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
                 </svg>
               </button>
 
@@ -76,8 +84,8 @@ const Navbar = () => {
                   )}
                   <button
                     onClick={() => {
-                      logout()
-                      setIsMenuOpen(false)
+                      logout();
+                      setIsMenuOpen(false);
                     }}
                     className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700 transition"
                   >
@@ -88,10 +96,16 @@ const Navbar = () => {
             </div>
           ) : (
             <div className="flex items-center space-x-4">
-              <Link to="/login" className="text-white hover:text-red-500 transition">
+              <Link
+                to="/login"
+                className="text-white hover:text-red-500 transition"
+              >
                 Login
               </Link>
-              <Link to="/register" className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+              <Link
+                to="/register"
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+              >
                 Sign Up
               </Link>
             </div>
@@ -99,7 +113,10 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation Toggle */}
-        <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <button
+          className="md:hidden text-white"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
           <svg
             className="w-6 h-6"
             fill="none"
@@ -107,7 +124,12 @@ const Navbar = () => {
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
           </svg>
         </button>
       </div>
@@ -164,8 +186,8 @@ const Navbar = () => {
               )}
               <button
                 onClick={() => {
-                  logout()
-                  setIsMenuOpen(false)
+                  logout();
+                  setIsMenuOpen(false);
                 }}
                 className="block w-full text-left py-2 text-white hover:text-red-500 transition"
               >
@@ -193,8 +215,7 @@ const Navbar = () => {
         </div>
       )}
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
-
+export default Navbar;

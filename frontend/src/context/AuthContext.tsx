@@ -1,6 +1,6 @@
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
   useState,
@@ -11,6 +11,7 @@ import axios from "axios";
 
 // Set a fallback API URL if the environment variable is not defined
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const SECRET_KEY = import.meta.env.DJANGO_SECRET_KEY;
 
 interface User {
   id: number;
@@ -41,12 +42,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
-      const token = localStorage.getItem("token");
-
-      if (token) {
+      if (SECRET_KEY) {
         try {
           // Set default auth header for all requests
-          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          axios.defaults.headers.common["Authorization"] = SECRET_KEY;
 
           // For demo purposes, simulate a successful auth check
           // In a real app, you would make an API call
@@ -60,7 +59,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         } catch (err) {
           console.error("Auth check failed:", err);
-          localStorage.removeItem("token");
           delete axios.defaults.headers.common["Authorization"];
         }
       }
@@ -89,10 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: email,
       };
 
-      const mockToken = "mock-jwt-token";
-
-      localStorage.setItem("token", mockToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${mockToken}`;
+      axios.defaults.headers.common["Authorization"] = SECRET_KEY;
       setUser(mockUser);
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");
@@ -123,10 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: email,
       };
 
-      const mockToken = "mock-jwt-token";
-
-      localStorage.setItem("token", mockToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${mockToken}`;
+      axios.defaults.headers.common["Authorization"] = SECRET_KEY;
       setUser(mockUser);
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed");
@@ -135,7 +127,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
     delete axios.defaults.headers.common["Authorization"];
     setUser(null);
   };

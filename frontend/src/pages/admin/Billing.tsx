@@ -1,37 +1,45 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React from "react";
 
-import { useState, useEffect } from "react"
-import AdminSidebar from "../../components/AdminSidebar"
-import LoadingSpinner from "../../components/LoadingSpinner"
-import { Search, Download, AlertCircle, Filter, Calendar, CreditCard, DollarSign } from "lucide-react"
+import { useState, useEffect } from "react";
+import AdminSidebar from "../../components/AdminSidebar";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import {
+  Search,
+  Download,
+  AlertCircle,
+  Filter,
+  Calendar,
+  CreditCard,
+  DollarSign,
+} from "lucide-react";
 
 interface BillingRecord {
-  billing_id: number
+  billing_id: number;
   user: {
-    username: string
-    email: string
-  }
-  plan_name: string
-  amount: number
-  payment_method: string
-  payment_date: string
-  due_date: string
-  payment_status: string
+    username: string;
+    email: string;
+  };
+  plan_name: string;
+  amount: number;
+  payment_method: string;
+  payment_date: string;
+  due_date: string;
+  payment_status: string;
 }
 
 const AdminBilling = () => {
-  const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const fetchBillingRecords = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // In a real app, you would fetch this data from your API
         // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/billing/`);
@@ -105,64 +113,66 @@ const AdminBilling = () => {
               due_date: "2025-03-15T09:15:00Z",
               payment_status: "Failed",
             },
-          ])
-          setLoading(false)
-        }, 1000)
+          ]);
+          setLoading(false);
+        }, 1000);
       } catch (err) {
-        console.error("Error fetching billing records:", err)
-        setError("Failed to load billing records")
-        setLoading(false)
+        console.error("Error fetching billing records:", err);
+        setError("Failed to load billing records");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchBillingRecords()
-  }, [])
+    fetchBillingRecords();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
   const handleStatusFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value)
-  }
+    setStatusFilter(e.target.value);
+  };
 
   const filteredRecords = billingRecords.filter((record) => {
     const matchesSearch =
       record.user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.plan_name.toLowerCase().includes(searchTerm.toLowerCase())
+      record.plan_name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || record.payment_status.toLowerCase() === statusFilter.toLowerCase()
+    const matchesStatus =
+      statusFilter === "all" ||
+      record.payment_status.toLowerCase() === statusFilter.toLowerCase();
 
-    return matchesSearch && matchesStatus
-  })
+    return matchesSearch && matchesStatus;
+  });
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "paid":
-        return "bg-green-500/20 text-green-500"
+        return "bg-green-500/20 text-green-500";
       case "unpaid":
-        return "bg-yellow-500/20 text-yellow-500"
+        return "bg-yellow-500/20 text-yellow-500";
       case "failed":
-        return "bg-red-500/20 text-red-500"
+        return "bg-red-500/20 text-red-500";
       default:
-        return "bg-gray-500/20 text-gray-400"
+        return "bg-gray-500/20 text-gray-400";
     }
-  }
+  };
 
   // Calculate total revenue
   const totalRevenue = billingRecords
     .filter((record) => record.payment_status.toLowerCase() === "paid")
-    .reduce((sum, record) => sum + record.amount, 0)
+    .reduce((sum, record) => sum + record.amount, 0);
 
   return (
     <div className="flex">
@@ -184,7 +194,9 @@ const AdminBilling = () => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-gray-400 text-sm">Total Revenue</p>
-                <h3 className="text-2xl font-bold mt-1">${totalRevenue.toFixed(2)}</h3>
+                <h3 className="text-2xl font-bold mt-1">
+                  ${totalRevenue.toFixed(2)}
+                </h3>
               </div>
               <div className="bg-green-500/20 p-3 rounded-lg">
                 <DollarSign size={24} className="text-green-500" />
@@ -197,7 +209,11 @@ const AdminBilling = () => {
               <div>
                 <p className="text-gray-400 text-sm">Paid Invoices</p>
                 <h3 className="text-2xl font-bold mt-1">
-                  {billingRecords.filter((r) => r.payment_status.toLowerCase() === "paid").length}
+                  {
+                    billingRecords.filter(
+                      (r) => r.payment_status.toLowerCase() === "paid"
+                    ).length
+                  }
                 </h3>
               </div>
               <div className="bg-blue-500/20 p-3 rounded-lg">
@@ -211,7 +227,11 @@ const AdminBilling = () => {
               <div>
                 <p className="text-gray-400 text-sm">Pending Invoices</p>
                 <h3 className="text-2xl font-bold mt-1">
-                  {billingRecords.filter((r) => r.payment_status.toLowerCase() === "unpaid").length}
+                  {
+                    billingRecords.filter(
+                      (r) => r.payment_status.toLowerCase() === "unpaid"
+                    ).length
+                  }
                 </h3>
               </div>
               <div className="bg-yellow-500/20 p-3 rounded-lg">
@@ -225,7 +245,11 @@ const AdminBilling = () => {
               <div>
                 <p className="text-gray-400 text-sm">Failed Payments</p>
                 <h3 className="text-2xl font-bold mt-1">
-                  {billingRecords.filter((r) => r.payment_status.toLowerCase() === "failed").length}
+                  {
+                    billingRecords.filter(
+                      (r) => r.payment_status.toLowerCase() === "failed"
+                    ).length
+                  }
                 </h3>
               </div>
               <div className="bg-red-500/20 p-3 rounded-lg">
@@ -238,7 +262,10 @@ const AdminBilling = () => {
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search by user or plan..."
@@ -250,7 +277,10 @@ const AdminBilling = () => {
 
           <div className="md:w-64">
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Filter
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <select
                 className="w-full bg-gray-800 text-white rounded-lg pl-10 pr-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-red-500"
                 value={statusFilter}
@@ -302,16 +332,32 @@ const AdminBilling = () => {
                   <tr key={record.billing_id} className="hover:bg-gray-750">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="font-medium">{record.user.username}</div>
-                        <div className="text-sm text-gray-400">{record.user.email}</div>
+                        <div className="font-medium">
+                          {record.user.username}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {record.user.email}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{record.plan_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">${record.amount.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{record.payment_method}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(record.due_date)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(record.payment_status)}`}>
+                      {record.plan_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      ${record.amount.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {record.payment_method}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {formatDate(record.due_date)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                          record.payment_status
+                        )}`}
+                      >
                         {record.payment_status}
                       </span>
                     </td>
@@ -323,8 +369,7 @@ const AdminBilling = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminBilling
-
+export default AdminBilling;

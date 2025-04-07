@@ -1,22 +1,32 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React from "react";
 
-import { useState, useEffect } from "react"
-import AdminSidebar from "../../components/AdminSidebar"
-import LoadingSpinner from "../../components/LoadingSpinner"
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react"
+import { useState, useEffect } from "react";
+import AdminSidebar from "../../components/AdminSidebar";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 
 const AdminMovies = () => {
-  const [movies, setMovies] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [movies, setMovies] = useState<
+    {
+      movie_id: number;
+      title: string;
+      poster: string;
+      release_year: number;
+      genre: string;
+      is_available: boolean;
+      slug: string;
+    }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         // In a real app, you would fetch this data from your API
         // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/movies/`);
         // setMovies(response.data);
@@ -37,7 +47,8 @@ const AdminMovies = () => {
             {
               movie_id: 2,
               title: "Inception",
-              poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
+              poster:
+                "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
               release_year: 2010,
               genre: "Sci-Fi",
               is_available: true,
@@ -66,34 +77,35 @@ const AdminMovies = () => {
             {
               movie_id: 5,
               title: "The Dark Knight",
-              poster: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
+              poster:
+                "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
               release_year: 2008,
               genre: "Action",
               is_available: true,
               slug: "the-dark-knight",
             },
-          ])
-          setLoading(false)
-        }, 1000)
+          ]);
+          setLoading(false);
+        }, 1000);
       } catch (err) {
-        console.error("Error fetching movies:", err)
-        setError("Failed to load movies")
-        setLoading(false)
+        console.error("Error fetching movies:", err);
+        setError("Failed to load movies");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMovies()
-  }, [])
+    fetchMovies();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
   const filteredMovies = movies.filter(
     (movie: any) =>
       movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      movie.genre.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex">
@@ -112,7 +124,10 @@ const AdminMovies = () => {
         {/* Search */}
         <div className="mb-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search movies..."
@@ -126,7 +141,9 @@ const AdminMovies = () => {
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
-          <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">{error}</div>
+          <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4">
+            {error}
+          </div>
         ) : (
           <div className="bg-gray-800 rounded-lg overflow-hidden">
             <table className="w-full">
@@ -162,12 +179,18 @@ const AdminMovies = () => {
                         <div className="font-medium">{movie.title}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{movie.release_year}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{movie.genre}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {movie.release_year}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {movie.genre}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          movie.is_available ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
+                          movie.is_available
+                            ? "bg-green-500/20 text-green-500"
+                            : "bg-red-500/20 text-red-500"
                         }`}
                       >
                         {movie.is_available ? "Available" : "Unavailable"}
@@ -194,8 +217,7 @@ const AdminMovies = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminMovies
-
+export default AdminMovies;

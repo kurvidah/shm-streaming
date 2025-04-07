@@ -1,11 +1,12 @@
-import type { ReactNode } from "react"
+import type { ReactNode } from "react";
+import React from "react";
 
 interface StatCardProps {
-  title: string
-  value: string | number
-  icon: ReactNode
-  change?: string
-  positive?: boolean
+  title: string;
+  value: string | number;
+  icon: ReactNode;
+  change?: string;
+  positive?: boolean;
 }
 
 const StatCard = ({ title, value, icon, change, positive }: StatCardProps) => {
@@ -17,7 +18,11 @@ const StatCard = ({ title, value, icon, change, positive }: StatCardProps) => {
           <h3 className="text-2xl font-bold mt-1">{value}</h3>
 
           {change && (
-            <p className={`text-xs mt-2 flex items-center ${positive ? "text-green-500" : "text-red-500"}`}>
+            <p
+              className={`text-xs mt-2 flex items-center ${
+                positive ? "text-green-500" : "text-red-500"
+              }`}
+            >
               {positive ? "↑" : "↓"} {change}
             </p>
           )}
@@ -26,8 +31,7 @@ const StatCard = ({ title, value, icon, change, positive }: StatCardProps) => {
         <div className="bg-gray-700 p-3 rounded-lg">{icon}</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default StatCard
-
+export default StatCard;

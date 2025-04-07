@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom"
+import React from "react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -6,12 +7,18 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-white text-lg font-semibold mb-4">SHM Streaming</h3>
-            <p className="text-sm">Your premium streaming service for movies and TV shows.</p>
+            <h3 className="text-white text-lg font-semibold mb-4">
+              SHM Streaming
+            </h3>
+            <p className="text-sm">
+              Your premium streaming service for movies and TV shows.
+            </p>
           </div>
 
           <div>
-            <h4 className="text-white text-md font-semibold mb-4">Navigation</h4>
+            <h4 className="text-white text-md font-semibold mb-4">
+              Navigation
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/" className="hover:text-white transition">
@@ -67,12 +74,14 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-6 text-sm text-center">
-          <p>&copy; {new Date().getFullYear()} SHM Streaming. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} SHM Streaming. All rights
+            reserved.
+          </p>
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
-
+export default Footer;

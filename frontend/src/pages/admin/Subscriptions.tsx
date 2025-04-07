@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React from "react";
 
-import { useState, useEffect } from "react"
-import AdminSidebar from "../../components/AdminSidebar"
-import LoadingSpinner from "../../components/LoadingSpinner"
-import { Plus, Edit, Trash2, AlertCircle, Search } from "lucide-react"
+import { useState, useEffect } from "react";
+import AdminSidebar from "../../components/AdminSidebar";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { Plus, Edit, Trash2, AlertCircle, Search } from "lucide-react";
 
 interface SubscriptionPlan {
-  plan_id: number
-  plan_name: string
-  price: number
-  max_devices: number
-  hd_available: boolean
-  ultra_hd_available: boolean
-  duration_days: number
+  plan_id: number;
+  plan_name: string;
+  price: number;
+  max_devices: number;
+  hd_available: boolean;
+  ultra_hd_available: boolean;
+  duration_days: number;
 }
 
 const AdminSubscriptions = () => {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchSubscriptionPlans = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // In a real app, you would fetch this data from your API
         // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/subscription-plans/`);
@@ -80,24 +80,26 @@ const AdminSubscriptions = () => {
               ultra_hd_available: false,
               duration_days: 365,
             },
-          ])
-          setLoading(false)
-        }, 1000)
+          ]);
+          setLoading(false);
+        }, 1000);
       } catch (err) {
-        console.error("Error fetching subscription plans:", err)
-        setError("Failed to load subscription plans")
-        setLoading(false)
+        console.error("Error fetching subscription plans:", err);
+        setError("Failed to load subscription plans");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchSubscriptionPlans()
-  }, [])
+    fetchSubscriptionPlans();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
-  const filteredPlans = plans.filter((plan) => plan.plan_name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredPlans = plans.filter((plan) =>
+    plan.plan_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex">
@@ -116,7 +118,10 @@ const AdminSubscriptions = () => {
         {/* Search */}
         <div className="mb-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search plans..."
@@ -165,8 +170,12 @@ const AdminSubscriptions = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium">{plan.plan_name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">${plan.price.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{plan.max_devices}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      ${plan.price.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {plan.max_devices}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex space-x-2">
                         <span className="px-2 py-1 bg-blue-500/20 text-blue-500 rounded-full text-xs">
@@ -177,7 +186,9 @@ const AdminSubscriptions = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{plan.duration_days === 30 ? "Monthly" : "Annual"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {plan.duration_days === 30 ? "Monthly" : "Annual"}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex justify-end space-x-2">
                         <button className="p-1 text-gray-400 hover:text-blue-500">
@@ -217,8 +228,7 @@ const AdminSubscriptions = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminSubscriptions
-
+export default AdminSubscriptions;
