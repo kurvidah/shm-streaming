@@ -16,6 +16,9 @@ const UserProfile = () => {
     email: "",
     firstName: "",
     lastName: "",
+    gender: "",
+    age: "",
+    region: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -33,8 +36,11 @@ const UserProfile = () => {
     }
   }, [user])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+    if (name === "age" && value !== "" && (parseInt(value) < 0 || isNaN(parseInt(value)))) {
+      return
+    }
     setFormData({
       ...formData,
       [name]: value,
@@ -122,6 +128,50 @@ const UserProfile = () => {
               </div>
             </div>
 
+            {/* Flex to align the three fields in one row */}
+            <div className="flex gap-6 mb-8">
+              <div className="flex-1">
+                <label className="block text-gray-400 text-sm font-medium mb-2">Gender</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+
+              <div className="flex-1">
+                <label className="block text-gray-400 text-sm font-medium mb-2">Age</label>
+                <input
+                  type="text"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Enter Age"
+                />
+              </div>
+
+              <div className="flex-1">
+                <label className="block text-gray-400 text-sm font-medium mb-2">Region</label>
+                <select
+                  name="region"
+                  value={formData.region}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="Asia">Asia</option>
+                  <option value="Europe">Europe</option>
+                  <option value="North America">North America</option>
+                  <option value="South America">South America</option>
+                  <option value="Africa">Africa</option>
+                </select>
+              </div>
+            </div>
+
             <h2 className="text-xl font-bold mb-4">Change Password</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -195,4 +245,3 @@ const UserProfile = () => {
 }
 
 export default UserProfile
-
