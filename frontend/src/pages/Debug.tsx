@@ -12,14 +12,11 @@ const Debug = () => {
       setResponse(null);
       setError(null);
 
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/movies/?`,
-        {
-          headers: {
-            Authorization: "your_secret_key_here",
-          },
-        }
-      );
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/hello`, {
+        headers: {
+          Authorization: "your_secret_key_here",
+        },
+      });
       setResponse(JSON.stringify(res.data, null, 2));
     } catch (err) {
       console.error("API Test Error:", err);

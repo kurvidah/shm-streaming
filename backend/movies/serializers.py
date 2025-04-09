@@ -1,15 +1,17 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from .models import (
     Role, SubscriptionPlan, UserSubscription, Billing,
     Movie, WatchHistory, Review, Device, Media
 )
 
+User = get_user_model()
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['user_id', 'username', 'email']
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -66,10 +68,15 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = [
-            'movie_id', 'title', 'slug', 'poster', 'description',
+            'movie_id', 'title', 'poster', 'description',
             'release_year', 'genre', 'duration', 'is_available',
             'imdb_id', 'reviews', 'media'
         ]
+        # fields = [
+        #     'movie_id', 'title', 'slug', 'poster', 'description',
+        #     'release_year', 'genre', 'duration', 'is_available',
+        #     'imdb_id', 'reviews', 'media'
+        # ]
 
 
 class WatchHistorySerializer(serializers.ModelSerializer):
@@ -83,9 +90,8 @@ class WatchHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WatchHistory
-        fields = ['id', 'user', 'movie', 'movie_id',
-                  'timestamp', 'watch_duration']
-        read_only_fields = ['id', 'timestamp']
+        fields = ['user', 'movie', 'movie_id', 'timestamp', 'watch_duration']
+        read_only_fields = ['timestamp']
 
 
 class DeviceSerializer(serializers.ModelSerializer):

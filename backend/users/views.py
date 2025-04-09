@@ -1,9 +1,8 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
 from .serializers import UserSerializer, RegisterSerializer
 
 
@@ -27,18 +26,14 @@ class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        email = request.data.get('email')
+        username = request.data.get('username') or request.data.get('email')
         password = request.data.get('password')
 
-        user = None
-        if '@' in email:
-            try:
-                user = authenticate(username=User.objects.get(
-                    email=email).username, password=password)
-            except User.DoesNotExist:
-                pass
-        else:
-            user = authenticate(username=email, password=password)
+        if not username or not password:
+            return Response({'message': 'Please provide both username/email and password'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(request, username=username, password=password)
 
         if user:
             refresh = RefreshToken.for_user(user)

@@ -22,5 +22,5 @@ COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
 # Run migrations and start server
-CMD ["/start.sh"]
+CMD ["./start.sh"]
 
