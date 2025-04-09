@@ -24,6 +24,7 @@ import AdminUsers from "./pages/admin/Users";
 import AdminMovies from "./pages/admin/Movies";
 import AdminSubscriptions from "./pages/admin/Subscriptions";
 import AdminBilling from "./pages/admin/Billing";
+import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 import LoadingSpinner from "./components/LoadingSpinner";
 import Debug from "./pages/Debug";
@@ -155,6 +156,14 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path="/admin/settings"
+        element={
+          <AdminRoute>
+            <AdminSettings />
+          </AdminRoute>
+        }
+      />
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
