@@ -19,6 +19,7 @@ import UserProfile from "./pages/user/Profile";
 import UserSubscription from "./pages/user/Subscription";
 import UserWatchHistory from "./pages/user/WatchHistory";
 import UserDevices from "./pages/user/Devices";
+import UserSettings from "./pages/user/UserSettings";  
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminMovies from "./pages/admin/Movies";
@@ -113,6 +114,14 @@ function AppRoutes() {
           </UserRoute>
         }
       />
+      <Route
+        path="/settings"
+        element={
+          <UserRoute>
+            <UserSettings /> 
+          </UserRoute>
+        }
+      />
 
       {/* Admin protected routes */}
       <Route
@@ -155,7 +164,6 @@ function AppRoutes() {
           </AdminRoute>
         }
       />
-
       <Route
         path="/admin/settings"
         element={
