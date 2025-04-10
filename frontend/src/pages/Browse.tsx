@@ -1,16 +1,13 @@
 "use client";
 
-import React from "react";
-
-import { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import MovieCard from "../components/MovieCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { Search } from "lucide-react";
 
 const Browse = () => {
   const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [genre, setGenre] = useState("");
@@ -31,36 +28,67 @@ const Browse = () => {
     (_, i) => new Date().getFullYear() - i
   );
 
+
+  const demoMovies = [
+    {
+      movie_id: 1,
+      title: "The Matrix",
+      poster:
+        "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg",
+      release_year: 1999,
+      genre: "Sci-Fi",
+      slug: "the-matrix",
+    },
+    {
+      movie_id: 2,
+      title: "Inception",
+      poster:
+        "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
+      release_year: 2010,
+      genre: "Sci-Fi",
+      slug: "inception",
+    },
+    {
+      movie_id: 3,
+      title: "The Godfather",
+      poster:
+        "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
+      release_year: 1972,
+      genre: "Crime",
+      slug: "the-godfather",
+    },
+    {
+      movie_id: 4,
+      title: "Pulp Fiction",
+      poster:
+        "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
+      release_year: 1994,
+      genre: "Crime",
+      slug: "pulp-fiction",
+    },
+    {
+      movie_id: 5,
+      title: "The Dark Knight",
+      poster:
+        "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
+      release_year: 2008,
+      genre: "Action",
+      slug: "the-dark-knight",
+    },
+    {
+      movie_id: 6,
+      title: "Forrest Gump",
+      poster:
+        "https://m.media-amazon.com/images/M/MV5BNWIwODRlZTUtY2U3ZS00Yzg1LWJhNzYtMmZiYmEyNmU1NjMzXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_.jpg",
+      release_year: 1994,
+      genre: "Drama",
+      slug: "forrest-gump",
+    },
+  ];
+
   useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        setLoading(true);
-
-        // Build query parameters
-        const params = new URLSearchParams();
-        if (searchTerm) params.append("search", searchTerm);
-        if (genre) params.append("genre", genre);
-        if (year) params.append("release_year", year);
-
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/movies/?${params.toString()}`
-        );
-        setMovies(response.data.results || response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching movies:", err);
-        setError("Failed to load movies");
-        setLoading(false);
-      }
-    };
-
-    // Debounce search
-    const timeoutId = setTimeout(() => {
-      fetchMovies();
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, genre, year]);
+    setLoading(false);
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -80,65 +108,7 @@ const Browse = () => {
     setYear("");
   };
 
-  // For demo purposes, if API doesn't return data
-  const demoMovies = movies.length
-    ? movies
-    : [
-        {
-          movie_id: 1,
-          title: "The Matrix",
-          poster:
-            "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg",
-          release_year: 1999,
-          genre: "Sci-Fi",
-          slug: "the-matrix",
-        },
-        {
-          movie_id: 2,
-          title: "Inception",
-          poster:
-            "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
-          release_year: 2010,
-          genre: "Sci-Fi",
-          slug: "inception",
-        },
-        {
-          movie_id: 3,
-          title: "The Godfather",
-          poster:
-            "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
-          release_year: 1972,
-          genre: "Crime",
-          slug: "the-godfather",
-        },
-        {
-          movie_id: 4,
-          title: "Pulp Fiction",
-          poster:
-            "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
-          release_year: 1994,
-          genre: "Crime",
-          slug: "pulp-fiction",
-        },
-        {
-          movie_id: 5,
-          title: "The Dark Knight",
-          poster:
-            "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
-          release_year: 2008,
-          genre: "Action",
-          slug: "the-dark-knight",
-        },
-        {
-          movie_id: 6,
-          title: "Forrest Gump",
-          poster:
-            "https://m.media-amazon.com/images/M/MV5BNWIwODRlZTUtY2U3ZS00Yzg1LWJhNzYtMmZiYmEyNmU1NjMzXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_.jpg",
-          release_year: 1994,
-          genre: "Drama",
-          slug: "forrest-gump",
-        },
-      ];
+  const moviesToDisplay = demoMovies; // use demoMovies 
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -212,11 +182,11 @@ const Browse = () => {
             <h2 className="text-xl font-semibold">
               {searchTerm || genre || year ? "Search Results" : "All Movies"}
             </h2>
-            <p className="text-gray-400">{demoMovies.length} movies found</p>
+            <p className="text-gray-400">{moviesToDisplay.length} movies found</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {demoMovies.map((movie) => (
+            {moviesToDisplay.map((movie) => (
               <MovieCard key={movie.movie_id} movie={movie} />
             ))}
           </div>
