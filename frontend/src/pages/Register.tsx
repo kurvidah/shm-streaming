@@ -181,11 +181,11 @@ const Register = () => {
                 className="ml-2 block text-sm text-gray-400"
               >
                 I agree to the{" "}
-                <Link to="#" className="text-red-500 hover:text-red-400">
+                <Link to="#" className="text-red-500 hover:text-red-400 hover:underline">
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link to="#" className="text-red-500 hover:text-red-400">
+                <Link to="#" className="text-red-500 hover:text-red-400 hover:underline">
                   Privacy Policy
                 </Link>
               </label>
@@ -211,7 +211,7 @@ const Register = () => {
         <div className="mt-8 text-center">
           <p className="text-gray-400">
             Already have an account?{" "}
-            <Link to="/login" className="text-red-500 hover:text-red-400">
+            <Link to="/login" className="text-red-500 hover:text-red-400 hover:underline">
               Sign in
             </Link>
           </p>
