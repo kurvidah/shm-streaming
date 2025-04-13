@@ -40,7 +40,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
       <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
+          <h1 className="text-3xl font-bold text-white">Sign in</h1>
           <p className="text-gray-400 mt-2">
             Sign in to your SHM Streaming account
           </p>
@@ -115,7 +115,7 @@ const Login = () => {
               </div>
 
               <div className="text-sm">
-                <Link to="#" className="text-red-500 hover:text-red-400">
+                <Link to="#" className="text-red-500 hover:text-red-400 hover:underline">
                   Forgot your password?
                 </Link>
               </div>
@@ -141,8 +141,8 @@ const Login = () => {
         <div className="mt-8 text-center">
           <p className="text-gray-400">
             Don't have an account?{" "}
-            <Link to="/register" className="text-red-500 hover:text-red-400">
-              Sign up
+            <Link to="/register" className="text-red-500 hover:text-red-400 hover:underline">
+              Create Account
             </Link>
           </p>
         </div>
