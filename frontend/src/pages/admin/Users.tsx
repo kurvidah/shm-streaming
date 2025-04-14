@@ -66,12 +66,22 @@ const AdminUsers = () => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.region.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [searchColumn, setSearchColumn] = useState("all");
+  const filteredUsers = users.filter((user) => {
+    const term = searchTerm.toLowerCase();
+    if (searchColumn === "all") {
+      return (
+        user.username.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term) ||
+        user.region.toLowerCase().includes(term) ||
+        user.subscription.toLowerCase().includes(term) ||
+        user.created_at.toLowerCase().includes(term)
+      );
+    } else {
+      const value = user[searchColumn as keyof typeof user];
+      return typeof value === "string" && value.toLowerCase().includes(term);
+    }
+  });
 
   return (
     <div className="flex">
@@ -102,6 +112,22 @@ const AdminUsers = () => {
               onChange={handleSearch}
             />
           </div>
+        </div>
+
+        <div className="mb-4 flex gap-4 items-center">
+          <label className="text-white text-sm font-medium">Filter by:</label>
+          <select
+            value={searchColumn}
+            onChange={(e) => setSearchColumn(e.target.value)}
+            className="bg-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            <option value="all">All Columns</option>
+            <option value="username">Username</option>
+            <option value="email">Email</option>
+            <option value="region">Region</option>
+            <option value="subscription">Subscription</option>
+            <option value="created_at">Created At</option>
+          </select>
         </div>
 
         {loading ? (
