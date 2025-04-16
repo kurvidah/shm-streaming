@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import {
@@ -41,77 +39,57 @@ const AdminBilling = () => {
       try {
         setLoading(true);
 
-        // In a real app, you would fetch this data from your API
-        // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/billing/`);
-        // setBillingRecords(response.data);
-
-        // For demo purposes
         setTimeout(() => {
           setBillingRecords([
             {
               billing_id: 1,
-              user: {
-                username: "admin",
-                email: "admin@shm.app",
-              },
-              plan_name: "Standard Plan",
-              amount: 14.99,
+              user: { username: "sara_kim", email: "sara.kim@example.com" },
+              plan_name: "Basic Plan",
+              amount: 9.99,
               payment_method: "Credit Card",
-              payment_date: "2025-03-01T10:00:00Z",
-              due_date: "2025-03-15T10:00:00Z",
+              payment_date: "2025-01-10",
+              due_date: "2025-01-20",
               payment_status: "Paid",
             },
             {
               billing_id: 2,
-              user: {
-                username: "mod",
-                email: "mod@shm.app",
-              },
-              plan_name: "Basic Plan",
-              amount: 9.99,
+              user: { username: "john_doe", email: "john.doe@example.com" },
+              plan_name: "Premium Plan",
+              amount: 19.99,
               payment_method: "PayPal",
-              payment_date: "2025-02-20T12:30:00Z",
-              due_date: "2025-03-05T12:30:00Z",
+              payment_date: "2025-02-01",
+              due_date: "2025-02-15",
               payment_status: "Unpaid",
             },
             {
               billing_id: 3,
-              user: {
-                username: "bob_jones",
-                email: "bob.jones@example.com",
-              },
-              plan_name: "Premium Plan",
-              amount: 19.99,
+              user: { username: "emma_liu", email: "emma.liu@example.com" },
+              plan_name: "Standard Plan",
+              amount: 14.99,
               payment_method: "Credit Card",
-              payment_date: "2025-01-15T08:00:00Z",
-              due_date: "2025-02-01T08:00:00Z",
+              payment_date: "2025-03-01",
+              due_date: "2025-03-15",
               payment_status: "Paid",
             },
             {
               billing_id: 4,
-              user: {
-                username: "jane_smith",
-                email: "jane.smith@example.com",
-              },
-              plan_name: "Premium Plan",
-              amount: 19.99,
-              payment_method: "Credit Card",
-              payment_date: "2025-03-10T14:20:00Z",
-              due_date: "2025-03-25T14:20:00Z",
-              payment_status: "Paid",
-            },
-            {
-              billing_id: 5,
-              user: {
-                username: "alex_wilson",
-                email: "alex.wilson@example.com",
-              },
+              user: { username: "michael_ross", email: "michael.ross@example.com" },
               plan_name: "Standard Plan",
               amount: 14.99,
               payment_method: "PayPal",
-              payment_date: "2025-02-28T09:15:00Z",
-              due_date: "2025-03-15T09:15:00Z",
+              payment_date: "2025-02-28",
+              due_date: "2025-03-10",
               payment_status: "Failed",
+            },
+            {
+              billing_id: 5,
+              user: { username: "lucas_chan", email: "lucas.chan@example.com" },
+              plan_name: "Basic Plan",
+              amount: 9.99,
+              payment_method: "Credit Card",
+              payment_date: "2025-03-05",
+              due_date: "2025-03-20",
+              payment_status: "Paid",
             },
           ]);
           setLoading(false);
@@ -149,11 +127,10 @@ const AdminBilling = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -169,7 +146,6 @@ const AdminBilling = () => {
     }
   };
 
-  // Calculate total revenue
   const totalRevenue = billingRecords
     .filter((record) => record.payment_status.toLowerCase() === "paid")
     .reduce((sum, record) => sum + record.amount, 0);
@@ -262,10 +238,7 @@ const AdminBilling = () => {
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="flex-1 relative">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
               placeholder="Search by user or plan..."
@@ -277,10 +250,7 @@ const AdminBilling = () => {
 
           <div className="md:w-64">
             <div className="relative">
-              <Filter
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <select
                 className="w-full bg-gray-800 text-white rounded-lg pl-10 pr-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-red-500"
                 value={statusFilter}
@@ -295,6 +265,7 @@ const AdminBilling = () => {
           </div>
         </div>
 
+        {/* Table */}
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
@@ -307,57 +278,26 @@ const AdminBilling = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-900">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Plan
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Payment Method
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Due Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Username</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Plan</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Payment Method</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Due Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {filteredRecords.map((record) => (
                   <tr key={record.billing_id} className="hover:bg-gray-750">
+                    <td className="px-6 py-4 whitespace-nowrap">{record.user.username}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{record.user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{record.plan_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">${record.amount.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{record.payment_method}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(record.due_date)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="font-medium">
-                          {record.user.username}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {record.user.email}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {record.plan_name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      ${record.amount.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {record.payment_method}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {formatDate(record.due_date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                          record.payment_status
-                        )}`}
-                      >
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(record.payment_status)}`}>
                         {record.payment_status}
                       </span>
                     </td>
