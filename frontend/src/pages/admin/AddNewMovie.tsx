@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useRouter } from "react-router-dom";
 import axios from "axios";
 import AdminSidebar from "../../components/AdminSidebar";
-
+import { ArrowLeft } from 'lucide-react'; // optional icon library
+import GoBackButton from '../../components/GoBackButton';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const AddNewMovie = () => {
@@ -44,11 +45,18 @@ const AddNewMovie = () => {
     }
   };
 
+  const handleGoBack = () => {
+    if (typeof window !== 'undefined') {
+      useRouter().back(); // goes to the previous page
+    }
+  };
+
   return (
     <div className="flex">
       <AdminSidebar />
-
       <div className="flex-1 p-8">
+      <GoBackButton onClick={handleGoBack} variant="ghost" className="flex items-center gap-2">
+      </GoBackButton>
         <h2 className="text-3xl font-bold text-white mb-6">Add New Movie</h2>
 
         <div className="max-w-xl p-6 bg-gray-800 rounded-lg">
