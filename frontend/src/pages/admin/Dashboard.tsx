@@ -30,10 +30,13 @@ const AdminDashboard = () => {
             newUsers: 48,
             totalMovies: 523,
             newMovies: 12,
+            subscriptionPlans: 5,
             activeSubscriptions: 987,
-            revenue: "$12,458",
+            monthlyRevenue: "$3,214",
+            totalRevenue: "$12,458",
             revenueChange: "8.2%",
             positiveRevenue: true,
+            newActiveSubscriptions: 36,
           });
           setLoading(false);
         }, 1000);
@@ -61,7 +64,7 @@ const AdminDashboard = () => {
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
-        {/* Stats Cards (Total Users, Content Library, Active Subscriptions, Monthly Revenue) */}
+        {/* Stats Cards (Total Users, Content Library, Subscription Plans, Total Revenue) */}
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
@@ -86,20 +89,20 @@ const AdminDashboard = () => {
                 positive={true}
               />
               <StatCard
-                title="Active Subscriptions"
-                value={stats.activeSubscriptions}
+                title="Subscription Plans"
+                value={stats.subscriptionPlans}
                 icon={<CreditCard size={24} className="text-green-500" />}
               />
               <StatCard
-                title="Monthly Revenue"
-                value={stats.revenue}
+                title="Total Revenue"
+                value={stats.totalRevenue}
                 icon={<TrendingUp size={24} className="text-yellow-500" />}
                 change={stats.revenueChange}
                 positive={stats.positiveRevenue}
               />
             </div>
 
-            {/* Filters (now between Total Users and Active Subscriptions) */}
+            {/* Filters (Month & Year) */}
             <div className="flex items-center gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -136,27 +139,28 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* New Cards for Active Subscriptions, Revenue, New Users */}
+            {/* Filtered Monthly Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <StatCard
-                title="Active Subscriptions"
-                value={stats.activeSubscriptions}
-                icon={<CreditCard size={24} className="text-green-500" />}
+            <StatCard
+                title="New Active Subscriptions"  
+                value={stats.newActiveSubscriptions}  
+                icon={<CreditCard size={24} className="text-green-500" />}  
+                positive={true}
               />
               <StatCard
-                title="Revenue"
-                value={stats.revenue}
+                title="Monthly Revenue"
+                value={stats.monthlyRevenue}
                 icon={<TrendingUp size={24} className="text-yellow-500" />}
                 change={stats.revenueChange}
                 positive={stats.positiveRevenue}
               />
               <StatCard
-                title="New Users"
-                value={stats.newUsers}
-                icon={<Users size={24} className="text-blue-500" />}
-                change={`+${stats.newUsers} this month`}
+                title="New Movies This Month"
+                value={stats.newMovies}
+                icon={<Film size={24} className="text-purple-500" />}
                 positive={true}
               />
+
             </div>
 
             {/* Recent Activity */}
