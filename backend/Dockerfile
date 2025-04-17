@@ -14,4 +14,4 @@ EXPOSE 8080
 
 # Make sure we're in the correct directory when running the app
 # Use absolute path to be explicit and pass environment variables
-CMD ["bun", "--watch", "index.ts"]
+CMD ["bun", "dev"]

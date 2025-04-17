@@ -9,9 +9,6 @@ COPY package.json bun.lockb* ./
 # Install dependencies with bun
 RUN bun install
 
-# Copy the rest of the application
-COPY . .
-
 # Expose port
 EXPOSE 3000
 

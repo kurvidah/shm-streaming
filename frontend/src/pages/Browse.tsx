@@ -28,7 +28,6 @@ const Browse = () => {
     (_, i) => new Date().getFullYear() - i
   );
 
-
   const demoMovies = [
     {
       movie_id: 1,
@@ -108,7 +107,7 @@ const Browse = () => {
     setYear("");
   };
 
-  const moviesToDisplay = demoMovies; // use demoMovies 
+  const moviesToDisplay = demoMovies; // use demoMovies
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -182,7 +181,9 @@ const Browse = () => {
             <h2 className="text-xl font-semibold">
               {searchTerm || genre || year ? "Search Results" : "All Movies"}
             </h2>
-            <p className="text-gray-400">{moviesToDisplay.length} movies found</p>
+            <p className="text-gray-400">
+              {moviesToDisplay.length} movies found
+            </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">

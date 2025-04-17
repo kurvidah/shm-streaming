@@ -1,7 +1,7 @@
 USE shm_db;
 
 CREATE TABLE roles (
-    role_id INTEGER PRIMARY KEY,
+    role_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     role_name VARCHAR(100) NOT NULL
 );
 
@@ -18,7 +18,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE subscription_plan (
-    plan_id INTEGER PRIMARY KEY,
+    plan_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     plan_name VARCHAR(255) NOT NULL,
     price FLOAT NOT NULL,
     max_devices INTEGER NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE subscription_plan (
 );
 
 CREATE TABLE user_subscription (
-    user_subscription_id INTEGER PRIMARY KEY,
+    user_subscription_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER,
     plan_id INTEGER,
     start_date TIMESTAMP NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE user_subscription (
 );
 
 CREATE TABLE billing (
-    billing_id INTEGER PRIMARY KEY,
+    billing_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_subscription_id INTEGER,
     amount FLOAT NOT NULL,
     payment_method VARCHAR(100) NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE billing (
 );
 
 CREATE TABLE movies (
-    movie_id INTEGER PRIMARY KEY,
+    movie_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     poster VARCHAR(255),
     description TEXT,
@@ -71,7 +71,7 @@ CREATE TABLE watch_history (
 );
 
 CREATE TABLE reviews (
-    review_id INTEGER PRIMARY KEY,
+    review_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER,
     movie_id INTEGER,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
@@ -82,7 +82,7 @@ CREATE TABLE reviews (
 );
 
 CREATE TABLE device (
-    device_id INTEGER PRIMARY KEY,
+    device_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER,
     device_type VARCHAR(100) NOT NULL,
     device_name VARCHAR(255) NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE device (
 );
 
 CREATE TABLE media (
-    media_id INTEGER PRIMARY KEY,
+    media_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     movie_id INTEGER,
     episode INTEGER,
     description TEXT,
