@@ -12,7 +12,8 @@ const Debug = () => {
   useEffect(() => {
     const fetchPaths = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/`);
+        console.log(axios.defaults.headers);
         setAvailablePaths(Object.keys(res.data));
       } catch (err: any) {
         console.error("Failed to fetch available paths:", err);
@@ -29,7 +30,7 @@ const Debug = () => {
       setError(null);
 
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/${path}`
+        `${import.meta.env.VITE_API_URL}/api/v1/${path}`
       );
       setResponse(JSON.stringify(res.data, null, 2));
     } catch (err: any) {

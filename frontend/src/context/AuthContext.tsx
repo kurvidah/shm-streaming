@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -11,7 +11,14 @@ import axios from "axios";
 
 // Set a fallback API URL if the environment variable is not defined
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-const SECRET_KEY = import.meta.env.DJANGO_SECRET_KEY;
+const API_BASE_URL = `${API_URL}/api/v1`;
+
+// Storage key for user data
+const USER_KEY = "shm_user";
+
+// Django secret key for authorization
+const SECRET_KEY = import.meta.env.DJANGO_SECRET_KEY || "your_secret_key_here"; // In production, this would be an environment variable
+console.log(SECRET_KEY);
 
 interface User {
   id: number;
@@ -39,31 +46,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Set up authorization header
+  const setAuthHeader = () => {
+    axios.defaults.headers.common["Authorization"] = SECRET_KEY;
+  };
+
+  // Remove authorization header
+  const removeAuthHeader = () => {
+    delete axios.defaults.headers.common["Authorization"];
+  };
+
   useEffect(() => {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
-      if (SECRET_KEY) {
-        try {
-          // Set default auth header for all requests
-          axios.defaults.headers.common["Authorization"] = SECRET_KEY;
+      try {
+        // Check for stored user in localStorage
+        const storedUser = localStorage.getItem(USER_KEY);
 
-          // For demo purposes, simulate a successful auth check
-          // In a real app, you would make an API call
-          // const response = await axios.get(`${API_URL}/api/auth/user/`);
+        if (storedUser) {
+          // Set the authorization header
+          setAuthHeader();
 
-          // Mock user data for development
-          setUser({
-            id: 1,
-            username: "admin",
-            email: "admin@example.com",
-          });
-        } catch (err) {
-          console.error("Auth check failed:", err);
-          delete axios.defaults.headers.common["Authorization"];
+          // Set the user from localStorage
+          setUser(JSON.parse(storedUser));
+
+          // In a real app with JWT, you would verify the token here
+          // const response = await axios.get(`${API_BASE_URL}/users/me/`);
+          // setUser(response.data);
         }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        // Clear invalid auth data
+        localStorage.removeItem(USER_KEY);
+        removeAuthHeader();
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     checkAuthStatus();
@@ -73,12 +91,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setError(null);
 
-      // For demo purposes, simulate a successful login
-      // In a real app, you would make an API call
-      // const response = await axios.post(`${API_URL}/api/auth/login/`, {
+      // For production, uncomment and use the actual API call
+      // const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
       //   email,
       //   password,
       // });
+      //
+      // Set the authorization header
+      // setAuthHeader();
+      //
+      // Fetch user profile
+      // const userResponse = await axios.get(`${API_BASE_URL}/users/me/`);
+      // const userData = userResponse.data;
+      // setUser(userData);
+      // localStorage.setItem(USER_KEY, JSON.stringify(userData));
 
       // Mock successful login
       const mockUser = {
@@ -87,10 +113,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: email,
       };
 
-      axios.defaults.headers.common["Authorization"] = SECRET_KEY;
+      // Set auth header and store user
+      setAuthHeader();
       setUser(mockUser);
+      localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.error || "Login failed");
       throw err;
     }
   };
@@ -103,13 +131,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setError(null);
 
-      // For demo purposes, simulate a successful registration
-      // In a real app, you would make an API call
-      // const response = await axios.post(`${API_URL}/api/auth/register/`, {
+      // For production, uncomment and use the actual API call
+      // const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
       //   username,
       //   email,
       //   password,
       // });
+      //
+      // Login after successful registration
+      // await login(email, password);
 
       // Mock successful registration
       const mockUser = {
@@ -118,16 +148,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: email,
       };
 
-      axios.defaults.headers.common["Authorization"] = SECRET_KEY;
+      // Set auth header and store user
+      setAuthHeader();
       setUser(mockUser);
+      localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data?.error || "Registration failed");
       throw err;
     }
   };
 
   const logout = () => {
-    delete axios.defaults.headers.common["Authorization"];
+    // Remove user from localStorage
+    localStorage.removeItem(USER_KEY);
+
+    // Remove authorization header
+    removeAuthHeader();
+
+    // Clear user state
     setUser(null);
   };
 

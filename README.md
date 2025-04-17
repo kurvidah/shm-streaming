@@ -57,7 +57,7 @@ SHM Streaming is a full-stack streaming platform that allows users to browse, wa
 ### Prerequisites
 
 - Docker and Docker Compose installed.
-- Node.js and npm installed (for local frontend development).
+- Node.js and bun installed (for local frontend development).
 
 ### Setup
 
@@ -97,8 +97,8 @@ SHM Streaming is a full-stack streaming platform that allows users to browse, wa
 - Start the development server:
   ```bash
   cd frontend
-  npm install
-  npm run dev
+  bun install
+  bun run dev
   ```
 
 ### Backend
@@ -106,7 +106,8 @@ SHM Streaming is a full-stack streaming platform that allows users to browse, wa
 - Run the Django development server:
   ```bash
   cd backend
-  python manage.py runserver
+  bun install
+  bun index.ts
   ```
 
 ### Database

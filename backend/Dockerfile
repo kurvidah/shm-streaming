@@ -1,26 +1,17 @@
-FROM python:3.11-slim
+FROM oven/bun:latest as base
 
+# Set the working directory explicitly to /app
 WORKDIR /app
 
-# Install system dependencies including pkg-config
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    pkg-config \
-    default-libmysqlclient-dev \
-    python3-dev \
-    mariadb-client \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Copy package files
+COPY package.json bun.lockb* ./
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies with bun
+RUN bun install
 
-# Copy project
-COPY . .
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# Expose port
+EXPOSE 8080
 
-# Run migrations and start server
-CMD ["./start.sh"]
-
+# Make sure we're in the correct directory when running the app
+# Use absolute path to be explicit and pass environment variables
+CMD ["bun", "--watch", "index.ts"]
