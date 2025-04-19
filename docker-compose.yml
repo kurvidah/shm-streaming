@@ -12,7 +12,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=localhost:${BACKEND_PORT:-8000}
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-8000}
       - CHOKIDAR_USEPOLLING=true
       - TMDB_API_KEY=${TMDB_API_KEY:-your_tmdb_api_key}
     depends_on:
