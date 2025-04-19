@@ -4,8 +4,15 @@ import { protect, admin, mod } from "../middleware/authMiddleware"
 
 const router = express.Router()
 
-router.route("/").get(getMovies).post(admin, createMovie)
+router
+    .route("/")
+    .get(getMovies)
+    .post(mod, createMovie)
 
-router.route("/:id").get(protect, getMovieById).put(mod, updateMovie).delete(mod, deleteMovie)
+router
+    .route("/:id")
+    .get(getMovieById)
+    .put(mod, updateMovie)
+    .delete(mod, deleteMovie)
 
 export const movieRoutes = router
