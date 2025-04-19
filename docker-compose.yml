@@ -12,9 +12,9 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=${API_URL:-http://localhost:8000}
-      - DJANGO_SECRET_KEY=${SECRET_KEY:-your_django_secret_key}
+      - VITE_API_URL=localhost:${BACKEND_PORT:-8000}
       - CHOKIDAR_USEPOLLING=true
+      - TMDB_API_KEY=${TMDB_API_KEY:-your_tmdb_api_key}
     depends_on:
       - backend
     networks:
@@ -30,14 +30,11 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-your_secret_key}
       - DB_HOST=db
       - DB_NAME=${DB_NAME:-shm_db}
       - DB_USER=${DB_USER:-shm_user}
       - DB_PASSWORD=${DB_PASSWORD:-shm_password}
-      - WATCHPACK_USEPOLLING=true
-      - CHOKIDAR_USEPOLLING=true
 
     depends_on:
       - db

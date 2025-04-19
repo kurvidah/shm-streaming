@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   createContext,
   useContext,
@@ -13,17 +14,15 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const API_BASE_URL = `${API_URL}/api/v1`;
 
-// Storage key for user data
+// Storage keys
+const TOKEN_KEY = "shm_auth_token";
 const USER_KEY = "shm_user";
 
-// Django secret key for authorization
-const SECRET_KEY = import.meta.env.DJANGO_SECRET_KEY || "your_secret_key_here"; // In production, this would be an environment variable
-console.log(SECRET_KEY);
-
 interface User {
-  id: number;
+  user_id: number;
   username: string;
   email: string;
+  role_id?: number;
 }
 
 interface AuthContextType {
@@ -46,39 +45,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Set up authorization header
-  const setAuthHeader = () => {
-    axios.defaults.headers.common["Authorization"] = SECRET_KEY;
-  };
+  // Set up axios interceptor for authentication
+  useEffect(() => {
+    // Add a request interceptor to include the token in all requests
+    const interceptor = axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-  // Remove authorization header
-  const removeAuthHeader = () => {
-    delete axios.defaults.headers.common["Authorization"];
-  };
+    // Clean up the interceptor when the component unmounts
+    return () => {
+      axios.interceptors.request.eject(interceptor);
+    };
+  }, []);
 
   useEffect(() => {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
       try {
-        // Check for stored user in localStorage
+        // Check for token in localStorage
+        const token = localStorage.getItem(TOKEN_KEY);
         const storedUser = localStorage.getItem(USER_KEY);
 
-        if (storedUser) {
-          // Set the authorization header
-          setAuthHeader();
+        if (token && storedUser) {
+          // Set the token in axios headers
+          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-          // Set the user from localStorage
+          // Parse and set the user from localStorage
           setUser(JSON.parse(storedUser));
 
-          // In a real app with JWT, you would verify the token here
-          // const response = await axios.get(`${API_BASE_URL}/users/me/`);
-          // setUser(response.data);
+          // Verify the token with the server
+          try {
+            const response = await axios.get(`${API_BASE_URL}/users/me/`);
+            // Update user data in case it changed on the server
+            setUser(response.data);
+            localStorage.setItem(USER_KEY, JSON.stringify(response.data));
+          } catch (verifyError) {
+            console.error("Token verification failed:", verifyError);
+            // If verification fails, clear auth data
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            delete axios.defaults.headers.common["Authorization"];
+            setUser(null);
+          }
         }
       } catch (err) {
         console.error("Auth check failed:", err);
         // Clear invalid auth data
+        localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
-        removeAuthHeader();
+        delete axios.defaults.headers.common["Authorization"];
       } finally {
         setLoading(false);
       }
@@ -91,34 +113,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setError(null);
 
-      // For production, uncomment and use the actual API call
-      // const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
-      //   email,
-      //   password,
-      // });
-      //
-      // Set the authorization header
-      // setAuthHeader();
-      //
+      // Make the login request to Express backend
+      const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
+        email,
+        password,
+      });
+
+      // Get the token from the response
+      const token = response.data.token;
+
+      // Store token in localStorage
+      localStorage.setItem(TOKEN_KEY, token);
+
+      // Set the token in axios headers
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
       // Fetch user profile
-      // const userResponse = await axios.get(`${API_BASE_URL}/users/me/`);
-      // const userData = userResponse.data;
-      // setUser(userData);
-      // localStorage.setItem(USER_KEY, JSON.stringify(userData));
+      const userResponse = await axios.get(`${API_BASE_URL}/users/me/`);
+      const userData = userResponse.data;
+      setUser(userData);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
 
-      // Mock successful login
-      const mockUser = {
-        id: 1,
-        username: "admin",
-        email: email,
-      };
-
-      // Set auth header and store user
-      setAuthHeader();
-      setUser(mockUser);
-      localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
+      return userData;
     } catch (err: any) {
-      setError(err.response?.data?.error || "Login failed");
+      console.error("Login error:", err);
+
+      // Handle different types of errors
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (err.response.status === 401) {
+          setError("Invalid email or password");
+        } else {
+          setError(err.response.data?.error || "Login failed");
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError("No response from server. Please try again later.");
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError("An error occurred. Please try again.");
+      }
+
       throw err;
     }
   };
@@ -131,39 +167,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setError(null);
 
-      // For production, uncomment and use the actual API call
-      // const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
-      //   username,
-      //   email,
-      //   password,
-      // });
-      //
+      // Make the registration request
+      const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
+        username,
+        email,
+        password,
+      });
+
       // Login after successful registration
-      // await login(email, password);
-
-      // Mock successful registration
-      const mockUser = {
-        id: 1,
-        username: username,
-        email: email,
-      };
-
-      // Set auth header and store user
-      setAuthHeader();
-      setUser(mockUser);
-      localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
+      return await login(email, password);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Registration failed");
+      console.error("Registration error:", err);
+
+      // Handle different types of errors
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        setError(err.response.data?.error || "Registration failed");
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError("No response from server. Please try again later.");
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError("An error occurred. Please try again.");
+      }
+
       throw err;
     }
   };
 
   const logout = () => {
-    // Remove user from localStorage
+    // Remove token from localStorage
+    localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
 
-    // Remove authorization header
-    removeAuthHeader();
+    // Remove token from axios headers
+    delete axios.defaults.headers.common["Authorization"];
 
     // Clear user state
     setUser(null);

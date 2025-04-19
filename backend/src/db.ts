@@ -13,12 +13,16 @@ const pool = mysql.createPool({
 
 // Test connection
 async function testConnection() {
-    try {
-        const connection = await pool.getConnection()
-        console.log("Database connection established successfully")
-        connection.release()
-    } catch (error) {
-        console.error("Error connecting to database:", error)
+    while (true) {
+        try {
+            const connection = await pool.getConnection()
+            console.log("Database connection established successfully")
+            connection.release()
+            break
+        } catch (error) {
+            console.error("Error connecting to database, retrying in 2 seconds:", error)
+            await new Promise(resolve => setTimeout(resolve, 2000))
+        }
     }
 }
 

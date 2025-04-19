@@ -1,10 +1,10 @@
-FROM oven/bun:latest as base
+FROM oven/bun:canary AS base
 
 # Set the working directory explicitly to /app
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lockb* ./
+COPY package.json bun.lock* ./
 
 # Install dependencies with bun
 RUN bun install

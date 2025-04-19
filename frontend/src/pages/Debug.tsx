@@ -5,6 +5,7 @@ import axios from "axios";
 
 const Debug = () => {
   const [path, setPath] = useState<string>("");
+  const [manualPath, setManualPath] = useState<string>("");
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [availablePaths, setAvailablePaths] = useState<string[]>([]);
@@ -29,9 +30,8 @@ const Debug = () => {
       setResponse(null);
       setError(null);
 
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/v1/${path}`
-      );
+      const endpoint = manualPath || path; // Use manualPath if provided, otherwise use path
+      const res = await axios.get(`http://backend:8000/api/v1/${endpoint}`);
       setResponse(JSON.stringify(res.data, null, 2));
     } catch (err: any) {
       console.error("API Test Error:", err);
@@ -62,10 +62,23 @@ const Debug = () => {
           ))}
         </select>
       </div>
+      <div className="mb-4">
+        <label htmlFor="manualPath" className="block text-lg font-medium mb-2">
+          Or Enter API Path Manually:
+        </label>
+        <input
+          id="manualPath"
+          type="text"
+          value={manualPath}
+          onChange={(e) => setManualPath(e.target.value)}
+          className="border border-gray-300 rounded px-4 py-2 w-full bg-gray-800"
+          placeholder="Enter API path manually"
+        />
+      </div>
       <button
         onClick={testApi}
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-        disabled={!path}
+        disabled={!path && !manualPath} // Disable if neither path nor manualPath is provided
       >
         Test API
       </button>
