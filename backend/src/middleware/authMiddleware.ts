@@ -22,7 +22,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
             // Verify token
             const decoded: any = jwt.verify(token, process.env.SECRET_KEY || "your_jwt_secret");
-            console.log("Decoded token:", decoded); // Debugging line to check decoded token
 
             // Get user from database
             const [rows] = await pool.execute("SELECT user_id, username, email, role_id FROM users WHERE user_id = ?", [
@@ -48,8 +47,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
 // Admin middleware
 export const admin = [protect, (req: Request, res: Response, next: NextFunction) => {
-    console.log("User role:", req.user?.role_id); // Debugging line to check user role
-    if (req.user && req.user.role_id === 1) {
+    if (req.user && req.user.role_id <= 1) {
         next();
     } else {
         res.status(403).json({ error: "Not authorized as admin" });
@@ -57,8 +55,7 @@ export const admin = [protect, (req: Request, res: Response, next: NextFunction)
 }];
 
 export const mod = [protect, (req: Request, res: Response, next: NextFunction) => {
-    console.log("User role:", req.user); // Debugging line to check user role
-    if (req.user && req.user.role_id === 2) {
+    if (req.user && req.user.role_id <= 2) {
         next();
     } else {
         res.status(403).json({ error: "Not authorized as a moderator" });

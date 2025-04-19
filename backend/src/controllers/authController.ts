@@ -8,7 +8,6 @@ const generateToken = (id: number) => {
     const token = jwt.sign({ id }, process.env.SECRET_KEY || "your_jwt_secret", {
         expiresIn: "30d",
     })
-    console.log("Generated token:", token) // Debugging line to check generated token
     return token;
 }
 

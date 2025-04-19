@@ -102,7 +102,6 @@ export const getMovieById = async (req: Request, res: Response): Promise<void> =
 // @access  Private/Admin
 export const createMovie = async (req: Request, res: Response): Promise<void> => {
     try {
-        console.log(req.body)
         const { title, poster, description, release_year, genre, duration, is_available, imdb_id } = req.body;
 
         if (!title || typeof title !== "string" || title.trim() === "") {
