@@ -12,6 +12,5 @@ RUN bun install
 # Expose port
 EXPOSE 3000
 
-# Make sure we're in the correct directory when running the app
-# Use absolute path to be explicit and pass environment variables
-CMD ["bun", "--watch", "dev"]
+# Force bun install before running the app
+CMD ["sh", "-c", "bun install && bun --watch dev"]
