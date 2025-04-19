@@ -8,7 +8,7 @@ VALUES
 (3, 'User');
 
 -- Insert sample users
-INSERT INTO users (user_id, username, email, password, role_id, gender, age, religion, created_at)
+INSERT INTO users (user_id, username, email, password, role_id, gender, age, region, created_at)
 VALUES
 (1, 'admin', 'admin@shm.app', '$2y$10$DIRJgsc.nuXFW3Z7xBMPiO3ZHuvctx/Kp1QbSYaz4sAu.djwNXGmO', 1, NULL, NULL, NULL, '2025-01-01 00:00:00'), -- user : admin@shm.app, pass: admin
 (2, 'mod', 'mod@shm.app', '$2y$10$p/wXLYeKnDtcb2LqoQJA6OLJq/mXO.CmfDKx67NCPq6tO7gR0AVN2', 2, NULL, NULL, NULL, '2025-02-20 12:30:00'), -- user : mod@shm.app, pass: mod
