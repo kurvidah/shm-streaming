@@ -10,9 +10,9 @@ VALUES
 -- Insert sample users
 INSERT INTO users (user_id, username, email, password, role_id, gender, age, religion, created_at)
 VALUES
-(1, 'admin', 'admin@shm.app', '$2y$10$DIRJgsc.nuXFW3Z7xBMPiO3ZHuvctx/Kp1QbSYaz4sAu.djwNXGmO', 1, NULL, NULL, NULL, '2025-01-01 00:00:00'),
-(2, 'mod', 'mod@shm.app', '$2y$10$p/wXLYeKnDtcb2LqoQJA6OLJq/mXO.CmfDKx67NCPq6tO7gR0AVN2', 2, NULL, NULL, NULL, '2025-02-20 12:30:00'),
-(3, 'bob_jones', 'bob.jones@example.com', 'password123', 3, 'Male', 35, 'Hindu', '2025-01-15 08:00:00');
+(1, 'admin', 'admin@shm.app', '$2y$10$DIRJgsc.nuXFW3Z7xBMPiO3ZHuvctx/Kp1QbSYaz4sAu.djwNXGmO', 1, NULL, NULL, NULL, '2025-01-01 00:00:00'), -- user : admin@shm.app, pass: admin
+(2, 'mod', 'mod@shm.app', '$2y$10$p/wXLYeKnDtcb2LqoQJA6OLJq/mXO.CmfDKx67NCPq6tO7gR0AVN2', 2, NULL, NULL, NULL, '2025-02-20 12:30:00'), -- user : mod@shm.app, pass: mod
+(3, 'bob_jones', 'bob.jones@mail.com', '$2a$12$1KtmoeGN/EPPBS92U/t9c.C5qbq2mlxf8.E9WYCDVdJ39jwJ7MDie', 3, 'Male', 35, 'TH', '2025-01-15 08:00:00'); -- user : bob.jones@mail.com, pass: password
 
 -- Insert sample subscription plans
 INSERT INTO subscription_plan (plan_id, plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days)
@@ -36,7 +36,7 @@ VALUES
 (3, 3, 19.99, 'Credit Card', '2025-01-15 08:00:00', '2025-02-01 08:00:00', 'Paid');
 
 -- Insert sample movies
-INSERT INTO movies (movie_id, title, poster, description, release_year, genre, duration, is_available, imdb_id)
+INSERT INTO movies (movie_id, title, poster, description, release_year, genre, duration, is_available, tmdb_id)
 VALUES
 (1, 'The Matrix', 'https://m.media-amazon.com/images/M/MV5BN2NmN2VhMTQtMDNiOS00NDlhLTliMjgtODE2ZTY0ODQyNDRhXkEyXkFqcGc@._V1_SX300.jpg', 'A hacker discovers the world is a simulation.', 1999, 'Sci-Fi', 136, TRUE, 'tt0133093'),
 (2, 'Inception', 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg', 'A thief who steals corporate secrets through the use of dream-sharing technology.', 2010, 'Sci-Fi', 148, TRUE, 'tt1375666'),

@@ -12,8 +12,8 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role_id INTEGER DEFAULT 3 REFERENCES roles(role_id),
     gender VARCHAR(50),
-    age INTEGER,
-    religion VARCHAR(100),
+    age INTEGER, -- TODO: Use birthdate
+    region CHAR(2), -- Use ISO 3166-1 alpha-2 country codes
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -54,10 +54,10 @@ CREATE TABLE movies (
     poster VARCHAR(255),
     description TEXT,
     release_year INTEGER,
-    genre VARCHAR(100),
+    genre VARCHAR(255), -- Store genres as a comma-separated string (e.g. "Action, Comedy")
     duration INTEGER,
     is_available BOOLEAN NOT NULL,
-    imdb_id VARCHAR(20) UNIQUE
+    tmdb_id VARCHAR(20) UNIQUE
 );
 
 CREATE TABLE watch_history (
