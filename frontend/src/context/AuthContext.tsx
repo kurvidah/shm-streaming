@@ -1,178 +1,93 @@
-"use client";
-
-import {
+import React, {
   createContext,
   useContext,
   useState,
   useEffect,
-  type ReactNode,
+  ReactNode,
 } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-// Set a fallback API URL if the environment variable is not defined
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-const API_BASE_URL = `${API_URL}/api/v1`;
-
-// Storage key for user data
-const USER_KEY = "shm_user";
-
-// Django secret key for authorization
-const SECRET_KEY = import.meta.env.DJANGO_SECRET_KEY || "your_secret_key_here"; // In production, this would be an environment variable
-console.log(SECRET_KEY);
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 interface User {
-  id: number;
+  user_id: number;
   username: string;
   email: string;
+  role_id: number;
+}
+
+interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  gender?: string;
+  age?: number;
+  region?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    username: string,
-    email: string,
-    password: string
-  ) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
-  // Set up authorization header
-  const setAuthHeader = () => {
-    axios.defaults.headers.common["Authorization"] = SECRET_KEY;
-  };
+  const navigate = useNavigate();
 
-  // Remove authorization header
-  const removeAuthHeader = () => {
-    delete axios.defaults.headers.common["Authorization"];
-  };
-
+  // Set the token in axios headers
   useEffect(() => {
-    // Check if user is already logged in
-    const checkAuthStatus = async () => {
-      try {
-        // Check for stored user in localStorage
-        const storedUser = localStorage.getItem(USER_KEY);
-
-        if (storedUser) {
-          // Set the authorization header
-          setAuthHeader();
-
-          // Set the user from localStorage
-          setUser(JSON.parse(storedUser));
-
-          // In a real app with JWT, you would verify the token here
-          // const response = await axios.get(`${API_BASE_URL}/users/me/`);
-          // setUser(response.data);
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        // Clear invalid auth data
-        localStorage.removeItem(USER_KEY);
-        removeAuthHeader();
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, []);
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+  }, [user]);
 
   const login = async (email: string, password: string) => {
-    try {
-      setError(null);
+    const response = await axios.post(`${API_URL}/auth/login`, {
+      email,
+      password,
+    });
+    const { token, ...userData } = response.data;
 
-      // For production, uncomment and use the actual API call
-      // const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
-      //   email,
-      //   password,
-      // });
-      //
-      // Set the authorization header
-      // setAuthHeader();
-      //
-      // Fetch user profile
-      // const userResponse = await axios.get(`${API_BASE_URL}/users/me/`);
-      // const userData = userResponse.data;
-      // setUser(userData);
-      // localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
 
-      // Mock successful login
-      const mockUser = {
-        id: 1,
-        username: "admin",
-        email: email,
-      };
-
-      // Set auth header and store user
-      setAuthHeader();
-      setUser(mockUser);
-      localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Login failed");
-      throw err;
-    }
+    setUser(userData);
+    navigate("/");
   };
 
-  const register = async (
-    username: string,
-    email: string,
-    password: string
-  ) => {
-    try {
-      setError(null);
+  const register = async (data: RegisterData) => {
+    const response = await axios.post(`${API_URL}/auth/register`, data);
+    const { token, ...userData } = response.data;
 
-      // For production, uncomment and use the actual API call
-      // const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
-      //   username,
-      //   email,
-      //   password,
-      // });
-      //
-      // Login after successful registration
-      // await login(email, password);
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
 
-      // Mock successful registration
-      const mockUser = {
-        id: 1,
-        username: username,
-        email: email,
-      };
-
-      // Set auth header and store user
-      setAuthHeader();
-      setUser(mockUser);
-      localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Registration failed");
-      throw err;
-    }
+    setUser(userData);
+    navigate("/");
   };
 
   const logout = () => {
-    // Remove user from localStorage
-    localStorage.removeItem(USER_KEY);
-
-    // Remove authorization header
-    removeAuthHeader();
-
-    // Clear user state
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    delete axios.defaults.headers.common["Authorization"];
     setUser(null);
+    navigate("/login");
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, error, login, register, logout }}
-    >
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -180,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

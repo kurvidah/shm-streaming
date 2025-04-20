@@ -29,26 +29,23 @@ import AdminSubscriptions from "./pages/admin/Subscriptions";
 import AdminBilling from "./pages/admin/Billing";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAddNewMovie from "./pages/admin/AddNewMovie";
-import AdminAddNewUser from "./pages/admin/AddNewUser";  
+import AdminAddNewUser from "./pages/admin/AddNewUser";
 
 import NotFound from "./pages/NotFound";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-console.log("Using API URL:", API_URL);
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 // Protected route component for user routes
 const UserRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  if (loading) return <LoadingSpinner />;
+  const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
 // Protected route component for admin routes
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  if (loading) return <LoadingSpinner />;
-  if (!user || user.id !== 1) return <Navigate to="/" replace />;
+  const { user } = useAuth();
+  if (!user || user.role_id !== 1) return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 
@@ -62,25 +59,121 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/debug" element={<Debug />} />
-
       {/* User protected routes */}
-      <Route path="/watch/:id" element={<UserRoute><Player /></UserRoute>} />
-      <Route path="/profile" element={<UserRoute><UserProfile /></UserRoute>} />
-      <Route path="/subscription" element={<UserRoute><UserSubscription /></UserRoute>} />
-      <Route path="/history" element={<UserRoute><UserWatchHistory /></UserRoute>} />
-      <Route path="/devices" element={<UserRoute><UserDevices /></UserRoute>} />
-      <Route path="/settings" element={<UserRoute><UserSettings /></UserRoute>} />
-
+      <Route
+        path="/watch/:id"
+        element={
+          <UserRoute>
+            <Player />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <UserRoute>
+            <UserProfile />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/subscription"
+        element={
+          <UserRoute>
+            <UserSubscription />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <UserRoute>
+            <UserWatchHistory />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/devices"
+        element={
+          <UserRoute>
+            <UserDevices />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <UserRoute>
+            <UserSettings />
+          </UserRoute>
+        }
+      />
       {/* Admin protected routes */}
-      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-      <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-      <Route path="/admin/users/add" element={<AdminRoute><AdminAddNewUser /></AdminRoute>} />  {/* เพิ่ม route นี้ */}
-      <Route path="/admin/movies" element={<AdminRoute><AdminMovies /></AdminRoute>} />
-      <Route path="/admin/movies/add" element={<AdminRoute><AdminAddNewMovie /></AdminRoute>} />
-      <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
-      <Route path="/admin/billing" element={<AdminRoute><AdminBilling /></AdminRoute>} />
-      <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <AdminUsers />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users/add"
+        element={
+          <AdminRoute>
+            <AdminAddNewUser />
+          </AdminRoute>
+        }
+      />{" "}
+      {/* เพิ่ม route นี้ */}
+      <Route
+        path="/admin/movies"
+        element={
+          <AdminRoute>
+            <AdminMovies />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/movies/add"
+        element={
+          <AdminRoute>
+            <AdminAddNewMovie />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/subscriptions"
+        element={
+          <AdminRoute>
+            <AdminSubscriptions />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/billing"
+        element={
+          <AdminRoute>
+            <AdminBilling />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <AdminRoute>
+            <AdminSettings />
+          </AdminRoute>
+        }
+      />
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>

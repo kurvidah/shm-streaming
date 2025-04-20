@@ -8,10 +8,6 @@ export default defineConfig(({ mode }) => {
   // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), "");
 
-  console.log("Environment variables loaded:", {
-    VITE_API_URL: env.VITE_API_URL || "Not defined",
-  });
-
   return {
     plugins: [react(), tailwindcss()],
     server: {
@@ -22,12 +18,6 @@ export default defineConfig(({ mode }) => {
     // Add clear error overlay
     clearScreen: false,
     // Enable more detailed logs
-    logLevel: "info",
-    // Define environment variables
-    define: {
-      "import.meta.env.VITE_API_URL": JSON.stringify(
-        env.VITE_API_URL || "http://localhost:8000"
-      ),
-    },
+    logLevel: "info"
   };
 });

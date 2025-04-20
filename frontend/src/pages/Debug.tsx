@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+
 const Debug = () => {
   const [path, setPath] = useState<string>("");
   const [manualPath, setManualPath] = useState<string>("");
@@ -13,7 +15,7 @@ const Debug = () => {
   useEffect(() => {
     const fetchPaths = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/`);
+        const res = await axios.get(`${API_URL}/`);
         console.log(axios.defaults.headers);
         setAvailablePaths(Object.keys(res.data));
       } catch (err: any) {
@@ -31,7 +33,7 @@ const Debug = () => {
       setError(null);
 
       const endpoint = manualPath || path; // Use manualPath if provided, otherwise use path
-      const res = await axios.get(`http://backend:8000/api/v1/${endpoint}`);
+      const res = await axios.get(`${API_URL}/${endpoint}`);
       setResponse(JSON.stringify(res.data, null, 2));
     } catch (err: any) {
       console.error("API Test Error:", err);

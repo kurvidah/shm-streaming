@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { User, Mail, Lock, AlertCircle } from "lucide-react";
@@ -30,7 +28,6 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.username || !formData.email || !formData.password) {
       setError("All fields are required");
       return;
@@ -49,7 +46,11 @@ const Register = () => {
     try {
       setError(null);
       setLoading(true);
-      await register(formData.username, formData.email, formData.password);
+      await register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
       navigate("/");
     } catch (err: any) {
       console.error("Registration error:", err);
@@ -181,11 +182,17 @@ const Register = () => {
                 className="ml-2 block text-sm text-gray-400"
               >
                 I agree to the{" "}
-                <Link to="#" className="text-red-500 hover:text-red-400 hover:underline">
+                <Link
+                  to="#"
+                  className="text-red-500 hover:text-red-400 hover:underline"
+                >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link to="#" className="text-red-500 hover:text-red-400 hover:underline">
+                <Link
+                  to="#"
+                  className="text-red-500 hover:text-red-400 hover:underline"
+                >
                   Privacy Policy
                 </Link>
               </label>
@@ -211,7 +218,10 @@ const Register = () => {
         <div className="mt-8 text-center">
           <p className="text-gray-400">
             Already have an account?{" "}
-            <Link to="/login" className="text-red-500 hover:text-red-400 hover:underline">
+            <Link
+              to="/login"
+              className="text-red-500 hover:text-red-400 hover:underline"
+            >
               Sign in
             </Link>
           </p>
