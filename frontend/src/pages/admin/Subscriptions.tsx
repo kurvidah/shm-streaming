@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Plus, Edit, Trash2, AlertCircle, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface SubscriptionPlan {
   plan_id: number;
@@ -22,17 +23,13 @@ const AdminSubscriptions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSubscriptionPlans = async () => {
       try {
         setLoading(true);
 
-        // In a real app, you would fetch this data from your API
-        // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/subscription-plans/`);
-        // setPlans(response.data);
-
-        // For demo purposes
         setTimeout(() => {
           setPlans([
             {
@@ -109,7 +106,10 @@ const AdminSubscriptions = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Subscription Plans</h1>
 
-          <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition">
+          <button 
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition"
+            onClick={() => navigate("/admin/subscription/add")}
+          >
             <Plus size={20} className="mr-2" />
             Add New Plan
           </button>
