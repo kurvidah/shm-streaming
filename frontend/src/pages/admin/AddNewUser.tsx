@@ -13,7 +13,7 @@ const AddNewUser = () => {
     firstName: "",
     lastName: "",
     gender: "",
-    age: "",
+    birthDate: "",
     region: "",
     password: "",
     confirmPassword: "",
@@ -21,9 +21,12 @@ const AddNewUser = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (name === "age" && value !== "" && (parseInt(value) < 0 || isNaN(parseInt(value)))) {
-      return;
+
+    if (name === "birthDate" && value !== "") {
+      const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(value);
+      if (!isValidDate) return;
     }
+
     setFormData({
       ...formData,
       [name]: value,
@@ -126,14 +129,13 @@ const AddNewUser = () => {
               </div>
 
               <div className="flex-1">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Age</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">Birth Date</label>
                 <input
-                  type="text"
-                  name="age"
-                  value={formData.age}
+                  type="date"
+                  name="birthDate"
+                  value={formData.birthDate}
                   onChange={handleChange}
                   className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Enter Age"
                 />
               </div>
 

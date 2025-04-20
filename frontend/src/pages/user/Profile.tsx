@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useAuth } from "../../context/AuthContext"
 import UserSidebar from "../../components/UserSidebar"
-import { User, Mail, Key, Save } from "lucide-react"
+import { User, Mail, Key, Save, Calendar } from "lucide-react"
 
 const UserProfile = () => {
   const { user } = useAuth()
@@ -17,7 +16,7 @@ const UserProfile = () => {
     firstName: "",
     lastName: "",
     gender: "",
-    age: "",
+    birthDate: "",
     region: "",
     currentPassword: "",
     newPassword: "",
@@ -26,21 +25,24 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (user) {
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         username: user.username || "",
         email: user.email || "",
         firstName: user.first_name || "",
         lastName: user.last_name || "",
-      })
+      }))
     }
   }, [user])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    if (name === "age" && value !== "" && (parseInt(value) < 0 || isNaN(parseInt(value)))) {
-      return
+
+    if (name === "birthDate") {
+      const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(value)
+      if (!isValidDate && value !== "") return
     }
+
     setFormData({
       ...formData,
       [name]: value,
@@ -128,7 +130,6 @@ const UserProfile = () => {
               </div>
             </div>
 
-            {/* Flex to align the three fields in one row */}
             <div className="flex gap-6 mb-8">
               <div className="flex-1">
                 <label className="block text-gray-400 text-sm font-medium mb-2">Gender</label>
@@ -138,21 +139,27 @@ const UserProfile = () => {
                   onChange={handleChange}
                   className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
+                  <option value="">Select</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
               </div>
 
               <div className="flex-1">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Age</label>
-                <input
-                  type="text"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Enter Age"
-                />
+                <label className="block text-gray-400 text-sm font-medium mb-2">Birth Date</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Calendar size={18} className="text-gray-500" />
+                  </div>
+                  <input
+                    type="date"
+                    name="birthDate"
+                    value={formData.birthDate}
+                    onChange={handleChange}
+                    className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="YYYY-MM-DD"
+                  />
+                </div>
               </div>
 
               <div className="flex-1">
@@ -163,6 +170,7 @@ const UserProfile = () => {
                   onChange={handleChange}
                   className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
+                  <option value="">Select</option>
                   <option value="Asia">Asia</option>
                   <option value="Europe">Europe</option>
                   <option value="North America">North America</option>
