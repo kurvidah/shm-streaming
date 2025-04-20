@@ -30,6 +30,7 @@ import AdminBilling from "./pages/admin/Billing";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAddNewMovie from "./pages/admin/AddNewMovie";
 import AdminAddNewUser from "./pages/admin/AddNewUser";
+import AdminAddNewPlan from "./pages/admin/AddNewPlan";
 
 import NotFound from "./pages/NotFound";
 
@@ -149,6 +150,14 @@ function AppRoutes() {
             <AdminAddNewMovie />
           </AdminRoute>
         }
+      />
+      <Route 
+        path="/admin/subscription/add" 
+        element={
+          <AdminRoute>
+            <AdminAddNewPlan />
+          </AdminRoute>
+        } 
       />
       <Route
         path="/admin/subscriptions"
