@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import { useEffect } from "react";
 // Icons
 import {
   Clapperboard,
@@ -20,6 +20,9 @@ import AdminSidebar from "../../components/AdminSidebar";
 import GoBackButton from "../../components/GoBackButton";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const TMDB_API_KEY = ""; //Your api key
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w200";
 
 const AddNewMovie = () => {
   const navigate = useNavigate();
@@ -105,17 +108,81 @@ const AddNewMovie = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    if (query.trim() !== "") {
-      setRecommendedMovies([]); // Replace this with TMDB API call later
-    } else {
-      setRecommendedMovies([
-        { title: "Inception", poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg", rating: "8.8" },
-        { title: "Pulp Fiction", poster: "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg", rating: "9.0" },
-        { title: "The Godfather", poster: "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg", rating: "9.0" },
-      ]);
+  };
+  const handleMovieSelect = async (movie: any) => {
+    // Set the basic details (title, poster, and rating)
+    setForm((prev) => ({
+      ...prev,
+      title: movie.title,
+      poster: movie.poster, // Use the selected movie's poster
+      rating: movie.rating || "",
+      genre: "", // To be updated from TMDB
+      release_year: "", // To be updated from TMDB
+      description: "", // To be updated from TMDB
+      duration: "", // To be updated from TMDB
+      imdb_id: "", // To be updated from TMDB
+    }));
+  
+    // Fetch additional data for the selected movie
+    try {
+      const res = await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}`, {
+        params: {
+          api_key: TMDB_API_KEY,
+        },
+      });
+  
+      const movieData = res.data;
+      // Fill out the remaining fields from the TMDB movie data
+      setForm((prev) => ({
+        ...prev,
+        genre: movieData.genres?.[0]?.name || "", // Get the first genre (can be adjusted if needed)
+        release_year: movieData.release_date?.split("-")[0] || "", // Extract the year from release_date
+        description: movieData.overview || "",
+        duration: movieData.runtime ? movieData.runtime.toString() : "", // Convert runtime to string
+        imdb_id: movieData.imdb_id || "",
+      }));
+    } catch (error) {
+      console.error("Error fetching movie details from TMDB:", error);
     }
   };
+  
+  
+  
+
+
+
+useEffect(() => {
+  const fetchRecommendedMovies = async () => {
+    if (searchQuery.trim() === "") return;
+  
+    try {
+      const res = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
+        params: {
+          api_key: TMDB_API_KEY,
+          query: searchQuery,
+        },
+      });
+  
+      const movies = res.data.results.slice(0, 6); // แนะนำแค่ 6 เรื่อง
+      const formatted = movies.map((movie: any) => ({
+        title: movie.title,
+        poster: movie.poster_path
+          ? `${TMDB_IMAGE_URL}${movie.poster_path}`
+          : "https://via.placeholder.com/200x300?text=No+Image",
+        rating: movie.vote_average?.toFixed(1),
+        id: movie.id, // เพิ่มการเก็บ id ของภาพยนตร์เพื่อให้ใช้ในการดึงข้อมูลเพิ่มเติม
+      }));
+  
+      setRecommendedMovies(formatted);
+    } catch (error) {
+      console.error("Error fetching from TMDB:", error);
+    }
+  };
+  
+
+  fetchRecommendedMovies();
+}, [searchQuery]);
+
 
   return (
     <div className="flex">
@@ -293,29 +360,35 @@ const AddNewMovie = () => {
           
 
             {/* Recommended Movies */}
-            {searchQuery === "" && recommendedMovies.length > 0 && (
+            {recommendedMovies.length > 0 && (
               <div>
                 <h3 className="text-lg text-white mb-4">Recommended Movies</h3>
                 <div className="grid grid-cols-2 gap-4">
-                {recommendedMovies.map((movie, idx) => (
-                  <div key={idx} className="flex items-center bg-gray-700 p-3 rounded-lg">
-                    <img
-                      src={movie.poster}
-                      alt={movie.title}
-                      className="w-12 h-16 object-cover rounded mr-4"
-                    />
-                    <div className="space-y-1">
-                      <p className="text-white font-medium">{movie.title}</p>
-                      <div className="flex items-center text-yellow-400 text-sm">
-                        <Star size={14} className="mr-2" />
-                        <span>{movie.rating}</span>
+                  {recommendedMovies.map((movie, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center bg-gray-700 p-3 rounded-lg cursor-pointer"
+                      onClick={() => handleMovieSelect(movie)} // เพิ่มการคลิก
+                    >
+                      <img
+                        src={movie.poster}
+                        alt={movie.title}
+                        className="w-12 h-16 object-cover rounded mr-4"
+                      />
+                      <div className="space-y-1">
+                        <p className="text-white font-medium">{movie.title}</p>
+                        <div className="flex items-center text-yellow-400 text-sm">
+                          <Star size={14} className="mr-2" />
+                          <span>{movie.rating}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               </div>
             )}
+
+
           </div>
         </div>
       </div>
