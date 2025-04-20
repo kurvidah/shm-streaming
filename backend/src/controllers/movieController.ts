@@ -97,6 +97,45 @@ export const getMovieById = async (req: Request, res: Response): Promise<void> =
     }
 };
 
+// @desc    Get movie by slug
+// @route   GET /api/v1/movies/:slug
+// @access  Public
+export const getMovieBySlug = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { slug } = req.params;
+
+        if (!slug) {
+            res.status(400).json({ error: "Slug is required" });
+            return;
+        }
+
+        // Find movie by slug
+        const query = 'SELECT * FROM movies WHERE LOWER(REPLACE(title, " ", "-")) = ?';
+        const [movieRows] = await pool.execute(query, [slug.toLowerCase()]);
+
+        if (!Array.isArray(movieRows) || movieRows.length === 0) {
+            res.status(404).json({ error: "Movie not found" });
+            return;
+        }
+
+        const movie = movieRows[0] as any;
+
+        // Add slug
+        movie.slug = slugify(movie.title, { lower: true });
+
+        // Get media for this movie
+        const [mediaRows] = await pool.execute("SELECT * FROM media WHERE movie_id = ?", [movie.movie_id]);
+
+        // Add media to movie
+        movie.media = Array.isArray(mediaRows) ? mediaRows : [];
+
+        res.json(movie);
+    } catch (error) {
+        console.error("Get movie by slug error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
 // @desc    Create a movie
 // @route   POST /api/v1/movies
 // @access  Private/Admin
