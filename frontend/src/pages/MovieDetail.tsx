@@ -7,6 +7,8 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { Play, Star, Clock, Calendar, Film } from "lucide-react";
 import React from "react";
 
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+
 const MovieDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [movie, setMovie] = useState<any>(null);
@@ -17,9 +19,7 @@ const MovieDetail = () => {
     const fetchMovie = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/movies/${slug}/`
-        );
+        const response = await axios.get(`${API_URL}/movies/${slug}/`);
         setMovie(response.data);
         setLoading(false);
       } catch (err) {
@@ -47,39 +47,6 @@ const MovieDetail = () => {
     );
   }
 
-  // For demo purposes, if API doesn't return data
-  const demoMovie = movie || {
-    movie_id: 1,
-    title: "The Matrix",
-    description:
-      "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
-    poster:
-      "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg",
-    banner:
-      "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg",
-    release_year: 1999,
-    genre: "Sci-Fi",
-    duration: 136,
-    rating: "R",
-    is_available: true,
-    reviews: [
-      {
-        review_id: 1,
-        user: { username: "moviefan1" },
-        rating: 5,
-        review_text: "One of the best sci-fi movies ever made!",
-        review_date: "2023-01-15T12:30:00Z",
-      },
-      {
-        review_id: 2,
-        user: { username: "filmcritic" },
-        rating: 4,
-        review_text: "Revolutionary visual effects and a mind-bending story.",
-        review_date: "2023-02-20T15:45:00Z",
-      },
-    ],
-  };
-
   return (
     <div>
       {/* Hero Banner */}
@@ -87,7 +54,7 @@ const MovieDetail = () => {
         className="relative h-[70vh] bg-cover bg-center"
         style={{
           backgroundImage: `url(${
-            demoMovie.banner || "/placeholder.svg?height=1080&width=1920"
+            movie.poster || "/placeholder.svg?height=1080&width=1920"
           })`,
         }}
       >
@@ -96,46 +63,46 @@ const MovieDetail = () => {
         <div className="absolute bottom-0 left-0 right-0 p-8">
           <div className="container mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              {demoMovie.title}
+              {movie.title}
             </h1>
 
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300 mb-6">
-              {demoMovie.release_year && (
+              {movie.release_year && (
                 <div className="flex items-center">
                   <Calendar size={16} className="mr-1" />
-                  <span>{demoMovie.release_year}</span>
+                  <span>{movie.release_year}</span>
                 </div>
               )}
 
-              {demoMovie.duration && (
+              {movie.duration && (
                 <div className="flex items-center">
                   <Clock size={16} className="mr-1" />
-                  <span>{demoMovie.duration} min</span>
+                  <span>{movie.duration} min</span>
                 </div>
               )}
 
-              {demoMovie.genre && (
+              {movie.genre && (
                 <div className="flex items-center">
                   <Film size={16} className="mr-1" />
-                  <span>{demoMovie.genre}</span>
+                  <span>{movie.genre}</span>
                 </div>
               )}
 
-              {demoMovie.rating && (
+              {movie.rating && (
                 <div className="px-2 py-1 bg-gray-800 rounded text-xs">
-                  {demoMovie.rating}
+                  {movie.rating}
                 </div>
               )}
 
               <div className="flex items-center">
                 <Star size={16} className="mr-1 text-yellow-500" />
                 <span>
-                  {demoMovie.reviews && demoMovie.reviews.length > 0
+                  {movie.reviews && movie.reviews.length > 0
                     ? (
-                        demoMovie.reviews.reduce(
+                        movie.reviews.reduce(
                           (acc: number, review: any) => acc + review.rating,
                           0
-                        ) / demoMovie.reviews.length
+                        ) / movie.reviews.length
                       ).toFixed(1)
                     : "N/A"}
                 </span>
@@ -143,7 +110,7 @@ const MovieDetail = () => {
             </div>
 
             <Link
-              to={`/watch/${demoMovie.movie_id}`}
+              to={`/watch/${movie.movie_id}`}
               className="inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold transition"
             >
               <Play size={20} className="mr-2" />
@@ -159,8 +126,8 @@ const MovieDetail = () => {
           {/* Left Column - Poster */}
           <div className="md:col-span-1">
             <img
-              src={demoMovie.poster || "/placeholder.svg?height=450&width=300"}
-              alt={demoMovie.title}
+              src={movie.poster || "/placeholder.svg?height=450&width=300"}
+              alt={movie.title}
               className="w-full rounded-lg shadow-lg"
             />
           </div>
@@ -168,15 +135,15 @@ const MovieDetail = () => {
           {/* Right Column - Details */}
           <div className="md:col-span-2">
             <h2 className="text-2xl font-bold mb-4">Synopsis</h2>
-            <p className="text-gray-300 mb-8">{demoMovie.description}</p>
+            <p className="text-gray-300 mb-8">{movie.description}</p>
 
             {/* Reviews Section */}
             <div>
               <h2 className="text-2xl font-bold mb-4">Reviews</h2>
 
-              {demoMovie.reviews && demoMovie.reviews.length > 0 ? (
+              {movie.reviews && movie.reviews.length > 0 ? (
                 <div className="space-y-4">
-                  {demoMovie.reviews.map((review: any) => (
+                  {movie.reviews.map((review: any) => (
                     <div
                       key={review.review_id}
                       className="bg-gray-800 rounded-lg p-4"

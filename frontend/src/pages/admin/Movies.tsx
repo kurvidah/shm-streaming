@@ -5,6 +5,9 @@ import AdminSidebar from "../../components/AdminSidebar";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 const AdminMovies = () => {
   const navigate = useNavigate();
@@ -29,64 +32,10 @@ const AdminMovies = () => {
       try {
         setLoading(true);
         // fetch from real API if available
-        // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/movies`);
-        // setMovies(response.data);
-
-        setTimeout(() => {
-          setMovies([
-            {
-              movie_id: 1,
-              title: "The Matrix",
-              poster:
-                "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg",
-              release_year: 1999,
-              genre: "Sci-Fi",
-              is_available: true,
-              slug: "the-matrix",
-            },
-            {
-              movie_id: 2,
-              title: "Inception",
-              poster:
-                "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
-              release_year: 2010,
-              genre: "Sci-Fi",
-              is_available: true,
-              slug: "inception",
-            },
-            {
-              movie_id: 3,
-              title: "The Godfather",
-              poster:
-                "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
-              release_year: 1972,
-              genre: "Crime",
-              is_available: true,
-              slug: "the-godfather",
-            },
-            {
-              movie_id: 4,
-              title: "Pulp Fiction",
-              poster:
-                "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
-              release_year: 1994,
-              genre: "Crime",
-              is_available: false,
-              slug: "pulp-fiction",
-            },
-            {
-              movie_id: 5,
-              title: "The Dark Knight",
-              poster:
-                "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
-              release_year: 2008,
-              genre: "Action",
-              is_available: true,
-              slug: "the-dark-knight",
-            },
-          ]);
-          setLoading(false);
-        }, 1000);
+        const response = await axios.get(`${API_URL}/movies`);
+        console.log(response);
+        setMovies(response.data);
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching movies:", err);
         setError("Failed to load movies");
@@ -127,7 +76,10 @@ const AdminMovies = () => {
         {/* Search */}
         <div className="mb-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search movies..."
@@ -149,11 +101,21 @@ const AdminMovies = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-900">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Movie</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Year</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Genre</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Movie
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Year
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Genre
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
@@ -169,12 +131,18 @@ const AdminMovies = () => {
                         <div className="font-medium">{movie.title}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{movie.release_year}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{movie.genre}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {movie.release_year}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {movie.genre}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          movie.is_available ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
+                          movie.is_available
+                            ? "bg-green-500/20 text-green-500"
+                            : "bg-red-500/20 text-red-500"
                         }`}
                       >
                         {movie.is_available ? "Available" : "Unavailable"}
