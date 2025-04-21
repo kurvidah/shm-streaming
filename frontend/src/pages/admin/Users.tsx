@@ -100,34 +100,41 @@ const AdminUsers = () => {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search users..."
-              className="w-full bg-gray-800 text-white rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-          </div>
-        </div>
+        {/* Search & Filter */}
+        <div className="bg-gray-800 rounded-lg p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Input */}
+            <div className="flex-1 relative">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="text"
+                placeholder="Search users..."
+                className="w-full bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
 
-        <div className="mb-4 flex gap-4 items-center">
-          <label className="text-white text-sm font-medium">Filter by:</label>
-          <select
-            value={searchColumn}
-            onChange={(e) => setSearchColumn(e.target.value)}
-            className="bg-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          >
-            <option value="all">All Columns</option>
-            <option value="username">Username</option>
-            <option value="email">Email</option>
-            <option value="region">Region</option>
-            <option value="subscription">Subscription</option>
-            <option value="created_at">Created At</option>
-          </select>
+            {/* Filter Column */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <select
+                value={searchColumn}
+                onChange={(e) => setSearchColumn(e.target.value)}
+                className="bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">All Columns</option>
+                <option value="username">Username</option>
+                <option value="email">Email</option>
+                <option value="region">Region</option>
+                <option value="subscription">Subscription</option>
+                <option value="created_at">Created At</option>
+              </select>
+
+            </div>
+          </div>
         </div>
 
         {loading ? (
