@@ -20,7 +20,7 @@ import AdminSidebar from "../../components/AdminSidebar";
 import GoBackButton from "../../components/GoBackButton";
 
 const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
-const TMDB_API_KEY = ""; //Your api key
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY; //Your api key
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w200";
 

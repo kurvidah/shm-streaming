@@ -14,7 +14,7 @@ services:
     environment:
       - VITE_API_URL=http://localhost:${BACKEND_PORT:-8000}
       - CHOKIDAR_USEPOLLING=true
-      - TMDB_API_KEY=${TMDB_API_KEY:-your_tmdb_api_key}
+      - VITE_TMDB_API_KEY=${VITE_TMDB_API_KEY:-your_tmdb_api_key}
     depends_on:
       - backend
     networks:
