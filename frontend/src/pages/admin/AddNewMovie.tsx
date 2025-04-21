@@ -19,7 +19,7 @@ import {
 import AdminSidebar from "../../components/AdminSidebar";
 import GoBackButton from "../../components/GoBackButton";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 const TMDB_API_KEY = ""; //Your api key
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w200";
@@ -45,13 +45,17 @@ const AddNewMovie = () => {
 
   const [recommendedMovies, setRecommendedMovies] = useState<any[]>([]);
 
-  {/* Manually set 10 movie per pages, because TMDB returns 20 per page by default*/}
+  {
+    /* Manually set 10 movie per pages, because TMDB returns 20 per page by default*/
+  }
   const [currentPage, setCurrentPage] = useState(1);
   const moviesPerPage = 10;
   const indexOfLastMovie = currentPage * moviesPerPage;
   const indexOfFirstMovie = indexOfLastMovie - moviesPerPage;
-  const currentMovies = recommendedMovies.slice(indexOfFirstMovie, indexOfLastMovie);
-
+  const currentMovies = recommendedMovies.slice(
+    indexOfFirstMovie,
+    indexOfLastMovie
+  );
 
   const isFormDirty = () =>
     Object.values(form).some(
@@ -84,15 +88,22 @@ const AddNewMovie = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) =>
-        formData.append(k, v.toString())
-      );
-      if (movieFile) formData.append("file", movieFile);
+      const payload = {
+        title: form.title,
+        poster: form.poster,
+        description: form.description,
+        release_year: parseInt(form.release_year, 10),
+        genre: form.genre,
+        duration: parseInt(form.duration, 10),
+        is_available: form.is_available,
+        tmdb_id: form.imdb_id,
+      };
 
-      await axios.post(`${API_URL}/api/admin/movies`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await axios.post(`${API_URL}/movies`, payload, {
+        headers: { "Content-Type": "application/json" },
       });
+
+      console.log(API_URL);
 
       alert("Movie added!");
       navigate("/admin/movies");
@@ -129,7 +140,7 @@ const AddNewMovie = () => {
       console.error("Error fetching popular movies:", error);
     }
   };
-  
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
@@ -148,7 +159,7 @@ const AddNewMovie = () => {
       duration: "", // To be updated from TMDB
       imdb_id: "", // To be updated from TMDB
     }));
-  
+
     // Fetch additional data for the selected movie
     try {
       const res = await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}`, {
@@ -156,7 +167,7 @@ const AddNewMovie = () => {
           api_key: TMDB_API_KEY,
         },
       });
-  
+
       const movieData = res.data;
       // Fill out the remaining fields from the TMDB movie data
       setForm((prev) => ({
@@ -171,44 +182,40 @@ const AddNewMovie = () => {
       console.error("Error fetching movie details from TMDB:", error);
     }
   };
-  
 
-useEffect(() => {
-  if (searchQuery.trim() === "") {
-    fetchPopularMovies("day");
-    return;
-  }
-  
-  const fetchSearchedMovies = async () => {
-  
-    try {
-      const res = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
-        params: {
-          api_key: TMDB_API_KEY,
-          query: searchQuery,
-        },
-      });
-  
-      const movies = res.data.results.slice(0, 20); // แนะนำแค่ 6 เรื่อง
-      const formatted = movies.map((movie: any) => ({
-        title: movie.title,
-        poster: movie.poster_path
-          ? `${TMDB_IMAGE_URL}${movie.poster_path}`
-          : "https://via.placeholder.com/200x300?text=No+Image",
-        rating: movie.vote_average?.toFixed(1),
-        id: movie.id, // เพิ่มการเก็บ id ของภาพยนตร์เพื่อให้ใช้ในการดึงข้อมูลเพิ่มเติม
-      }));
-  
-      setRecommendedMovies(formatted);
-    } catch (error) {
-      console.error("Error fetching from TMDB:", error);
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      fetchPopularMovies("day");
+      return;
     }
-  };
-  
 
-  fetchSearchedMovies();
-}, [searchQuery]);
+    const fetchSearchedMovies = async () => {
+      try {
+        const res = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
+          params: {
+            api_key: TMDB_API_KEY,
+            query: searchQuery,
+          },
+        });
 
+        const movies = res.data.results.slice(0, 20); // แนะนำแค่ 6 เรื่อง
+        const formatted = movies.map((movie: any) => ({
+          title: movie.title,
+          poster: movie.poster_path
+            ? `${TMDB_IMAGE_URL}${movie.poster_path}`
+            : "https://via.placeholder.com/200x300?text=No+Image",
+          rating: movie.vote_average?.toFixed(1),
+          id: movie.id, // เพิ่มการเก็บ id ของภาพยนตร์เพื่อให้ใช้ในการดึงข้อมูลเพิ่มเติม
+        }));
+
+        setRecommendedMovies(formatted);
+      } catch (error) {
+        console.error("Error fetching from TMDB:", error);
+      }
+    };
+
+    fetchSearchedMovies();
+  }, [searchQuery]);
 
   return (
     <div className="flex">
@@ -220,7 +227,9 @@ useEffect(() => {
           <GoBackButton
             onClick={() => {
               if (isFormDirty()) {
-                const confirmLeave = confirm("You have unsaved changes. Are you sure?");
+                const confirmLeave = confirm(
+                  "You have unsaved changes. Are you sure?"
+                );
                 if (!confirmLeave) return;
               }
               navigate(-1);
@@ -230,15 +239,15 @@ useEffect(() => {
           <h1 className="text-2xl font-bold text-white mb-4">Add New Movie</h1>
         </div>
 
-        
-
         <div className="flex flex-col md:flex-row gap-8">
           {/* Form Section */}
           <div className="w-full md:w-1/2 bg-gray-800 rounded-lg p-6 border-2 border-gray-700">
             <form onSubmit={handleSubmit}>
               {/* Title */}
               <div className="mb-6">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Title</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">
+                  Title
+                </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Clapperboard size={18} className="text-gray-500" />
@@ -256,7 +265,9 @@ useEffect(() => {
 
               {/* Genre */}
               <div className="mb-6">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Genre</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">
+                  Genre
+                </label>
                 <input
                   type="text"
                   name="genre"
@@ -269,7 +280,9 @@ useEffect(() => {
 
               {/* Release Year */}
               <div className="mb-6">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Release Year</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">
+                  Release Year
+                </label>
                 <input
                   type="text"
                   name="release_year"
@@ -282,7 +295,9 @@ useEffect(() => {
 
               {/* Duration */}
               <div className="mb-6">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Duration (min)</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">
+                  Duration (min)
+                </label>
                 <input
                   type="text"
                   name="duration"
@@ -294,7 +309,9 @@ useEffect(() => {
 
               {/* Description */}
               <div className="mb-6">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Description</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">
+                  Description
+                </label>
                 <textarea
                   name="description"
                   value={form.description}
@@ -306,7 +323,9 @@ useEffect(() => {
 
               {/* Rating */}
               <div className="mb-6">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Rating (0.0 - 10.0)</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">
+                  Rating (0.0 - 10.0)
+                </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Star size={18} className="text-gray-500" />
@@ -328,7 +347,9 @@ useEffect(() => {
 
               {/* Upload Movie File */}
               <div className="mb-6">
-                <label className="block text-gray-400 text-sm font-medium mb-2">Upload Movie File</label>
+                <label className="block text-gray-400 text-sm font-medium mb-2">
+                  Upload Movie File
+                </label>
                 <div className="relative border-2 border-dashed border-gray-500 rounded-lg p-6">
                   <div className="flex justify-center items-center">
                     <UploadCloud size={24} className="text-gray-500 mr-3" />
@@ -338,7 +359,9 @@ useEffect(() => {
                       onChange={handleFileChange}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
-                    <p className="text-gray-400">Drag & drop or click to select a file</p>
+                    <p className="text-gray-400">
+                      Drag & drop or click to select a file
+                    </p>
                   </div>
                 </div>
                 {movieFile && (
@@ -384,7 +407,6 @@ useEffect(() => {
                 className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
-          
 
             {/* Recommended Movies */}
             {searchQuery.trim() === "" && recommendedMovies.length > 0 && (
@@ -398,8 +420,18 @@ useEffect(() => {
                         className="bg-gray-700 text-white px-4 py-1.5 rounded-lg hover:bg-gray-600 flex items-center gap-2"
                       >
                         Popular
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </button>
 
@@ -429,7 +461,6 @@ useEffect(() => {
                   )}
                 </div>
 
-                
                 <div className="grid grid-cols-2 gap-4">
                   {currentMovies.map((movie, idx) => (
                     <div
@@ -454,19 +485,22 @@ useEffect(() => {
                 </div>
 
                 <div className="flex justify-center mt-4 space-x-2">
-                  {Array.from({ length: Math.ceil(recommendedMovies.length / moviesPerPage) }).map((_, index) => (
+                  {Array.from({
+                    length: Math.ceil(recommendedMovies.length / moviesPerPage),
+                  }).map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentPage(index + 1)}
                       className={`px-3 py-1 rounded ${
-                        currentPage === index + 1 ? "bg-blue-600 text-white" : "bg-gray-600 text-gray-200"
+                        currentPage === index + 1
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-600 text-gray-200"
                       }`}
                     >
                       {index + 1}
                     </button>
                   ))}
                 </div>
-
               </div>
             )}
 
@@ -474,7 +508,7 @@ useEffect(() => {
               <div>
                 <h3 className="text-lg text-white mb-4">Search Results</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {currentMovies.map((movie, idx) => (            
+                  {currentMovies.map((movie, idx) => (
                     <div
                       key={idx}
                       className="flex items-center bg-gray-700 p-3 rounded-lg cursor-pointer"
@@ -497,22 +531,24 @@ useEffect(() => {
                 </div>
 
                 <div className="flex justify-center mt-4 space-x-2">
-                  {Array.from({ length: Math.ceil(recommendedMovies.length / moviesPerPage) }).map((_, index) => (
+                  {Array.from({
+                    length: Math.ceil(recommendedMovies.length / moviesPerPage),
+                  }).map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentPage(index + 1)}
                       className={`px-3 py-1 rounded ${
-                        currentPage === index + 1 ? "bg-blue-600 text-white" : "bg-gray-600 text-gray-200"
+                        currentPage === index + 1
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-600 text-gray-200"
                       }`}
                     >
                       {index + 1}
                     </button>
                   ))}
                 </div>
-
               </div>
             )}
-
           </div>
         </div>
       </div>
@@ -522,7 +558,8 @@ useEffect(() => {
 
 export default AddNewMovie;
 
- {/* {recommendedMovies.length > 0 && (
+{
+  /* {recommendedMovies.length > 0 && (
               <div>
                 <h3 className="text-lg text-white mb-4">Recommended Movies</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -548,4 +585,5 @@ export default AddNewMovie;
                   ))}
                 </div>
               </div>
-            )} */}
+            )} */
+}
