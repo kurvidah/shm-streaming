@@ -141,7 +141,7 @@ export const getMovieBySlug = async (req: Request, res: Response): Promise<void>
 // @access  Private/Admin
 export const createMovie = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { title, poster, description, release_year, genre, duration, is_available, imdb_id } = req.body;
+        const { title, poster, description, release_year, genre, duration, is_available, tmdb_id } = req.body;
 
         if (!title || typeof title !== "string" || title.trim() === "") {
             res.status(400).json({ error: "Title is required" });
@@ -150,7 +150,7 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
 
         // Insert movie
         const [result] = await pool.execute(
-            "INSERT INTO movies (title, poster, description, release_year, genre, duration, is_available, imdb_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO movies (title, poster, description, release_year, genre, duration, is_available, tmdb_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 title,
                 poster || null,
@@ -159,7 +159,7 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
                 genre || null,
                 duration || null,
                 is_available ? 1 : 0,
-                imdb_id || null,
+                tmdb_id || null,
             ],
         );
 
@@ -191,7 +191,7 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
 // @access  Private/Admin
 export const updateMovie = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { title, poster, description, release_year, genre, duration, is_available, imdb_id } = req.body;
+        const { title, poster, description, release_year, genre, duration, is_available, tmdb_id } = req.body;
 
         // Check if movie exists
         const [existingRows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [req.params.id]);
@@ -233,9 +233,9 @@ export const updateMovie = async (req: Request, res: Response): Promise<void> =>
             updateFields.push("is_available = ?");
             updateValues.push(is_available ? 1 : 0);
         }
-        if (imdb_id) {
-            updateFields.push("imdb_id = ?");
-            updateValues.push(imdb_id);
+        if (tmdb_id) {
+            updateFields.push("tmdb_id = ?");
+            updateValues.push(tmdb_id);
         }
 
         if (updateFields.length === 0) {
