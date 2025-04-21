@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import pool from "../db";
 import jwt from "jsonwebtoken"
 
-// @desc    Get users by ID
-// @route   GET /api/v1/users/:id
+// @desc    Get all users
+// @route   GET /api/v1/users
 // @access  Private/Admin
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
