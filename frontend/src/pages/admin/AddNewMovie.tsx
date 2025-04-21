@@ -42,11 +42,53 @@ const AddNewMovie = () => {
   const [movieFile, setMovieFile] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const [recommendedMovies, setRecommendedMovies] = useState<any[]>([
-    { title: "Inception", poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg", rating: "8.8" },
-    { title: "Pulp Fiction", poster: "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg", rating: "9.0" },
-    { title: "The Godfather", poster: "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg", rating: "9.0" },
-  ]);
+  
+  const [recommendedMovies, setRecommendedMovies] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchRecommendedMovies = async () => {
+      try {
+        const res = await axios.get(`${TMDB_BASE_URL}/movie/popular`, {
+          params: {
+            api_key: TMDB_API_KEY,
+            language: "en-US",
+            page: 1,
+          },
+        });
+  
+        const movies = await Promise.all(
+          res.data.results.slice(0, 10).map(async (movie: any) => {
+            const detailsRes = await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}`, {
+              params: {
+                api_key: TMDB_API_KEY,
+              },
+            });
+  
+            const details = detailsRes.data;
+  
+            return {
+              id: movie.id,
+                title: movie.title,
+                poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+                rating: movie.vote_average?.toFixed(1),
+                genre: details.genres.map((g: any) => g.name).join(", "),
+                release_year: details.release_date?.split("-")[0],
+                description: details.overview,
+                duration: `${details.runtime} min`,
+                imdb_id: details.imdb_id,
+              };
+            })
+          );
+  
+          setRecommendedMovies(movies);
+        } catch (error) {
+          console.error("Error fetching recommended movies", error);
+        }
+      };
+  
+      fetchRecommendedMovies();
+    }, []);
+  
 
   const isFormDirty = () =>
     Object.values(form).some(
