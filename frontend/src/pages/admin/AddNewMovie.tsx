@@ -41,12 +41,17 @@ const AddNewMovie = () => {
 
   const [movieFile, setMovieFile] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const [recommendedMovies, setRecommendedMovies] = useState<any[]>([
-    { title: "Inception", poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg", rating: "8.8" },
-    { title: "Pulp Fiction", poster: "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg", rating: "9.0" },
-    { title: "The Godfather", poster: "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg", rating: "9.0" },
-  ]);
+  const [recommendedMovies, setRecommendedMovies] = useState<any[]>([]);
+
+  {/* Manually set 10 movie per pages, because TMDB returns 20 per page by default*/}
+  const [currentPage, setCurrentPage] = useState(1);
+  const moviesPerPage = 10;
+  const indexOfLastMovie = currentPage * moviesPerPage;
+  const indexOfFirstMovie = indexOfLastMovie - moviesPerPage;
+  const currentMovies = recommendedMovies.slice(indexOfFirstMovie, indexOfLastMovie);
+
 
   const isFormDirty = () =>
     Object.values(form).some(
@@ -105,10 +110,31 @@ const AddNewMovie = () => {
     navigate("/admin/movies");
   };
 
+  const fetchPopularMovies = async (type: "day" | "week") => {
+    try {
+      const res = await axios.get(`${TMDB_BASE_URL}/trending/movie/${type}`, {
+        params: { api_key: TMDB_API_KEY },
+      });
+      const movies = res.data.results.slice(0, 50);
+      const formatted = movies.map((movie: any) => ({
+        title: movie.title,
+        poster: movie.poster_path
+          ? `${TMDB_IMAGE_URL}${movie.poster_path}`
+          : "https://via.placeholder.com/200x300?text=No+Image",
+        rating: movie.vote_average?.toFixed(1),
+        id: movie.id,
+      }));
+      setRecommendedMovies(formatted);
+    } catch (error) {
+      console.error("Error fetching popular movies:", error);
+    }
+  };
+  
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
   };
+
   const handleMovieSelect = async (movie: any) => {
     // Set the basic details (title, poster, and rating)
     setForm((prev) => ({
@@ -146,14 +172,14 @@ const AddNewMovie = () => {
     }
   };
   
-  
-  
-
-
 
 useEffect(() => {
-  const fetchRecommendedMovies = async () => {
-    if (searchQuery.trim() === "") return;
+  if (searchQuery.trim() === "") {
+    fetchPopularMovies("day");
+    return;
+  }
+  
+  const fetchSearchedMovies = async () => {
   
     try {
       const res = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
@@ -163,7 +189,7 @@ useEffect(() => {
         },
       });
   
-      const movies = res.data.results.slice(0, 6); // แนะนำแค่ 6 เรื่อง
+      const movies = res.data.results.slice(0, 20); // แนะนำแค่ 6 เรื่อง
       const formatted = movies.map((movie: any) => ({
         title: movie.title,
         poster: movie.poster_path
@@ -180,7 +206,7 @@ useEffect(() => {
   };
   
 
-  fetchRecommendedMovies();
+  fetchSearchedMovies();
 }, [searchQuery]);
 
 
@@ -190,7 +216,7 @@ useEffect(() => {
 
       <div className="flex-1 p-8">
         {/* Go Back */}
-        <div className="mb-2">
+        <div className="flex items-center gap-4 mb-2">
           <GoBackButton
             onClick={() => {
               if (isFormDirty()) {
@@ -199,11 +225,12 @@ useEffect(() => {
               }
               navigate(-1);
             }}
-            className="text-sm text-gray-300 hover:text-white underline"
+            className="text-sm text-gray-300 hover:text-white underline mb-4"
           />
+          <h1 className="text-2xl font-bold text-white mb-4">Add New Movie</h1>
         </div>
 
-        <h1 className="text-3xl font-bold text-white mb-8 text-center">Add New Movie</h1>
+        
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Form Section */}
@@ -352,7 +379,7 @@ useEffect(() => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={handleSearch}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for a movie..."
                 className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
               />
@@ -360,7 +387,142 @@ useEffect(() => {
           
 
             {/* Recommended Movies */}
-            {recommendedMovies.length > 0 && (
+            {searchQuery.trim() === "" && recommendedMovies.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg text-white">Trending Movies</h3>
+                  {searchQuery.trim() === "" && (
+                    <div className="mb-0 relative">
+                      <button
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        className="bg-gray-700 text-white px-4 py-1.5 rounded-lg hover:bg-gray-600 flex items-center gap-2"
+                      >
+                        Popular
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {showDropdown && (
+                        <div className="absolute mt-2 w-40 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              fetchPopularMovies("day");
+                              setShowDropdown(false);
+                            }}
+                            className="block px-4 py-2 w-full text-left text-white hover:bg-gray-700 text-sm"
+                          >
+                            Today
+                          </button>
+                          <button
+                            onClick={() => {
+                              fetchPopularMovies("week");
+                              setShowDropdown(false);
+                            }}
+                            className="block px-4 py-2 w-full text-left text-white hover:bg-gray-700 text-sm"
+                          >
+                            This Week
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {currentMovies.map((movie, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center bg-gray-700 p-3 rounded-lg cursor-pointer"
+                      onClick={() => handleMovieSelect(movie)}
+                    >
+                      <img
+                        src={movie.poster}
+                        alt={movie.title}
+                        className="w-12 h-16 object-cover rounded mr-4"
+                      />
+                      <div className="space-y-1">
+                        <p className="text-white font-medium">{movie.title}</p>
+                        <div className="flex items-center text-yellow-400 text-sm">
+                          <Star size={14} className="mr-2" />
+                          <span>{movie.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-center mt-4 space-x-2">
+                  {Array.from({ length: Math.ceil(recommendedMovies.length / moviesPerPage) }).map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === index + 1 ? "bg-blue-600 text-white" : "bg-gray-600 text-gray-200"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+
+              </div>
+            )}
+
+            {searchQuery.trim() !== "" && recommendedMovies.length > 0 && (
+              <div>
+                <h3 className="text-lg text-white mb-4">Search Results</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {currentMovies.map((movie, idx) => (            
+                    <div
+                      key={idx}
+                      className="flex items-center bg-gray-700 p-3 rounded-lg cursor-pointer"
+                      onClick={() => handleMovieSelect(movie)}
+                    >
+                      <img
+                        src={movie.poster}
+                        alt={movie.title}
+                        className="w-12 h-16 object-cover rounded mr-4"
+                      />
+                      <div className="space-y-1">
+                        <p className="text-white font-medium">{movie.title}</p>
+                        <div className="flex items-center text-yellow-400 text-sm">
+                          <Star size={14} className="mr-2" />
+                          <span>{movie.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-center mt-4 space-x-2">
+                  {Array.from({ length: Math.ceil(recommendedMovies.length / moviesPerPage) }).map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === index + 1 ? "bg-blue-600 text-white" : "bg-gray-600 text-gray-200"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AddNewMovie;
+
+ {/* {recommendedMovies.length > 0 && (
               <div>
                 <h3 className="text-lg text-white mb-4">Recommended Movies</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -386,14 +548,4 @@ useEffect(() => {
                   ))}
                 </div>
               </div>
-            )}
-
-
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default AddNewMovie;
+            )} */}
