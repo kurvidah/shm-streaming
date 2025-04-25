@@ -3,17 +3,12 @@ erDiagram
     integer user_id PK
     varchar username
     varchar email
-    varchar password
+    varchar password "bcrypt hashed"
     varchar gender
     integer age
-    varchar region 
-    integer role_id
+    char region "ISO 3166-1 alpha-2"
+    enum role "user, admin"
     timestamp created_at
-  }
-
-  roles {
-    integer role_id PK
-    varchar role_name
   }
 
   subscription_plan {
@@ -44,10 +39,18 @@ erDiagram
     varchar payment_status
   }
 
+  sessions {
+    integer session_id PK
+    integer user_id FK
+    varchar token
+    timestamp created_at
+    timestamp expires_at
+  }
+
   watch_history {
     integer user_id FK
-    integer media_id FK
-    timestamp timestamp
+    integer movie_id FK
+    timestamp watch_time
     integer watch_duration
   }
 
@@ -55,7 +58,7 @@ erDiagram
     integer review_id PK
     integer user_id FK
     integer movie_id FK
-    integer rating
+    integer rating "1-5"
     varchar review_text
     timestamp review_date
   }
@@ -66,6 +69,8 @@ erDiagram
     varchar device_type
     varchar device_name
     timestamp registered_at
+    boolean is_active
+    timestamp last_activity
   }
 
   movies {
@@ -73,10 +78,20 @@ erDiagram
     varchar title
     varchar description
     integer release_year
-    varchar genre
     integer duration
     boolean is_available
     varchar imdb_id
+    varchar poster
+  }
+
+  genres {
+    integer genre_id PK
+    varchar genre_name
+  }
+
+  movie_genre {
+    integer movie_id FK
+    integer genre_id FK
   }
 
   media {
@@ -84,15 +99,28 @@ erDiagram
     integer movie_id FK
     integer episode
     varchar description
+    varchar file_path
+  }
+
+  movie_uploads {
+    integer upload_id PK
+    integer movie_id FK
+    integer uploaded_by FK
+    timestamp upload_date
+    enum status "pending, approved, rejected"
   }
 
   users ||--o{ user_subscription : subscribes
-  users }o--o{ roles : has_role
   user_subscription }|--|| subscription_plan : chooses
   user_subscription ||--o{ billing : has
+  users ||--o{ sessions : has
   users ||--o{ watch_history : watches
   users ||--o{ reviews : writes
   users ||--o{ device : registers
   movies ||--o{ watch_history : watched_in
   movies ||--o{ reviews : reviewed_by
   movies ||--o{ media : contains
+  movies ||--o{ movie_genre : has_genre
+  genres ||--o{ movie_genre : categorizes
+  movies ||--o{ movie_uploads : uploaded_as
+  users ||--o{ movie_uploads : uploads
