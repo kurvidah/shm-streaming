@@ -337,11 +337,22 @@ Retrieve a list of movies with optional filters.
         "poster": "https://example.com/inception.jpg",
         "description": "A mind-bending thriller.",
         "release_year": 2010,
-        "genre": "Sci-Fi",
+        "genre": ["Sci-Fi", "Thriller", "Action"],
         "duration": 148,
         "is_available": true,
         "imdb_id": "tt1375666",
-        "slug": "inception"
+        "slug": "inception",
+        "media": [
+        {
+          {
+            "media_id": 1,
+            "movie_id": 1,
+            "episode": null,
+            "season": null,
+            "description": ""
+          }
+        }
+      ]
     },
     ...
 ]
@@ -362,7 +373,7 @@ Retrieve a movie by its ID or slug.
   "poster": "https://example.com/inception.jpg",
   "description": "A mind-bending thriller.",
   "release_year": 2010,
-  "genre": "Sci-Fi",
+  "genre": ["Sci-Fi", "Thriller", "Action"],
   "duration": 148,
   "is_available": true,
   "imdb_id": "tt1375666",
@@ -392,7 +403,7 @@ Admin: Create a new movie.
   "poster": "https://example.com/inception.jpg",
   "description": "A mind-bending thriller.",
   "release_year": 2010,
-  "genre": "Sci-Fi",
+  "genre": ["Sci-Fi", "Thriller", "Action"],
   "duration": 148,
   "is_available": true,
   "imdb_id": "tt1375666"
@@ -408,11 +419,19 @@ Admin: Create a new movie.
   "poster": "https://example.com/inception.jpg",
   "description": "A mind-bending thriller.",
   "release_year": 2010,
-  "genre": "Sci-Fi",
+  "genre": ["Sci-Fi", "Thriller", "Action"],
   "duration": 148,
   "is_available": true,
   "imdb_id": "tt1375666",
-  "slug": "inception"
+  "slug": "inception",
+  "media": [
+    {
+      "media_id": 1,
+      "movie_id": 1,
+      "episode": 1,
+      "description": "Pilot episode"
+    }
+  ]
 }
 ```
 
@@ -427,13 +446,7 @@ Admin: Update an existing movie.
 ```json
 {
   "title": "Inception Updated",
-  "poster": "https://example.com/inception_updated.jpg",
-  "description": "An updated description.",
-  "release_year": 2010,
-  "genre": "Sci-Fi",
-  "duration": 148,
-  "is_available": false,
-  "imdb_id": "tt1375666"
+  "description": "An updated description."
 }
 ```
 
@@ -443,14 +456,22 @@ Admin: Update an existing movie.
 {
   "movie_id": 1,
   "title": "Inception Updated",
-  "poster": "https://example.com/inception_updated.jpg",
+  "poster": "https://example.com/inception.jpg",
   "description": "An updated description.",
   "release_year": 2010,
-  "genre": "Sci-Fi",
+  "genre": ["Sci-Fi", "Thriller", "Action"],
   "duration": 148,
-  "is_available": false,
+  "is_available": true,
   "imdb_id": "tt1375666",
-  "slug": "inception-updated"
+  "slug": "inception",
+  "media": [
+    {
+      "media_id": 1,
+      "movie_id": 1,
+      "episode": 1,
+      "description": "Pilot episode"
+    }
+  ]
 }
 ```
 

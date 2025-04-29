@@ -15,8 +15,4 @@ router
     .put(mod, updateMovie)
     .delete(mod, deleteMovie)
 
-router
-    .route("/:slug")
-    .get(getMovieBySlug)
-
 export const movieRoutes = router
