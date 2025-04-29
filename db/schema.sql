@@ -1,16 +1,11 @@
 USE shm_db;
 
-CREATE TABLE roles (
-    role_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    role_name VARCHAR(100) NOT NULL
-);
-
 CREATE TABLE users (
     user_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role_id INTEGER DEFAULT 3 REFERENCES roles(role_id),
+    role ENUM('USER', 'MODERATOR', 'ADMIN') NOT NULL DEFAULT 'USER',
     gender VARCHAR(50),
     age INTEGER, -- TODO: Use birthdate
     region CHAR(2), -- Use ISO 3166-1 alpha-2 country codes
@@ -54,26 +49,52 @@ CREATE TABLE movies (
     poster VARCHAR(255),
     description TEXT,
     release_year INTEGER,
-    genre VARCHAR(255), -- Store genres as a comma-separated string (e.g. "Action, Comedy")
     duration INTEGER,
     is_available BOOLEAN NOT NULL,
-    tmdb_id VARCHAR(20) UNIQUE
+    imdb_id VARCHAR(20) UNIQUE
+);
+
+CREATE TABLE genres (
+    genre_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    genre_description VARCHAR(100) NOT NULL,
+    genre_name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE movie_genre (
+    movie_id INTEGER,
+    genre_id INTEGER,
+    PRIMARY KEY (movie_id, genre_id),
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id),
+    FOREIGN KEY (genre_id) REFERENCES genres(genre_id)
+);
+
+CREATE TABLE media (
+    media_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    movie_id INTEGER,
+    episode INTEGER DEFAULT 1,
+    season INTEGER DEFAULT 1,
+    description TEXT,
+    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    file_path VARCHAR(255),
+    status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL,
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
 );
 
 CREATE TABLE watch_history (
     user_id INTEGER,
-    movie_id INTEGER,
+    media_id INTEGER,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    watch_duration INTEGER NOT NULL,
-    PRIMARY KEY (user_id, movie_id, timestamp),
+    watch_duration INTEGER NOT NULL, -- Watch duration in seconds
+    PRIMARY KEY (user_id, media_id, timestamp),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
+    FOREIGN KEY (media_id) REFERENCES media(media_id)
 );
 
 CREATE TABLE reviews (
     review_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER,
     movie_id INTEGER,
+    media_id INTEGER,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
     review_text VARCHAR(500),
     review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -88,12 +109,4 @@ CREATE TABLE device (
     device_name VARCHAR(255) NOT NULL,
     registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
-);
-
-CREATE TABLE media (
-    media_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    movie_id INTEGER,
-    episode INTEGER,
-    description TEXT,
-    FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
 );
