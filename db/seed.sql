@@ -1,11 +1,11 @@
 USE shm_db;
 
 -- Insert sample users
-INSERT INTO users (user_id, username, email, password, role, gender, age, region, created_at)
+INSERT INTO users (user_id, username, email, password, role, gender, birthdate, region, created_at)
 VALUES
 (1, 'admin', 'admin@shm.app', '$2y$10$DIRJgsc.nuXFW3Z7xBMPiO3ZHuvctx/Kp1QbSYaz4sAu.djwNXGmO', 'ADMIN', NULL, NULL, NULL, '2025-01-01 00:00:00'), -- user : admin@shm.app, pass: admin
 (2, 'mod', 'mod@shm.app', '$2y$10$p/wXLYeKnDtcb2LqoQJA6OLJq/mXO.CmfDKx67NCPq6tO7gR0AVN2', 'MODERATOR', NULL, NULL, NULL, '2025-02-20 12:30:00'), -- user : mod@shm.app, pass: mod
-(3, 'bob_jones', 'bob.jones@mail.com', '$2a$12$1KtmoeGN/EPPBS92U/t9c.C5qbq2mlxf8.E9WYCDVdJ39jwJ7MDie', 'USER', 'Male', 35, 'TH', '2025-01-15 08:00:00'); -- user : bob.jones@mail.com, pass: password
+(3, 'bob_jones', 'bob.jones@mail.com', '$2a$12$1KtmoeGN/EPPBS92U/t9c.C5qbq2mlxf8.E9WYCDVdJ39jwJ7MDie', 'USER', 'Male', '2000-01-01', 'TH', '2025-01-15 08:00:00'); -- user : bob.jones@mail.com, pass: password
 
 -- Insert sample subscription plans
 INSERT INTO subscription_plan (plan_id, plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days)
@@ -62,11 +62,11 @@ VALUES
 -- Insert sample media (for TV shows or episodes)
 INSERT INTO media (media_id, movie_id, episode, description, upload_date, file_path, status)
 VALUES
-(1, 1, 1, 'Neo learns the truth about the Matrix.', '2025-01-01 12:00:00', '/media/matrix_episode1.mp4', 'APPROVED'),
-(2, 1, 2, 'Neo begins his training.', '2025-01-02 12:00:00', '/media/matrix_episode2.mp4', 'PENDING'),
-(3, 2, 1, 'Cobb assembles his team.', '2025-01-03 12:00:00', NULL, 'REJECTED'),
-(4, 2, 2, 'The team enters the dream.', '2025-01-04 12:00:00', '/media/inception_episode2.mp4', 'APPROVED'),
-(5, 3, 1, 'The Corleone family faces challenges.', '2025-01-05 12:00:00', '/media/godfather_episode1.mp4', 'APPROVED');
+(1, 1, NULL, 'Neo learns the truth about the Matrix.', '2025-01-01 12:00:00', '/media/matrix_episode1.mp4', 'APPROVED'),
+(2, 1, 1, 'Neo begins his training.', '2025-01-02 12:00:00', '/media/matrix_episode2.mp4', 'PENDING'),
+(3, 2, NULL, 'Cobb assembles his team.', '2025-01-03 12:00:00', NULL, 'REJECTED'),
+(4, 2, 3, 'The team enters the dream.', '2025-01-04 12:00:00', '/media/inception_episode2.mp4', 'APPROVED'),
+(5, 3, NULL, 'The Corleone family faces challenges.', '2025-01-05 12:00:00', '/media/godfather_episode1.mp4', 'APPROVED');
 
 INSERT INTO movie_genre (movie_id, genre_id)
 VALUES

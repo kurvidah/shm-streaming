@@ -7,7 +7,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role ENUM('USER', 'MODERATOR', 'ADMIN') NOT NULL DEFAULT 'USER',
     gender VARCHAR(50),
-    age INTEGER, -- TODO: Use birthdate
+    birthdate DATE,
     region CHAR(2), -- Use ISO 3166-1 alpha-2 country codes
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -71,8 +71,8 @@ CREATE TABLE movie_genre (
 CREATE TABLE media (
     media_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     movie_id INTEGER,
-    episode INTEGER DEFAULT 1,
-    season INTEGER DEFAULT 1,
+    episode INTEGER,
+    season INTEGER,
     description TEXT,
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     file_path VARCHAR(255),
