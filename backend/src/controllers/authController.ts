@@ -103,8 +103,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
         // Create user
         const [result] = await pool.execute(
-            "INSERT INTO users (username, email, password, role_id, gender, age, region) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [username, email, hashedPassword, 3, gender || null, age || null, region || null],
+            "INSERT INTO users (username, email, password, role, gender, age, region) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [username, email, hashedPassword, 'USER', gender || null, age || null, region || null],
         )
 
         const insertResult = result as any

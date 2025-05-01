@@ -11,7 +11,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
         let query;
 
-        query = "SELECT * FROM users";
+        query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users";
 
         // Get user
         const [userRows] = await pool.execute(query);
@@ -40,7 +40,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
         let query;
         let queryParams;
 
-        query = "SELECT * FROM users WHERE user_id = ?";
+        query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?";
         queryParams = [req.params.id];
 
         // Get user
@@ -73,7 +73,7 @@ export const getSelf = async (req: Request, res: Response): Promise<void> => {
             const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
             console.log("self", self);
 
-            const query = "SELECT * FROM users WHERE user_id = ?";
+            const query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?";
             const queryParams = [self.id];
 
             // Get user
@@ -103,10 +103,10 @@ export const getSelf = async (req: Request, res: Response): Promise<void> => {
 // @access  Private/Admin
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { username, email, password, gender, age, region } = req.body;
+        const { username, email, password, gender, birthdate, region } = req.body;
 
         // Check if user exists
-        const [existingRows] = await pool.execute("SELECT * FROM users WHERE user_id = ?", [req.params.id]);
+        const [existingRows] = await pool.execute("SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?", [req.params.id]);
 
         if (!Array.isArray(existingRows) || existingRows.length === 0) {
             res.status(404).json({ error: "User not found" });
@@ -133,9 +133,9 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
             updateFields.push("gender = ?");
             updateValues.push(gender);
         }
-        if (age) {
-            updateFields.push("age = ?");
-            updateValues.push(age);
+        if (birthdate) {
+            updateFields.push("birthdate = ?");
+            updateValues.push(birthdate);
         }
         if (region) {
             updateFields.push("region = ?");
@@ -154,7 +154,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
         await pool.execute(`UPDATE users SET ${updateFields.join(", ")} WHERE user_id = ?`, updateValues);
 
         // Get updated usre
-        const [updatedRows] = await pool.execute("SELECT * FROM users WHERE user_id = ?", [req.params.id]);
+        const [updatedRows] = await pool.execute("SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?", [req.params.id]);
 
         if (Array.isArray(updatedRows) && updatedRows.length > 0) {
             const user = updatedRows[0] as any;
@@ -175,13 +175,13 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 export const updateSelf = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
-        const { username, email, password, gender, age, region } = req.body;
+        const { username, email, password, gender, birthdate, region } = req.body;
 
         if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
             // Verify token
             const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
 
-            const query = "SELECT * FROM users WHERE user_id = ?";
+            const query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?";
             const queryParams = [self.id];
 
             // Get user
@@ -212,9 +212,9 @@ export const updateSelf = async (req: Request, res: Response): Promise<void> => 
                 updateFields.push("gender = ?");
                 updateValues.push(gender);
             }
-            if (age) {
-                updateFields.push("age = ?");
-                updateValues.push(age);
+            if (birthdate) {
+                updateFields.push("birthdate = ?");
+                updateValues.push(birthdate);
             }
             if (region) {
                 updateFields.push("region = ?");
@@ -233,7 +233,7 @@ export const updateSelf = async (req: Request, res: Response): Promise<void> => 
             await pool.execute(`UPDATE users SET ${updateFields.join(", ")} WHERE user_id = ?`, updateValues);
 
             // Get updated usre
-            const [updatedRows] = await pool.execute("SELECT * FROM users WHERE user_id = ?", [self.id]);
+            const [updatedRows] = await pool.execute("SELECT user_id FROM users WHERE user_id = ?", [self.id]);
 
             if (Array.isArray(updatedRows) && updatedRows.length > 0) {
                 const user = updatedRows[0] as any;
@@ -258,7 +258,7 @@ export const updateSelf = async (req: Request, res: Response): Promise<void> => 
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
         // Check if user exists
-        const [existingRows] = await pool.execute("SELECT * FROM users WHERE user_id = ?", [req.params.id]);
+        const [existingRows] = await pool.execute("SELECT user_id FROM users WHERE user_id = ?", [req.params.id]);
 
         if (!Array.isArray(existingRows) || existingRows.length === 0) {
             res.status(404).json({ error: "User not found" });
@@ -287,7 +287,7 @@ export const deleteSelf = async (req: Request, res: Response): Promise<void> => 
             // Verify token
             const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
 
-            const query = "SELECT * FROM users WHERE user_id = ?";
+            const query = "SELECT user_id FROM users WHERE user_id = ?";
             const queryParams = [self.id];
 
             // Get user
