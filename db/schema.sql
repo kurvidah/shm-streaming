@@ -25,9 +25,9 @@ CREATE TABLE subscription_plan (
 CREATE TABLE user_subscription (
     user_subscription_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER,
-    plan_id INTEGER,
-    start_date TIMESTAMP NOT NULL,
-    end_date TIMESTAMP NOT NULL,
+    plan_id INTEGER DEFAULT 1, -- Default to Basic Plan
+    start_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_date TIMESTAMP, -- Nullable for indefinite subscriptions
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (plan_id) REFERENCES subscription_plan(plan_id) ON DELETE CASCADE
 );

@@ -10,8 +10,7 @@ import { planRoutes } from './routes/planRoutes.ts'; // Import the plan routes
 import { billRoutes } from './routes/billRoutes.ts'; // Import the bill routes
 import { mediaRoutes } from './routes/mediaRoutes.ts'; // Import the media routes
 import { reviewRoutes } from './routes/reviewRoutes.ts'; // Import the media routes
-
-
+import { subscriptionRoutes } from './routes/subscriptionRoutes.ts'; // Import the subscription routes
 
 const app = express();
 const port = 8080;
@@ -28,6 +27,7 @@ app.use("/api/v1/plans", planRoutes)
 app.use("/api/v1/bills", billRoutes)
 app.use("/api/v1/media", mediaRoutes)
 app.use("/api/v1/reviews", reviewRoutes)
+app.use("/api/v1/subscription", subscriptionRoutes)
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}...`);

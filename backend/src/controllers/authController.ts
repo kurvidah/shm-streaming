@@ -1,120 +1,130 @@
-import type { Request, Response } from "express"
-import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken"
-import pool from "../db"
+import type { Request, Response } from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import pool from "../db";
 
-// Generate JWT
-const generateToken = (id: number) => {
-    const token = jwt.sign({ id }, process.env.SECRET_KEY || "your_jwt_secret", {
-        expiresIn: "30d",
-    })
-    return token;
-}
+const userAgentParser = require("ua-parser-js");
+
+const generateToken = (id: number): string => {
+    return jwt.sign({ id }, process.env.SECRET_KEY || "your_jwt_secret", { expiresIn: "30d" });
+};
+
+const validateLoginInput = (identifier: string, password: string): string | null => {
+    if (!identifier || typeof identifier !== "string") return "Identifier is required";
+    if (!password || typeof password !== "string") return "Password is required";
+    return null;
+};
+
+const validateRegisterInput = (username: string, email: string, password: string, birthdate?: string, region?: string): string | null => {
+    if (!username || typeof username !== "string" || username.length < 3) return "Username must be at least 3 characters";
+    if (!email || typeof email !== "string" || !email.includes("@")) return "Invalid email format";
+    if (!password || typeof password !== "string" || password.length < 8) return "Password must be at least 8 characters";
+    if (birthdate !== undefined && (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate))) return "Invalid birthdate";
+    if (region !== undefined && (!/^[A-Z]{2}$/.test(region))) return "Invalid region. Must be a valid ISO 3166-1 alpha-2 code";
+    return null;
+};
 
 // @desc    Login user
 // @route   POST /api/v1/auth/login
 // @access  Public
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, password } = req.body
+        const { identifier, password } = req.body;
 
-        // Validate input
-        if (!email || typeof email !== "string" || !email.includes("@")) {
-            res.status(400).json({ error: "Invalid email format" });
-            return;
-        }
-        if (!password || typeof password !== "string") {
-            res.status(400).json({ error: "Password is required" });
+        const validationError = validateLoginInput(identifier, password);
+        if (validationError) {
+            res.status(400).json({ error: validationError });
             return;
         }
 
-        // Check if user exists
-        const [rows] = await pool.execute("SELECT * FROM users WHERE email = ?", [email])
+        const userAgent = req.headers['user-agent'] || "Unknown device";
+        const { device: parsedDevice } = userAgentParser(userAgent);
+        const deviceType = parsedDevice.type === "mobile" ? "Mobile" : parsedDevice.type === "tablet" ? "Tablet" : "Desktop";
+        const deviceName = parsedDevice.vendor || "Unknown vendor";
 
-        if (Array.isArray(rows) && rows.length > 0) {
-            const user = rows[0] as any
-
-            // Check password
-            const isMatch = await bcrypt.compare(password, user.password)
-
-            if (isMatch) {
-                res.json({
-                    user_id: user.user_id,
-                    username: user.username,
-                    email: user.email,
-                    role_id: user.role_id,
-                    token: generateToken(user.user_id),
-                })
-            } else {
-                res.status(401).json({ error: "Invalid credentials" })
-            }
-        } else {
-            res.status(401).json({ error: "Invalid credentials" })
+        const [userRows] = await pool.execute("SELECT * FROM users WHERE email = ? OR username = ?", [identifier, identifier]);
+        if (!Array.isArray(userRows) || userRows.length === 0) {
+            res.status(401).json({ error: "Invalid credentials" });
+            return;
         }
+
+        const user = userRows[0] as any;
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            res.status(401).json({ error: "Invalid credentials" });
+            return;
+        }
+
+        const [deviceRows] = await pool.execute("SELECT * FROM device WHERE user_id = ?", [user.user_id]);
+        if (!Array.isArray(deviceRows) || deviceRows.length === 0) {
+            await pool.execute(
+                "INSERT INTO device (user_id, device_type, device_name) VALUES (?, ?, ?)",
+                [user.user_id, deviceType, deviceName]
+            );
+        }
+
+        const [updatedDeviceRows] = await pool.execute("SELECT * FROM device WHERE user_id = ?", [user.user_id]);
+        const device = (updatedDeviceRows as any[])[0];
+
+        res.json({
+            user_id: user.user_id,
+            username: user.username,
+            email: user.email,
+            role_id: user.role_id,
+            device,
+            token: generateToken(user.user_id),
+        });
     } catch (error) {
-        console.error("Login error:", error)
-        res.status(500).json({ error: "Server error" })
+        console.error("Login error:", error);
+        res.status(500).json({ error: "Server error" });
     }
-}
+};
 
 // @desc    Register user
 // @route   POST /api/v1/auth/register
 // @access  Public
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { username, email, password, gender, age, region } = req.body
+        const { username, email, password, gender, birthdate, region } = req.body;
 
-        // Validate input
-        if (!username || typeof username !== "string" || username.length < 3) {
-            res.status(400).json({ error: "Username must be at least 3 characters" });
-            return;
-        }
-        if (!email || typeof email !== "string" || !email.includes("@")) {
-            res.status(400).json({ error: "Invalid email format" });
-            return;
-        }
-        if (!password || typeof password !== "string" || password.length < 8) {
-            res.status(400).json({ error: "Password must be at least 8 characters" });
-            return;
-        }
-        if (age !== undefined && (typeof age !== "number" || age < 0)) {
-            res.status(400).json({ error: "Invalid age" });
+        const validationError = validateRegisterInput(username, email, password, birthdate, region);
+        if (validationError) {
+            res.status(400).json({ error: validationError });
             return;
         }
 
-        // Check if user already exists
-        const [existingUsers] = await pool.execute("SELECT * FROM users WHERE email = ? OR username = ?", [email, username])
-
+        const [existingUsers] = await pool.execute("SELECT * FROM users WHERE email = ? OR username = ?", [email, username]);
         if (Array.isArray(existingUsers) && existingUsers.length > 0) {
-            const user = existingUsers[0] as any
+            const user = existingUsers[0] as any;
             if (user.email === email) {
-                res.status(400).json({ error: "Email already in use" })
+                res.status(400).json({ error: "Email already in use" });
                 return;
             }
             if (user.username === username) {
-                res.status(400).json({ error: "Username already taken" })
+                res.status(400).json({ error: "Username already taken" });
                 return;
             }
         }
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password, salt)
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user
         const [result] = await pool.execute(
-            "INSERT INTO users (username, email, password, role, gender, age, region) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [username, email, hashedPassword, 'USER', gender || null, age || null, region || null],
-        )
+            "INSERT INTO users (username, email, password, role, gender, birthdate, region) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [username, email, hashedPassword, 'USER', gender || null, birthdate || null, region || null]
+        );
 
-        const insertResult = result as any
+        const insertResult = result as any;
         if (insertResult.insertId) {
-            res.status(201).json({ message: "User registered successfully" })
+            await pool.execute(
+                "INSERT INTO user_subscription (user_id, plan_id) VALUES (?, ?)",
+                [insertResult.insertId, 1]
+            );
+            res.status(201).json({ message: "User registered successfully" });
         } else {
-            res.status(400).json({ error: "Invalid user data" })
+            res.status(400).json({ error: "Invalid user data" });
         }
     } catch (error) {
-        console.error("Registration error:", error)
-        res.status(500).json({ error: "Server error" })
+        console.error("Registration error:", error);
+        res.status(500).json({ error: "Server error" });
     }
-}
+};
