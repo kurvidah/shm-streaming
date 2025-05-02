@@ -64,7 +64,7 @@ export const getDeviceById = async (req: Request, res: Response): Promise<void> 
 // @access  Private/Admin
 export const updateDevice = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { device_id, user_id, device_type, device_name, registered_at} = req.body;
+        const { user_id, device_type, device_name, registered_at} = req.body;
 
         // Check if device exists
         const [existingRows] = await pool.execute("SELECT device_id, user_id, device_type, device_name, registered_at FROM device WHERE device_id = ?", [req.params.id]);
@@ -78,10 +78,6 @@ export const updateDevice = async (req: Request, res: Response): Promise<void> =
         const updateFields: string[] = [];
         const updateValues: any[] = [];
 
-        if (device_id) {
-            updateFields.push("device_id = ?");
-            updateValues.push(device_id);
-        }
         if (user_id) {
             updateFields.push("user_id = ?");
             updateValues.push(user_id);
@@ -111,7 +107,7 @@ export const updateDevice = async (req: Request, res: Response): Promise<void> =
         await pool.execute(`UPDATE device SET ${updateFields.join(", ")} WHERE device_id = ?`, updateValues);
 
         // Get updated device
-        const [updatedRows] = await pool.execute("SELECT device_id, user_id, device_type, device_name, registered_at FROM device WHERE device_id = ?", [req.params.id]);
+        const [updatedRows] = await pool.execute("SELECT * FROM device WHERE device_id = ?", [req.params.id]);
 
         if (Array.isArray(updatedRows) && updatedRows.length > 0) {
             const user = updatedRows[0] as any;

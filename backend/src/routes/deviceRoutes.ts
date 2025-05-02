@@ -1,5 +1,5 @@
 import express from "express"
-import { admin, mod, protect } from "../middleware/authMiddleware"
+import { admin, mod } from "../middleware/authMiddleware"
 import { deleteDevice, getDeviceById, getDevices, updateDevice } from "../controllers/deviceController"
 
 const router = express.Router()
