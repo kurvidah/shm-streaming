@@ -39,17 +39,9 @@ erDiagram
     varchar payment_status
   }
 
-  sessions {
-    integer session_id PK
-    integer user_id FK
-    varchar token
-    timestamp created_at
-    timestamp expires_at
-  }
-
   watch_history {
     integer user_id FK
-    integer movie_id FK
+    integer media_id FK
     timestamp watch_time
     integer watch_duration
   }
@@ -94,17 +86,12 @@ erDiagram
     integer genre_id FK
   }
 
-  media {
+  media_uploads {
     integer media_id PK
     integer movie_id FK
     integer episode
     varchar description
     varchar file_path
-  }
-
-  movie_uploads {
-    integer upload_id PK
-    integer movie_id FK
     integer uploaded_by FK
     timestamp upload_date
     enum status "pending, approved, rejected"
@@ -113,14 +100,12 @@ erDiagram
   users ||--o{ user_subscription : subscribes
   user_subscription }|--|| subscription_plan : chooses
   user_subscription ||--o{ billing : has
-  users ||--o{ sessions : has
   users ||--o{ watch_history : watches
   users ||--o{ reviews : writes
   users ||--o{ device : registers
   movies ||--o{ watch_history : watched_in
   movies ||--o{ reviews : reviewed_by
-  movies ||--o{ media : contains
+  movies ||--o{ media_uploads : contains
   movies ||--o{ movie_genre : has_genre
   genres ||--o{ movie_genre : categorizes
-  movies ||--o{ movie_uploads : uploaded_as
-  users ||--o{ movie_uploads : uploads
+  users ||--o{ media_uploads : uploads
