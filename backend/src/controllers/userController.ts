@@ -153,7 +153,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
         // Update user
         await pool.execute(`UPDATE users SET ${updateFields.join(", ")} WHERE user_id = ?`, updateValues);
 
-        // Get updated usre
+        // Get updated user
         const [updatedRows] = await pool.execute("SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?", [req.params.id]);
 
         if (Array.isArray(updatedRows) && updatedRows.length > 0) {

@@ -1,6 +1,6 @@
 import express from "express"
 import { admin, mod, protect } from "../middleware/authMiddleware"
-import { getDeviceById, getDevices } from "../controllers/deviceController"
+import { deleteDevice, getDeviceById, getDevices, updateDevice } from "../controllers/deviceController"
 
 const router = express.Router()
 
@@ -11,5 +11,7 @@ router
 router
     .route("/:id")
     .get(mod, getDeviceById)
+    .put(admin, updateDevice)
+    .delete(admin, deleteDevice)
 
 export const deviceRoutes = router
