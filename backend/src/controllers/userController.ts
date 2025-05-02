@@ -8,12 +8,23 @@ import jwt from "jsonwebtoken"
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
     try {
+        const query = `
+            SELECT 
+            u.user_id, 
+            u.username, 
+            u.email, 
+            u.role, 
+            u.gender, 
+            u.birthdate, 
+            u.region, 
+            u.created_at, 
+            sp.plan_name AS active_subscription
+            FROM users u
+            LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
+            LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
+        `;
 
-        let query;
-
-        query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users";
-
-        // Get user
+        // Get users
         const [userRows] = await pool.execute(query);
 
         if (!Array.isArray(userRows) || userRows.length === 0) {
@@ -34,14 +45,23 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
     try {
-
-        const user_id = req.query
-
-        let query;
-        let queryParams;
-
-        query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?";
-        queryParams = [req.params.id];
+        const query = `
+            SELECT 
+            u.user_id, 
+            u.username, 
+            u.email, 
+            u.role, 
+            u.gender, 
+            u.birthdate, 
+            u.region, 
+            u.created_at,
+            sp.plan_name AS active_subscription
+            FROM users u
+            LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
+            LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
+            WHERE u.user_id = ?
+        `;
+        const queryParams = [req.params.id];
 
         // Get user
         const [userRows] = await pool.execute(query, queryParams);
@@ -73,7 +93,22 @@ export const getSelf = async (req: Request, res: Response): Promise<void> => {
             const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
             console.log("self", self);
 
-            const query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?";
+            const query = `
+            SELECT 
+                u.user_id, 
+                u.username, 
+                u.email, 
+                u.role, 
+                u.gender, 
+                u.birthdate, 
+                u.region, 
+                u.created_at, 
+                sp.plan_name AS active_subscription
+            FROM users u
+            LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
+            LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
+            WHERE u.user_id = ?
+            `;
             const queryParams = [self.id];
 
             // Get user
@@ -84,7 +119,7 @@ export const getSelf = async (req: Request, res: Response): Promise<void> => {
                 return;
             }
 
-            const user = userRows as any;
+            const user = userRows[0] as any;
 
             res.json(user);
         }
@@ -278,7 +313,6 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 // @desc    Delete user's own details
 // @route   DELETE /api/v1/users/me
 // @access  Private
-
 export const deleteSelf = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
