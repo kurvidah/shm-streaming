@@ -60,13 +60,13 @@ VALUES
 (10, 'Documentary', 'Documentary');
 
 -- Insert sample media (for TV shows or episodes)
-INSERT INTO media (media_id, movie_id, episode, description, upload_date, file_path, status)
+INSERT INTO media (media_id, movie_id, episode, season, description, upload_date, file_path, status)
 VALUES
-(1, 1, NULL, 'Neo learns the truth about the Matrix.', '2025-01-01 12:00:00', '/media/matrix_episode1.mp4', 'APPROVED'),
-(2, 1, 1, 'Neo begins his training.', '2025-01-02 12:00:00', '/media/matrix_episode2.mp4', 'PENDING'),
-(3, 2, NULL, 'Cobb assembles his team.', '2025-01-03 12:00:00', NULL, 'REJECTED'),
-(4, 2, 3, 'The team enters the dream.', '2025-01-04 12:00:00', '/media/inception_episode2.mp4', 'APPROVED'),
-(5, 3, NULL, 'The Corleone family faces challenges.', '2025-01-05 12:00:00', '/media/godfather_episode1.mp4', 'APPROVED');
+(1, 1, NULL, 1, 'Neo learns the truth about the Matrix.', '2025-01-01 12:00:00', '/media/matrix_episode1.mp4', 'APPROVED'),
+(2, 1, 1, 1, 'Neo begins his training.', '2025-01-02 12:00:00', '/media/matrix_episode2.mp4', 'PENDING'),
+(3, 2, NULL, 1,'Cobb assembles his team.', '2025-01-03 12:00:00', NULL, 'REJECTED'),
+(4, 2, 3, 1,'The team enters the dream.', '2025-01-04 12:00:00', '/media/inception_episode2.mp4', 'APPROVED'),
+(5, 3, NULL, 1,'The Corleone family faces challenges.', '2025-01-05 12:00:00', '/media/godfather_episode1.mp4', 'APPROVED');
 
 INSERT INTO movie_genre (movie_id, genre_id)
 VALUES
