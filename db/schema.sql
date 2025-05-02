@@ -28,8 +28,8 @@ CREATE TABLE user_subscription (
     plan_id INTEGER,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (plan_id) REFERENCES subscription_plan(plan_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (plan_id) REFERENCES subscription_plan(plan_id) ON DELETE CASCADE
 );
 
 CREATE TABLE billing (
@@ -40,7 +40,7 @@ CREATE TABLE billing (
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     due_date TIMESTAMP NOT NULL,
     payment_status VARCHAR(50) NOT NULL,
-    FOREIGN KEY (user_subscription_id) REFERENCES user_subscription(user_subscription_id)
+    FOREIGN KEY (user_subscription_id) REFERENCES user_subscription(user_subscription_id) ON DELETE CASCADE
 );
 
 CREATE TABLE movies (
@@ -64,8 +64,8 @@ CREATE TABLE movie_genre (
     movie_id INTEGER,
     genre_id INTEGER,
     PRIMARY KEY (movie_id, genre_id),
-    FOREIGN KEY (movie_id) REFERENCES movies(movie_id),
-    FOREIGN KEY (genre_id) REFERENCES genres(genre_id)
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE,
+    FOREIGN KEY (genre_id) REFERENCES genres(genre_id) ON DELETE CASCADE
 );
 
 CREATE TABLE media (
@@ -77,7 +77,7 @@ CREATE TABLE media (
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     file_path VARCHAR(255),
     status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL,
-    FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE
 );
 
 CREATE TABLE watch_history (
@@ -86,8 +86,8 @@ CREATE TABLE watch_history (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     watch_duration INTEGER NOT NULL, -- Watch duration in seconds
     PRIMARY KEY (user_id, media_id, timestamp),
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (media_id) REFERENCES media(media_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE
 );
 
 CREATE TABLE reviews (
@@ -98,8 +98,8 @@ CREATE TABLE reviews (
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
     review_text VARCHAR(500),
     review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE
 );
 
 CREATE TABLE device (
@@ -108,5 +108,5 @@ CREATE TABLE device (
     device_type VARCHAR(100) NOT NULL,
     device_name VARCHAR(255) NOT NULL,
     registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
