@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,15 +18,15 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setError("Please enter both email and password");
+    if (!identifier || !password) {
+      setError("Please enter your email/username and password");
       return;
     }
 
     try {
       setError(null);
       setLoading(true);
-      await login(email, password);
+      await login(identifier, password);
       navigate("/");
     } catch (err: any) {
       console.error("Login error:", err);
@@ -57,22 +57,22 @@ const Login = () => {
           <div className="space-y-6">
             <div>
               <label
-                htmlFor="email"
+                htmlFor="identifier"
                 className="block text-gray-400 text-sm font-medium mb-2"
               >
-                Email
+                Email / Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail size={18} className="text-gray-500" />
                 </div>
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="identifier"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="your@email.com"
+                  placeholder="your@email.com or username"
                 />
               </div>
             </div>
@@ -115,7 +115,10 @@ const Login = () => {
               </div>
 
               <div className="text-sm">
-                <Link to="#" className="text-red-500 hover:text-red-400 hover:underline">
+                <Link
+                  to="#"
+                  className="text-red-500 hover:text-red-400 hover:underline"
+                >
                   Forgot your password?
                 </Link>
               </div>
@@ -141,7 +144,10 @@ const Login = () => {
         <div className="mt-8 text-center">
           <p className="text-gray-400">
             Don't have an account?{" "}
-            <Link to="/register" className="text-red-500 hover:text-red-400 hover:underline">
+            <Link
+              to="/register"
+              className="text-red-500 hover:text-red-400 hover:underline"
+            >
               Create Account
             </Link>
           </p>

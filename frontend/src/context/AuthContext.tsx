@@ -28,7 +28,7 @@ interface RegisterData {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
 }
@@ -53,9 +53,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     const response = await axios.post(`${API_URL}/auth/login`, {
-      email,
+      identifier,
       password,
     });
     const { token, ...userData } = response.data;
