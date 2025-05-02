@@ -337,7 +337,7 @@ Retrieve a list of movies with optional filters.
         "poster": "https://example.com/inception.jpg",
         "description": "A mind-bending thriller.",
         "release_year": 2010,
-        "genre": ["Sci-Fi", "Thriller", "Action"],
+        "genres": ["Sci-Fi", "Thriller", "Action"],
         "duration": 148,
         "is_available": true,
         "imdb_id": "tt1375666",
@@ -373,7 +373,7 @@ Retrieve a movie by its ID or slug.
   "poster": "https://example.com/inception.jpg",
   "description": "A mind-bending thriller.",
   "release_year": 2010,
-  "genre": ["Sci-Fi", "Thriller", "Action"],
+  "genres": ["Sci-Fi", "Thriller", "Action"],
   "duration": 148,
   "is_available": true,
   "imdb_id": "tt1375666",
@@ -403,7 +403,7 @@ Admin: Create a new movie.
   "poster": "https://example.com/inception.jpg",
   "description": "A mind-bending thriller.",
   "release_year": 2010,
-  "genre": ["Sci-Fi", "Thriller", "Action"],
+  "genres": ["Sci-Fi", "Thriller", "Action"],
   "duration": 148,
   "is_available": true,
   "imdb_id": "tt1375666"
@@ -419,7 +419,7 @@ Admin: Create a new movie.
   "poster": "https://example.com/inception.jpg",
   "description": "A mind-bending thriller.",
   "release_year": 2010,
-  "genre": ["Sci-Fi", "Thriller", "Action"],
+  "genres": ["Sci-Fi", "Thriller", "Action"],
   "duration": 148,
   "is_available": true,
   "imdb_id": "tt1375666",
@@ -446,7 +446,8 @@ Admin: Update an existing movie.
 ```json
 {
   "title": "Inception Updated",
-  "description": "An updated description."
+  "description": "An updated description.",
+  "genres": ["New Genre", "Another Genre"]
 }
 ```
 
@@ -459,7 +460,7 @@ Admin: Update an existing movie.
   "poster": "https://example.com/inception.jpg",
   "description": "An updated description.",
   "release_year": 2010,
-  "genre": ["Sci-Fi", "Thriller", "Action"],
+  "genres": ["New Genre", "Another Genre"],
   "duration": 148,
   "is_available": true,
   "imdb_id": "tt1375666",

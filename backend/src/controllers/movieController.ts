@@ -2,6 +2,66 @@ import type { Request, Response } from "express";
 import pool from "../db";
 import slugify from "../utils/slugify";
 
+// Helper: Get genres for a movie
+async function getGenresForMovie(movieId: number): Promise<string[]> {
+    const [rows] = await pool.execute(
+        `SELECT g.genre_name FROM movie_genre mg JOIN genres g ON mg.genre_id = g.genre_id WHERE mg.movie_id = ?`,
+        [movieId]
+    );
+    return Array.isArray(rows) ? rows.map((r: any) => r.genre_name) : [];
+}
+
+// Helper: Get media for a movie
+async function getMediaForMovie(movieId: number): Promise<any[]> {
+    const [rows] = await pool.execute(`SELECT * FROM media WHERE movie_id = ?`, [movieId]);
+    return Array.isArray(rows) ? rows : [];
+}
+
+// Helper: Format a movie row into full object
+async function formatMovie(row: any): Promise<any> {
+    const movie = {
+        movie_id: row.movie_id,
+        title: row.title,
+        description: row.description,
+        release_year: row.release_year,
+        duration: row.duration,
+        is_available: row.is_available,
+        imdb_id: row.imdb_id,
+        poster: row.poster,
+        tmdb_id: row.tmdb_id,
+        slug: slugify(row.title, { lower: true }),
+        genres: await getGenresForMovie(row.movie_id),
+        media: await getMediaForMovie(row.movie_id),
+    };
+    return movie;
+}
+
+// Helper: Insert genre if it doesn't exist and return genre_id
+async function getOrCreateGenreId(genreName: string): Promise<number> {
+    const [existingRows] = await pool.execute(
+        "SELECT genre_id FROM genres WHERE LOWER(genre_name) = ?",
+        [genreName.toLowerCase()]
+    );
+
+    if (Array.isArray(existingRows) && existingRows.length > 0) {
+        return (existingRows[0] as any).genre_id;
+    }
+
+    const [insertResult] = await pool.execute("INSERT INTO genres (genre_name) VALUES (?)", [genreName]);
+    return (insertResult as any).insertId;
+}
+
+// Helper: Link movie with genres
+async function linkMovieWithGenres(movieId: number, genres: string[]): Promise<void> {
+    for (const genre of genres) {
+        const genreId = await getOrCreateGenreId(genre);
+        await pool.execute(
+            "INSERT INTO movie_genre (movie_id, genre_id) VALUES (?, ?)",
+            [movieId, genreId]
+        );
+    }
+}
+
 // @desc    Get all movies
 // @route   GET /api/v1/movies
 // @access  Public
@@ -9,135 +69,67 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
     try {
         const { search, genre, release_year, is_available } = req.query;
 
-        let query = "SELECT * FROM movies WHERE 1=1";
+        let query = `SELECT DISTINCT m.* FROM movies m `;
         const queryParams: any[] = [];
-
-        // Add filters
-        if (search) {
-            query += " AND (title LIKE ? OR description LIKE ? OR imdb_id LIKE ?)";
-            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-        }
 
         if (genre) {
             query += `
-            AND movie_id IN (
-                SELECT movie_id 
-                FROM movie_genre mg
-                JOIN genres g ON mg.genre_id = g.genre_id
-                WHERE LOWER(g.name) = ?
-            )`;
+        JOIN movie_genre mg ON m.movie_id = mg.movie_id
+        JOIN genres g ON mg.genre_id = g.genre_id
+        WHERE LOWER(g.genre_name) = ?`;
             queryParams.push(genre.toString().toLowerCase());
+        } else {
+            query += `WHERE 1=1`;
+        }
+
+        if (search) {
+            query += ` AND (m.title LIKE ? OR m.description LIKE ? OR m.imdb_id LIKE ?)`;
+            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
 
         if (release_year) {
-            query += " AND release_year = ?";
+            query += ` AND m.release_year = ?`;
             queryParams.push(release_year);
         }
 
         if (is_available !== undefined) {
-            query += " AND is_available = ?";
+            query += ` AND m.is_available = ?`;
             queryParams.push(is_available === "true" ? 1 : 0);
         }
 
-        // Execute query
         const [rows] = await pool.execute(query, queryParams);
 
-        // Add slug, genres, and media to each movie
-        const moviesWithDetails = await Promise.all(
-            Array.isArray(rows)
-                ? rows.map(async (movie: any) => {
-                    // Fetch genres for the movie
-                    const [genreRows] = await pool.execute(
-                        `
-                        SELECT g.genre_name
-                        FROM movie_genre mg
-                        JOIN genres g ON mg.genre_id = g.genre_id
-                        WHERE mg.movie_id = ?
-                        `,
-                        [movie.movie_id]
-                    );
+        const movies = await Promise.all((rows as any[]).map(formatMovie));
 
-                    const genres = Array.isArray(genreRows)
-                        ? genreRows.map((g: any) => g.genre_name)
-                        : [];
-
-                    // Fetch media for the movie
-                    const [mediaRows] = await pool.execute(
-                        "SELECT * FROM media WHERE movie_id = ?",
-                        [movie.movie_id]
-                    );
-
-                    const media = Array.isArray(mediaRows) ? mediaRows : [];
-
-                    return {
-                        ...movie,
-                        slug: slugify(movie.title, { lower: true }),
-                        genres,
-                        media,
-                    };
-                })
-                : []
-        );
-
-        res.json(moviesWithDetails);
+        res.json(movies);
     } catch (error) {
         console.error("Get movies error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
 
-// @desc    Get movie by ID
+// @desc    Get movie by ID or slug
 // @route   GET /api/v1/movies/:id
 // @access  Public
 export const getMovieById = async (req: Request, res: Response): Promise<void> => {
     try {
-        // Check if id is a number or a slug
-        const isNumeric = /^\d+$/.test(req.params.id);
+        const { id } = req.params;
+        const isNumeric = /^\d+$/.test(id);
 
-        let query;
-        let queryParams;
+        let query = isNumeric
+            ? `SELECT * FROM movies WHERE movie_id = ?`
+            : `SELECT * FROM movies WHERE LOWER(REPLACE(title, " ", "-")) = ?`;
 
-        if (isNumeric) {
-            query = "SELECT * FROM movies WHERE movie_id = ?";
-            queryParams = [req.params.id];
-        } else {
-            // Treat as slug - find by title that would match the slug
-            query = 'SELECT * FROM movies WHERE LOWER(REPLACE(title, " ", "-")) = ?';
-            queryParams = [req.params.id.toLowerCase()];
-        }
+        const queryParams = [isNumeric ? id : id.toLowerCase()];
 
-        // Get movie
-        const [movieRows] = await pool.execute(query, queryParams);
+        const [rows] = await pool.execute(query, queryParams);
 
-        if (!Array.isArray(movieRows) || movieRows.length === 0) {
+        if (!Array.isArray(rows) || rows.length === 0) {
             res.status(404).json({ error: "Movie not found" });
             return;
         }
 
-        const movie = movieRows[0] as any;
-
-        // Add slug
-        movie.slug = slugify(movie.title, { lower: true });
-
-        // Get genres for this movie
-        const [genreRows] = await pool.execute(
-            `
-            SELECT g.genre_name
-            FROM movie_genre mg
-            JOIN genres g ON mg.genre_id = g.genre_id
-            WHERE mg.movie_id = ?
-            `,
-            [movie.movie_id]
-        );
-
-        movie.genres = Array.isArray(genreRows) ? genreRows.map((g: any) => g.genre_name) : [];
-
-        // Get media for this movie
-        const [mediaRows] = await pool.execute("SELECT * FROM media WHERE movie_id = ?", [movie.movie_id]);
-
-        // Add media to movie
-        movie.media = Array.isArray(mediaRows) ? mediaRows : [];
-
+        const movie = await formatMovie(rows[0]);
         res.json(movie);
     } catch (error) {
         console.error("Get movie error:", error);
@@ -150,16 +142,25 @@ export const getMovieById = async (req: Request, res: Response): Promise<void> =
 // @access  Private/Admin
 export const createMovie = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { title, poster, description, release_year, genre, duration, is_available, tmdb_id } = req.body;
+        const {
+            title,
+            poster,
+            description,
+            release_year,
+            genres,
+            duration,
+            is_available,
+            tmdb_id,
+        } = req.body;
 
         if (!title || typeof title !== "string" || title.trim() === "") {
             res.status(400).json({ error: "Title is required" });
             return;
         }
 
-        // Insert movie
         const [result] = await pool.execute(
-            "INSERT INTO movies (title, poster, description, release_year, duration, is_available, tmdb_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            `INSERT INTO movies (title, poster, description, release_year, duration, is_available, tmdb_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 title,
                 poster || null,
@@ -168,50 +169,32 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
                 duration || null,
                 is_available ? 1 : 0,
                 tmdb_id || null,
-            ],
+            ]
         );
 
         const insertResult = result as any;
+        const movieId = insertResult.insertId;
 
-        if (insertResult.insertId) {
-            const movieId = insertResult.insertId;
-
-            // Handle genres
-            if (genre && typeof genre === "string") {
-                const genres = genre.split(",").map((g: string) => g.trim().toLowerCase());
-
-                for (const g of genres) {
-                    // Check if genre exists
-                    const [existingGenreRows] = await pool.execute("SELECT * FROM genres WHERE LOWER(name) = ?", [g]);
-
-                    let genreId;
-                    if (Array.isArray(existingGenreRows) && existingGenreRows.length > 0) {
-                        genreId = (existingGenreRows[0] as any).genre_id;
-                    } else {
-                        // Insert new genre
-                        const [genreResult] = await pool.execute("INSERT INTO genres (name) VALUES (?)", [g]);
-                        genreId = (genreResult as any).insertId;
-                    }
-
-                    // Link movie and genre
-                    await pool.execute("INSERT INTO movie_genre (movie_id, genre_id) VALUES (?, ?)", [movieId, genreId]);
-                }
-            }
-
-            // Get the created movie
-            const [rows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [movieId]);
-
-            if (Array.isArray(rows) && rows.length > 0) {
-                const movie = rows[0] as any;
-                // Add slug
-                movie.slug = slugify(movie.title, { lower: true });
-                res.status(201).json(movie);
-            } else {
-                res.status(404).json({ error: "Movie not found after creation" });
-            }
-        } else {
+        if (!movieId) {
             res.status(400).json({ error: "Failed to create movie" });
+            return;
         }
+
+        if (genres) {
+            await linkMovieWithGenres(movieId, genres);
+        }
+
+        const [rows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [movieId]);
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            res.status(404).json({ error: "Movie not found after creation" });
+            return;
+        }
+
+        const movie = rows[0] as any;
+        movie.slug = slugify(movie.title, { lower: true });
+
+        res.status(201).json(movie);
     } catch (error) {
         console.error("Create movie error:", error);
         res.status(500).json({ error: "Server error" });
@@ -225,10 +208,13 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
 // @access  Private/Admin
 export const updateMovie = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { title, poster, description, release_year, genre, duration, is_available, imdb_id } = req.body;
+        const { title, poster, description, release_year, genres, duration, is_available, imdb_id } = req.body;
+        const movieId = Number(req.params.id);
+
+        console.log(req.body.genres)
 
         // Check if movie exists
-        const [existingRows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [req.params.id]);
+        const [existingRows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [movieId]);
 
         if (!Array.isArray(existingRows) || existingRows.length === 0) {
             res.status(404).json({ error: "Movie not found" });
@@ -255,9 +241,9 @@ export const updateMovie = async (req: Request, res: Response): Promise<void> =>
             updateFields.push("release_year = ?");
             updateValues.push(release_year);
         }
-        if (genre) {
-            updateFields.push("genre = ?");
-            updateValues.push(genre);
+        if (genres) {
+            await pool.execute("DELETE FROM movie_genre WHERE movie_id = ?", [movieId]);
+            await linkMovieWithGenres(movieId, genres);
         }
         if (duration) {
             updateFields.push("duration = ?");
@@ -272,24 +258,24 @@ export const updateMovie = async (req: Request, res: Response): Promise<void> =>
             updateValues.push(imdb_id);
         }
 
-        if (updateFields.length === 0) {
+        if (updateFields.length === 0 && !genres) {
             res.status(400).json({ error: "No fields to update" });
             return;
         }
+        else if (updateFields.length > 0) {
+            // Add movie_id to values
+            updateValues.push(req.params.id);
 
-        // Add movie_id to values
-        updateValues.push(req.params.id);
-
-        // Update movie
-        await pool.execute(`UPDATE movies SET ${updateFields.join(", ")} WHERE movie_id = ?`, updateValues);
+            // Update movie
+            await pool.execute(`UPDATE movies SET ${updateFields.join(", ")} WHERE movie_id = ?`, updateValues);
+        }
 
         // Get updated movie
         const [updatedRows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [req.params.id]);
 
         if (Array.isArray(updatedRows) && updatedRows.length > 0) {
-            const movie = updatedRows[0] as any;
-            // Add slug
-            movie.slug = slugify(movie.title, { lower: true });
+            const movie = await formatMovie(updatedRows[0]);
+
             res.json(movie);
         } else {
             res.status(404).json({ error: "Movie not found after update" });
