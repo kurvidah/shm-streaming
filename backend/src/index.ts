@@ -5,7 +5,7 @@ import bodyParser from 'body-parser'
 import { movieRoutes } from "./routes/movieRoutes.ts"; // Import the movie routes
 import { authRoutes } from "./routes/authRoutes.ts"; // Import the auth routes
 import { userRoutes } from "./routes/userRoutes.ts"; // Import the user routes
-import { roleRoutes } from "./routes/roleRoutes.ts"; // Import the role routes
+import { deviceRoutes } from './routes/deviceRoutes.ts'; // Import the device routes
 
 
 const app = express();
@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/v1/movies", movieRoutes)
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/users", userRoutes)
-app.use("/api/v1/roles", roleRoutes)
+app.use("/api/v1/devices", deviceRoutes)
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
