@@ -7,6 +7,7 @@ import { authRoutes } from "./routes/authRoutes.ts"; // Import the auth routes
 import { userRoutes } from "./routes/userRoutes.ts"; // Import the user routes
 import { deviceRoutes } from './routes/deviceRoutes.ts'; // Import the device routes
 import { planRoutes } from './routes/planRoutes.ts'; // Import the plan routes
+import { billRoutes } from './routes/billRoutes.ts'; // Import the bill routes
 
 
 const app = express();
@@ -21,6 +22,7 @@ app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/users", userRoutes)
 app.use("/api/v1/devices", deviceRoutes)
 app.use("/api/v1/plans", planRoutes)
+app.use("/api/v1/bills", billRoutes)
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
