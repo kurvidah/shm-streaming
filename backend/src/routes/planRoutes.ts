@@ -1,18 +1,14 @@
 import express from "express"
 import { admin, protect } from "../middleware/authMiddleware"
-import { getPlan, createPlan, getPlanById, updatePlan, deletePlan, getSelfPlan } from "../controllers/planController"
+import { getPlans, createPlan, getPlanById, updatePlan, deletePlan } from "../controllers/planController"
 
 const router = express.Router()
 
 router
     .route("/")
-    .get(getPlan)
+    .get(getPlans)
     .post(admin, createPlan)
 
-router
-    .route("/me")
-    .get(protect, getSelfPlan)
-    
 router
     .route("/:id")
     .get(getPlanById)

@@ -2,11 +2,11 @@ import type { Request, Response } from "express";
 import pool from "../db";
 import jwt from "jsonwebtoken"
 
-// @desc    Get all subscription plan
+// @desc    Get all subscription plans
 // @route   GET /api/v1/plans
 // @access  Public
 
-export const getPlan = async (req: Request, res: Response): Promise<void> => {
+export const getPlans = async (req: Request, res: Response): Promise<void> => {
     try {
 
         let query;
@@ -17,7 +17,7 @@ export const getPlan = async (req: Request, res: Response): Promise<void> => {
         const [planRows] = await pool.execute(query);
 
         if (!Array.isArray(planRows) || planRows.length === 0) {
-            res.status(404).json({ error: "subscription plan list empty" });
+            res.status(404).json({ error: "No subscription plans found" });
             return;
         }
 
@@ -47,7 +47,7 @@ export const getPlanById = async (req: Request, res: Response): Promise<void> =>
         const [planRows] = await pool.execute(query, queryParams);
 
         if (!Array.isArray(planRows) || planRows.length === 0) {
-            res.status(404).json({ error: "subscription plan not found" });
+            res.status(404).json({ error: "Subscription plan not found" });
             return;
         }
 
@@ -56,44 +56,6 @@ export const getPlanById = async (req: Request, res: Response): Promise<void> =>
         res.json(subscription_plan);
     } catch (error) {
         console.error("Get subscription_plan error:", error);
-        res.status(500).json({ error: "Server error" });
-    }
-};
-
-// @desc    Get user's own plan
-// @route   GET /api/v1/plans/me
-// @access  Private
-
-export const getSelfPlan = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const token = req.headers.authorization?.split(" ")[1];
-
-        if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-            // Verify token
-            const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
-            console.log("self", self);
-
-            const query = "SELECT * FROM subscription_plan WHERE plan_id = ?";
-            const queryParams = [self.id];
-
-            // Get user plan
-            const [userplanRows] = await pool.execute(query, queryParams);
-
-            if (!Array.isArray(userplanRows) || userplanRows.length === 0) {
-                res.status(404).json({ error: "User plan not found" });
-                return;
-            }
-
-            const userplan = userplanRows as any;
-
-            res.json(userplan);
-        }
-
-        if (!token) {
-            res.status(401).json({ error: "Not authorized, no token" });
-        }
-    } catch (error) {
-        console.error("Get user plan error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
@@ -159,7 +121,7 @@ export const createPlan = async (req: Request, res: Response): Promise<void> => 
 // @access  Private/Admin
 export const updatePlan = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days} = req.body;
+        const { plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days } = req.body;
 
         // Check if subscription plan exists
         const [existingRows] = await pool.execute("SELECT plan_id, plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days FROM subscription_plan WHERE plan_id = ?", [req.params.id]);
