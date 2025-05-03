@@ -14,7 +14,7 @@ interface User {
   user_id: number;
   username: string;
   email: string;
-  role_id: number;
+  role: string;
 }
 
 interface RegisterData {
@@ -22,7 +22,7 @@ interface RegisterData {
   email: string;
   password: string;
   gender?: string;
-  age?: number;
+  birthdate?: number;
   region?: string;
 }
 

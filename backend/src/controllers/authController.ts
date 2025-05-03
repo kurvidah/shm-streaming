@@ -70,7 +70,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             user_id: user.user_id,
             username: user.username,
             email: user.email,
-            role_id: user.role_id,
+            role: user.role,
             device,
             token: generateToken(user.user_id),
         });
