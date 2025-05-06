@@ -4,26 +4,65 @@ import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import StatCard from "../../components/StatCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { Users, Film, CreditCard, TrendingUp } from "lucide-react";
-import React from "react";
+import { Users, Film, CreditCard, TrendingUp, Activity, Server } from "lucide-react";
+import { Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+// Pie Chart Component
+const PieChartBox = ({ title, labels, data, colors }: { title: string, labels: string[], data: number[], colors: string[] }) => (
+  <div className="bg-gray-800 rounded-lg p-6">
+    <h3 className="text-lg font-semibold mb-4 text-white">{title}</h3>
+    <Pie
+      data={{
+        labels,
+        datasets: [
+          {
+            data,
+            backgroundColor: colors,
+            borderColor: "#1f2937",
+            borderWidth: 1,
+          },
+        ],
+      }}
+      options={{
+        plugins: {
+          legend: {
+            labels: {
+              color: 'white', 
+            },
+          },
+          tooltip: {
+            callbacks: {
+              title: (tooltipItem) => {
+                return tooltipItem[0]?.label; 
+              },
+            },
+          },
+        },
+      }}
+    />
+  </div>
+);
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    new Date().getMonth() + 1
-  );
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear()
-  );
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
 
-        // Simulate API request delay
         setTimeout(() => {
           setStats({
             totalUsers: 1254,
@@ -37,6 +76,33 @@ const AdminDashboard = () => {
             revenueChange: "8.2%",
             positiveRevenue: true,
             newActiveSubscriptions: 36,
+            genderDistribution: { male: 740, female: 514 },
+            regionDistribution: {
+              Asia: 400,
+              Europe: 250,
+              "North America": 300,
+              "South America": 180,
+              Africa: 124,
+            },
+            planDistribution: {
+              "Basic Plan": 300,
+              "Standard Plan": 350,
+              "Premium Plan": 250,
+              "Family Plan": 200,
+              "Annual Basic": 154,
+            },
+            recentActivities: [
+              "User JohnDoe watched ‘Inception’",
+              "New user JaneSmith registered",
+              "Subscription upgraded to Premium Plan",
+              "Movie ‘Avatar 2’ added to library",
+            ],
+            systemStatus: {
+              serverUptime: "99.99%",
+              activeStreams: 124,
+              serverLoad: "Moderate",
+              apiLatency: "230ms",
+            },
           });
           setLoading(false);
         }, 1000);
@@ -54,7 +120,6 @@ const AdminDashboard = () => {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ];
-
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
   return (
@@ -64,7 +129,6 @@ const AdminDashboard = () => {
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
-        {/* Stats Cards (Total Users, Content Library, Subscription Plans, Total Revenue) */}
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
@@ -73,6 +137,7 @@ const AdminDashboard = () => {
           </div>
         ) : (
           <>
+            {/* Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <StatCard
                 title="Total Users"
@@ -102,7 +167,29 @@ const AdminDashboard = () => {
               />
             </div>
 
-            {/* Filters (Month & Year) */}
+            {/* Pie Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <PieChartBox
+                title="Users by Gender"
+                labels={["Male", "Female"]}
+                data={[stats.genderDistribution.male, stats.genderDistribution.female]}
+                colors={["#3b82f6", "#ec4899"]}
+              />
+              <PieChartBox
+                title="Users by Region"
+                labels={Object.keys(stats.regionDistribution)}
+                data={Object.values(stats.regionDistribution)}
+                colors={["#f97316", "#10b981", "#6366f1", "#facc15", "#f43f5e"]}
+              />
+              <PieChartBox
+                title="Users by Plan"
+                labels={Object.keys(stats.planDistribution)}
+                data={Object.values(stats.planDistribution)}
+                colors={["#a78bfa", "#34d399", "#f87171", "#60a5fa", "#fbbf24"]}
+              />
+            </div>
+
+            {/* Month / Year Filters */}
             <div className="flex items-center gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -139,12 +226,12 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Filtered Monthly Metrics */}
+            {/* Monthly Data Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <StatCard
-                title="New Active Subscriptions"  
-                value={stats.newActiveSubscriptions}  
-                icon={<CreditCard size={24} className="text-green-500" />}  
+              <StatCard
+                title="New Active Subscriptions"
+                value={stats.newActiveSubscriptions}
+                icon={<CreditCard size={24} className="text-green-500" />}
                 positive={true}
               />
               <StatCard
@@ -160,7 +247,6 @@ const AdminDashboard = () => {
                 icon={<Film size={24} className="text-purple-500" />}
                 positive={true}
               />
-
             </div>
 
             {/* Recent Activity */}

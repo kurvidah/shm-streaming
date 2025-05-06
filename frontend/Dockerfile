@@ -9,6 +9,12 @@ COPY package.json bun.lock* ./
 # Install dependencies with bun
 RUN bun install
 
+# Manually add chart dependencies 
+RUN bun add react-chartjs-2 chart.js
+
+# Copy the rest of the project
+COPY . .
+
 # Expose port
 EXPOSE 3000
 
