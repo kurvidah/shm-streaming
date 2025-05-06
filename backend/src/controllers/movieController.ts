@@ -17,6 +17,24 @@ async function getMediaForMovie(movieId: number): Promise<any[]> {
     return Array.isArray(rows) ? rows : [];
 }
 
+// Helper: Get views for a movie
+async function getMovieViews(movieId: number): Promise<number> {
+    const [rows] = await pool.execute(
+        `SELECT COUNT(DISTINCT user_id) AS views FROM watch_history WHERE media_id IN (SELECT media_id FROM media WHERE movie_id = ?)`,
+        [movieId]
+    );
+    return Array.isArray(rows) && rows.length > 0 ? (rows[0] as any).views : 0;
+}
+
+// Helper: Get rating for a movie
+async function getMovieRating(movieId: number): Promise<number> {
+    const [rows] = await pool.execute(
+        `SELECT AVG(rating) AS rating FROM reviews WHERE movie_id = ?`,
+        [movieId]
+    );
+    return Array.isArray(rows) && rows.length > 0 ? (rows[0] as any).rating : 0;
+}
+
 // Helper: Format a movie row into full object
 async function formatMovie(row: any): Promise<any> {
     const movie = {
@@ -30,8 +48,10 @@ async function formatMovie(row: any): Promise<any> {
         poster: row.poster,
         tmdb_id: row.tmdb_id,
         slug: slugify(row.title, { lower: true }),
+        rating: await getMovieRating(row.movie_id),
         genres: await getGenresForMovie(row.movie_id),
         media: await getMediaForMovie(row.movie_id),
+        views: await getMovieViews(row.movie_id)
     };
     return movie;
 }
@@ -61,6 +81,35 @@ async function linkMovieWithGenres(movieId: number, genres: string[]): Promise<v
         );
     }
 }
+
+// @desc    Get featured movies
+// @route   GET /api/v1/movies
+// @access  Public
+export const getFeaturedMovies = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Popularity = (views * 0.7) + (rating * 30)
+
+        const [rows] = await pool.execute(
+            `SELECT m.*, (COUNT(DISTINCT wh.user_id) * 0.7 + AVG(r.rating) * 30) AS popularity
+             FROM movies m
+             LEFT JOIN media me ON m.movie_id = me.movie_id
+             LEFT JOIN watch_history wh ON me.media_id = wh.media_id
+             LEFT JOIN reviews r ON m.movie_id = r.movie_id
+             WHERE m.is_available = 1
+             GROUP BY m.movie_id
+             ORDER BY popularity DESC
+             LIMIT 10`
+        );
+        console.log("Hello")
+
+        const movies = await Promise.all((rows as any[]).map(formatMovie));
+
+        res.json(movies);
+    } catch (error) {
+        console.error("Get featured movies error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
 
 // @desc    Get all movies
 // @route   GET /api/v1/movies
