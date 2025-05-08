@@ -1,308 +1,187 @@
 import type { Request, Response } from "express";
 import pool from "../db";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
-// @desc    Get all users
-// @route   GET /api/v1/users
-// @access  Private/Admin
+const getUserQuery = `
+    SELECT 
+        u.user_id, u.username, u.email, u.role, 
+        u.gender, u.birthdate, u.region, u.created_at,
+        sp.plan_name AS active_subscription
+    FROM users u
+    LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
+    LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
+`;
 
-export const getUsers = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const query = `
-            SELECT 
-            u.user_id, 
-            u.username, 
-            u.email, 
-            u.role, 
-            u.gender, 
-            u.birthdate, 
-            u.region, 
-            u.created_at, 
+
+
+const getUserByIdQuery = `${getUserQuery} WHERE u.user_id = ?`;
+
+const getUserSafe = async (id: string | number) => {
+    const [users] = await pool.execute(`
+        SELECT 
+            u.user_id, u.username, u.email, u.role, 
+            u.gender, u.birthdate, u.region, u.created_at,
             sp.plan_name AS active_subscription
-            FROM users u
-            LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
-            LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
-        `;
+        FROM users u
+        LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
+        LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
+        WHERE u.user_id = ?
+    `, [id]);
 
-        // Get users
-        const [userRows] = await pool.execute(query);
+    if (!Array.isArray(users) || users.length === 0) return null;
 
-        if (!Array.isArray(userRows) || userRows.length === 0) {
-            res.status(404).json({ error: "User list empty" });
-            return;
-        }
+    const [devices] = await pool.execute(`
+        SELECT device_id, device_type, device_name
+        FROM device
+        WHERE user_id = ?
+    `, [id]);
 
-        res.json(userRows);
-    } catch (error) {
-        console.error("Get user error:", error);
-        res.status(500).json({ error: "Server error" });
-    }
+    const user = users[0] as { [key: string]: any, devices?: any[] };
+    user.devices = Array.isArray(devices) ? devices : [];
+
+    return user;
 };
 
-// @desc    Get users by ID
-// @route   GET /api/v1/users/:id
-// @access  Private/Admin
 
-export const getUserById = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const query = `
-            SELECT 
-            u.user_id, 
-            u.username, 
-            u.email, 
-            u.role, 
-            u.gender, 
-            u.birthdate, 
-            u.region, 
-            u.created_at,
-            sp.plan_name AS active_subscription
-            FROM users u
-            LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
-            LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
-            WHERE u.user_id = ?
-        `;
-        const queryParams = [req.params.id];
+const buildUpdateQuery = (fields: Record<string, any>) => {
+    const updateFields: string[] = [];
+    const updateValues: any[] = [];
 
-        // Get user
-        const [userRows] = await pool.execute(query, queryParams);
-
-        if (!Array.isArray(userRows) || userRows.length === 0) {
-            res.status(404).json({ error: "User not found" });
-            return;
+    for (const [key, value] of Object.entries(fields)) {
+        if (value !== undefined) {
+            updateFields.push(`${key} = ?`);
+            updateValues.push(value);
         }
-
-        const user = userRows[0] as any;
-
-        res.json(user);
-    } catch (error) {
-        console.error("Get user error:", error);
-        res.status(500).json({ error: "Server error" });
     }
+
+    return { updateFields, updateValues };
 };
 
-// @desc    Get user's own details
-// @route   GET /api/v1/users/me
-// @access  Private
+const extractUserFromToken = (req: Request) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token || !req.headers.authorization?.startsWith("Bearer")) return null;
+    return jwt.verify(token, process.env.SECRET_KEY || "your_jwt_secret") as any;
+};
 
-export const getSelf = async (req: Request, res: Response): Promise<void> => {
+// @desc Get all users
+export const getUsers = async (_req: Request, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-
-        if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-            // Verify token
-            const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
-            console.log("self", self);
-
-            const query = `
+        const [userRows] : any = await pool.execute(`
             SELECT 
-                u.user_id, 
-                u.username, 
-                u.email, 
-                u.role, 
-                u.gender, 
-                u.birthdate, 
-                u.region, 
-                u.created_at, 
+                u.user_id, u.username, u.email, u.role, 
+                u.gender, u.birthdate, u.region, u.created_at,
                 sp.plan_name AS active_subscription
             FROM users u
             LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
             LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
-            WHERE u.user_id = ?
-            `;
-            const queryParams = [self.id];
+        `);
 
-            // Get user
-            const [userRows] = await pool.execute(query, queryParams);
-
-            if (!Array.isArray(userRows) || userRows.length === 0) {
-                res.status(404).json({ error: "User not found" });
-                return;
-            }
-
-            const user = userRows[0] as any;
-
-            res.json(user);
+        if (!Array.isArray(userRows) || userRows.length === 0) {
+            return res.status(404).json({ error: "User list empty" });
         }
 
-        if (!token) {
-            res.status(401).json({ error: "Not authorized, no token" });
+        const [deviceRows] = await pool.execute(`
+            SELECT user_id, device_id, device_type, device_name
+            FROM device
+        `);
+
+        const userMap = new Map<number, any>();
+        for (const user of userRows) {
+            user.devices = [];
+            userMap.set(user.user_id, user);
         }
+
+        for (const device of deviceRows as any[]) {
+            const user = userMap.get(device.user_id);
+            if (user) user.devices.push(device);
+        }
+
+        res.json([...userMap.values()]);
     } catch (error) {
-        console.error("Get user error:", error);
+        console.error("Get users error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
 
-// @desc    Update a user
-// @route   PUT /api/v1/users/:id
-// @access  Private/Admin
-export const updateUser = async (req: Request, res: Response): Promise<void> => {
+
+// @desc Get user by ID
+export const getUserById = async (req: Request, res: Response) => {
     try {
-        const { username, email, password, gender, birthdate, region } = req.body;
+        const user = await getUserSafe(req.params.id);
+        if (!user) return res.status(404).json({ error: "User not found" });
+        res.json(user);
+    } catch (error) {
+        console.error("Get user by ID error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
 
-        // Check if user exists
-        const [existingRows] = await pool.execute("SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?", [req.params.id]);
+// @desc Get current user
+export const getSelf = async (req: Request, res: Response) => {
+    try {
+        const userPayload = extractUserFromToken(req);
+        if (!userPayload) return res.status(401).json({ error: "Not authorized, no token" });
 
-        if (!Array.isArray(existingRows) || existingRows.length === 0) {
-            res.status(404).json({ error: "User not found" });
-            return;
-        }
+        const user = await getUserSafe(userPayload.id);
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-        // Build update query
-        const updateFields: string[] = [];
-        const updateValues: any[] = [];
+        res.json(user);
+    } catch (error) {
+        console.error("Get self error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
 
-        if (username) {
-            updateFields.push("username = ?");
-            updateValues.push(username);
-        }
-        if (email) {
-            updateFields.push("email = ?");
-            updateValues.push(email);
-        }
-        if (password) {
-            updateFields.push("password = ?");
-            updateValues.push(password);
-        }
-        if (gender) {
-            updateFields.push("gender = ?");
-            updateValues.push(gender);
-        }
-        if (birthdate) {
-            updateFields.push("birthdate = ?");
-            updateValues.push(birthdate);
-        }
-        if (region) {
-            updateFields.push("region = ?");
-            updateValues.push(region);
-        }
+// @desc Update user by ID
+export const updateUser = async (req: Request, res: Response) => {
+    try {
+        const user = await getUserSafe(req.params.id);
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-        if (updateFields.length === 0) {
-            res.status(400).json({ error: "No fields to update" });
-            return;
-        }
+        const { updateFields, updateValues } = buildUpdateQuery(req.body);
+        if (updateFields.length === 0) return res.status(400).json({ error: "No fields to update" });
 
-        // Add user_id to values
         updateValues.push(req.params.id);
-
-        // Update user
         await pool.execute(`UPDATE users SET ${updateFields.join(", ")} WHERE user_id = ?`, updateValues);
 
-        // Get updated user
-        const [updatedRows] = await pool.execute("SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?", [req.params.id]);
-
-        if (Array.isArray(updatedRows) && updatedRows.length > 0) {
-            const user = updatedRows[0] as any;
-            res.json(user);
-        } else {
-            res.status(404).json({ error: "User not found after update" });
-        }
+        const updatedUser = await getUserSafe(req.params.id);
+        res.json(updatedUser);
     } catch (error) {
         console.error("Update user error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
 
-// @desc    Update user's own details
-// @route   PUT /api/v1/users/me
-// @access  Private
-
-export const updateSelf = async (req: Request, res: Response): Promise<void> => {
+// @desc Update self
+export const updateSelf = async (req: Request, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-        const { username, email, password, gender, birthdate, region } = req.body;
+        const userPayload = extractUserFromToken(req);
+        if (!userPayload) return res.status(401).json({ error: "Not authorized, no token" });
 
-        if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-            // Verify token
-            const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
+        const user = await getUserSafe(userPayload.id);
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-            const query = "SELECT user_id, username, email, role, gender, birthdate, region, created_at FROM users WHERE user_id = ?";
-            const queryParams = [self.id];
+        const { updateFields, updateValues } = buildUpdateQuery(req.body);
+        if (updateFields.length === 0) return res.status(400).json({ error: "No fields to update" });
 
-            // Get user
-            const [userRows] = await pool.execute(query, queryParams);
+        updateValues.push(userPayload.id);
+        await pool.execute(`UPDATE users SET ${updateFields.join(", ")} WHERE user_id = ?`, updateValues);
 
-            if (!Array.isArray(userRows) || userRows.length === 0) {
-                res.status(404).json({ error: "User not found" });
-                return;
-            }
-
-            // Build update query
-            const updateFields: string[] = [];
-            const updateValues: any[] = [];
-
-            if (username) {
-                updateFields.push("username = ?");
-                updateValues.push(username);
-            }
-            if (email) {
-                updateFields.push("email = ?");
-                updateValues.push(email);
-            }
-            if (password) {
-                updateFields.push("password = ?");
-                updateValues.push(password);
-            }
-            if (gender) {
-                updateFields.push("gender = ?");
-                updateValues.push(gender);
-            }
-            if (birthdate) {
-                updateFields.push("birthdate = ?");
-                updateValues.push(birthdate);
-            }
-            if (region) {
-                updateFields.push("region = ?");
-                updateValues.push(region);
-            }
-
-            if (updateFields.length === 0) {
-                res.status(400).json({ error: "No fields to update" });
-                return;
-            }
-
-            // Add user_id to values
-            updateValues.push(self.id);
-
-            // Update user
-            await pool.execute(`UPDATE users SET ${updateFields.join(", ")} WHERE user_id = ?`, updateValues);
-
-            // Get updated usre
-            const [updatedRows] = await pool.execute("SELECT user_id FROM users WHERE user_id = ?", [self.id]);
-
-            if (Array.isArray(updatedRows) && updatedRows.length > 0) {
-                const user = updatedRows[0] as any;
-                res.json(user);
-            } else {
-                res.status(404).json({ error: "User not found after update" });
-            }
-        }
-
-        if (!token) {
-            res.status(401).json({ error: "Not authorized, no token" });
-        }
+        const updatedUser = await getUserSafe(userPayload.id);
+        res.json(updatedUser);
     } catch (error) {
-        console.error("Get user error:", error);
+        console.error("Update self error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
 
-// @desc    Delete a user
-// @route   DELETE /api/v1/users/:id
-// @access  Private/Admin
-export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+// @desc Delete user by ID
+export const deleteUser = async (req: Request, res: Response) => {
     try {
-        // Check if user exists
-        const [existingRows] = await pool.execute("SELECT user_id FROM users WHERE user_id = ?", [req.params.id]);
+        const user = await getUserSafe(req.params.id);
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-        if (!Array.isArray(existingRows) || existingRows.length === 0) {
-            res.status(404).json({ error: "User not found" });
-            return;
-        }
-
-        // Delete user
         await pool.execute("DELETE FROM users WHERE user_id = ?", [req.params.id]);
-
         res.json({ message: "User removed" });
     } catch (error) {
         console.error("Delete user error:", error);
@@ -310,39 +189,19 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
-// @desc    Delete user's own details
-// @route   DELETE /api/v1/users/me
-// @access  Private
-export const deleteSelf = async (req: Request, res: Response): Promise<void> => {
+// @desc Delete self
+export const deleteSelf = async (req: Request, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
+        const userPayload = extractUserFromToken(req);
+        if (!userPayload) return res.status(401).json({ error: "Not authorized, no token" });
 
-        if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-            // Verify token
-            const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
+        const user = await getUserSafe(userPayload.id);
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-            const query = "SELECT user_id FROM users WHERE user_id = ?";
-            const queryParams = [self.id];
-
-            // Get user
-            const [userRows] = await pool.execute(query, queryParams);
-
-            if (!Array.isArray(userRows) || userRows.length === 0) {
-                res.status(404).json({ error: "User not found" });
-                return;
-            }
-
-            // Delete user
-            await pool.execute("DELETE FROM users WHERE user_id = ?", [self.id]);
-
-            res.json({ message: "User removed" });
-        }
-
-        if (!token) {
-            res.status(401).json({ error: "Not authorized, no token" });
-        }
+        await pool.execute("DELETE FROM users WHERE user_id = ?", [userPayload.id]);
+        res.json({ message: "User removed" });
     } catch (error) {
-        console.error("Get user error:", error);
+        console.error("Delete self error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
