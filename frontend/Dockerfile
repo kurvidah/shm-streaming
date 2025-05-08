@@ -11,6 +11,8 @@ RUN bun install
 
 # Manually add chart dependencies 
 RUN bun add react-chartjs-2 chart.js
+RUN bun add react-heatmap-grid
+
 
 # Copy the rest of the project
 COPY . .
