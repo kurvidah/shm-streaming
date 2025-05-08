@@ -87,7 +87,7 @@ async function linkMovieWithGenres(movieId: number, genres: string[]): Promise<v
 // @access  Public
 export const getFeaturedMovies = async (req: Request, res: Response): Promise<void> => {
     try {
-        // Popularity = (views * 0.7) + (rating * 30)
+        // Popularity = (views * 0.7) + (rating * 30) + recency
 
         const [rows] = await pool.execute(
             `SELECT m.*, (COUNT(DISTINCT wh.user_id) * 0.7 + AVG(r.rating) * 30) AS popularity
@@ -100,7 +100,7 @@ export const getFeaturedMovies = async (req: Request, res: Response): Promise<vo
              ORDER BY popularity DESC
              LIMIT 10`
         );
-        console.log("Hello")
+        // console.log("Hello")
 
         const movies = await Promise.all((rows as any[]).map(formatMovie));
 

@@ -19,7 +19,7 @@ CREATE TABLE subscription_plan (
     max_devices INTEGER NOT NULL,
     hd_available BOOLEAN NOT NULL,
     ultra_hd_available BOOLEAN NOT NULL,
-    duration_days INTEGER NOT NULL
+    duration_days INTEGER -- Nullable for indefinite plans
 );
 
 CREATE TABLE user_subscription (
@@ -36,10 +36,10 @@ CREATE TABLE billing (
     billing_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     user_subscription_id INTEGER,
     amount FLOAT NOT NULL,
-    payment_method VARCHAR(100) NOT NULL,
+    payment_method VARCHAR(100),
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     due_date TIMESTAMP NOT NULL,
-    payment_status VARCHAR(50) NOT NULL,
+    payment_status ENUM('PENDING', 'COMPLETED', 'FAILED') NOT NULL DEFAULT 'PENDING',
     FOREIGN KEY (user_subscription_id) REFERENCES user_subscription(user_subscription_id) ON DELETE CASCADE
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE movies (
 
 CREATE TABLE genres (
     genre_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    genre_description VARCHAR(100) NOT NULL,
+    genre_description VARCHAR(100),
     genre_name VARCHAR(100) NOT NULL UNIQUE
 );
 

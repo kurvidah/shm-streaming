@@ -1,12 +1,17 @@
 import express from "express"
-import { admin } from "../middleware/authMiddleware"
-import { deleteBill, getBill, getBillById, updateBill } from "../controllers/billController"
+import { admin, protect } from "../middleware/authMiddleware"
+import { deleteBill, getBill, getBillById, getSelfBills, payBill, updateBill } from "../controllers/billController"
 
 const router = express.Router()
 
 router
     .route("/")
     .get(admin, getBill)
+
+router
+    .route("/pay")
+    .get(protect, getSelfBills)
+    .post(protect, payBill)
     
 router
     .route("/:id")
