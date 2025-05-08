@@ -24,9 +24,9 @@ VALUES
 -- Insert sample billings
 INSERT INTO billing (billing_id, user_subscription_id, amount, payment_method, payment_date, due_date, payment_status)
 VALUES
-(1, 1, 14.99, 'Credit Card', '2025-03-01 10:00:00', '2025-03-15 10:00:00', 'Paid'),
-(2, 2, 9.99, 'PayPal', '2025-02-20 12:30:00', '2025-03-05 12:30:00', 'Unpaid'),
-(3, 3, 19.99, 'Credit Card', '2025-01-15 08:00:00', '2025-02-01 08:00:00', 'Paid');
+(1, 1, 14.99, 'Credit Card', '2025-03-01 10:00:00', '2025-03-15 10:00:00', 'COMPLETED'),
+(2, 2, 9.99, 'PayPal', '2025-02-20 12:30:00', '2025-03-05 12:30:00', 'PENDING'),
+(3, 3, 19.99, 'Credit Card', '2025-01-15 08:00:00', '2025-02-01 08:00:00', 'COMPLETED');
 
 -- Insert sample movies
 INSERT INTO movies (movie_id, title, poster, description, release_year, duration, is_available, imdb_id)
