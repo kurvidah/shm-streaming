@@ -3,27 +3,6 @@ import pool from "../db";
 import jwt from "jsonwebtoken"
 import { format } from "mysql2";
 
-// Helper: Get the user's current active plan
-const getCurrentPlan = async (userId: string, date: Date = new Date()) : Promise<any> => {
-    // console.log(date);
-    const [userSubRows] = await pool.execute(
-        `SELECT us.* 
-         FROM user_subscription us
-         JOIN billing b ON us.user_subscription_id = b.user_subscription_id
-         WHERE us.user_id = ? AND ? BETWEEN us.start_date AND us.end_date
-           AND b.payment_status = 'SUCCESS'`,
-        [userId, date]
-    );
-
-    if (!Array.isArray(userSubRows) || userSubRows.length === 0) {
-        return null;
-    }
-
-    const userSub = userSubRows[0] as any;
-
-    return userSub;
-}
-
 async function formatSubscription(row: any): Promise<any> {
     if (!row) {
         return null;
@@ -38,9 +17,38 @@ async function formatSubscription(row: any): Promise<any> {
     const planDetails = planRows[0] as any;
 
     return {
-        row,
-        plan: {...planDetails}
+        user_subscription_id: row.user_subscription_id,
+        user_id: row.user_id,
+        plan_id: row.plan_id,
+        plan_name: planDetails.plan_name,
+        plan_description: planDetails.plan_description,
+        start_date: row.start_date,
+        end_date: row.end_date,
+        duration_days: planDetails.duration_days,
+        price: planDetails.price
+    };
+}
+
+// Helper: Get the user's current active plan
+const getCurrentPlan = async (userId: string, date: Date = new Date()) : Promise<any> => {
+    console.log(date);
+    const [userSubRows] = await pool.execute(
+        `SELECT us.* 
+         FROM user_subscription us
+         JOIN billing b ON us.user_subscription_id = b.user_subscription_id
+         WHERE us.user_id = ? AND ? BETWEEN us.start_date AND us.end_date
+           AND b.payment_status = 'COMPLETED'`,
+        [userId, date]
+    );
+
+    if (!Array.isArray(userSubRows) || userSubRows.length === 0) {
+        return null;
     }
+
+    const userSub = userSubRows[0] as any;
+    const resBody = await formatSubscription(userSub);
+
+    return resBody;
 }
 
 // @desc    Get user's own plan
@@ -58,7 +66,7 @@ export const getSelfPlan = async (req: Request, res: Response): Promise<void> =>
             // Get subscription plan details
             const activeSubscription = await getCurrentPlan(self.id);
 
-            res.json(formatSubscription(activeSubscription));
+            res.json(activeSubscription);
         }
 
         if (!token) {
@@ -173,7 +181,7 @@ export const getUserPlan = async (req: Request, res: Response): Promise<void> =>
 
         const userSubRows = await getCurrentPlan(id);
 
-        res.json(formatSubscription(userSubRows));
+        await res.json(userSubRows);
     } catch (error) {
         console.error("Get user subscription error:", error);
         res.status(500).json({ error: "Server error" });
