@@ -4,81 +4,58 @@ import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toISOString().slice(0, 19).replace("T", " ");
+};
+
 
 const AdminUsers = () => {
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState<
-    {
-      user_id: number;
-      username: string;
-      email: string;
-      gender: string;
-      age: number;
-      region: string;
-      subscription: string;
-      created_at: string;
-    }[]
-  >([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchColumn, setSearchColumn] = useState("all");
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setUsers([
-        {
-          user_id: 1,
-          username: "alice_brown",
-          email: "alice.brown@example.com",
-          gender: "Female",
-          age: 28,
-          region: "Europe",
-          subscription: "Premium",
-          created_at: "2025-01-20",
-        },
-        {
-          user_id: 2,
-          username: "bob_jones",
-          email: "bob.jones@example.com",
-          gender: "Male",
-          age: 35,
-          region: "North America",
-          subscription: "Basic",
-          created_at: "2025-02-05",
-        },
-        {
-          user_id: 3,
-          username: "carol_white",
-          email: "carol.white@example.com",
-          gender: "Female",
-          age: 22,
-          region: "Asia",
-          subscription: "Standard",
-          created_at: "2025-03-12",
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_URL}/users`);
+        setUsers(response.data); 
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError("Failed to load user details");
+        setLoading(false);
+      }
+    };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    fetchUsers();
+  }, []); 
+
+  const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  const [searchColumn, setSearchColumn] = useState("all");
   const filteredUsers = users.filter((user) => {
     const term = searchTerm.toLowerCase();
     if (searchColumn === "all") {
       return (
-        user.username.toLowerCase().includes(term) ||
-        user.email.toLowerCase().includes(term) ||
-        user.region.toLowerCase().includes(term) ||
-        user.subscription.toLowerCase().includes(term) ||
-        user.created_at.toLowerCase().includes(term)
+        user.username?.toLowerCase().includes(term) ||
+        user.email?.toLowerCase().includes(term) ||
+        user.region?.toLowerCase().includes(term) ||
+        user.active_subscription?.toLowerCase().includes(term)||
+        user.created_at?.toLowerCase().includes(term)
       );
     } else {
-      const value = user[searchColumn as keyof typeof user];
+      const value = user[searchColumn];
       return typeof value === "string" && value.toLowerCase().includes(term);
     }
   });
@@ -129,16 +106,17 @@ const AdminUsers = () => {
                 <option value="username">Username</option>
                 <option value="email">Email</option>
                 <option value="region">Region</option>
-                <option value="subscription">Subscription</option>
+                <option value="active_subscription">Subscription</option>
                 <option value="created_at">Created At</option>
               </select>
-
             </div>
           </div>
         </div>
 
         {loading ? (
           <div>Loading...</div>
+        ) : error ? (
+          <div className="text-red-500">{error}</div>
         ) : (
           <div className="bg-gray-800 rounded-lg overflow-hidden">
             <table className="w-full">
@@ -158,8 +136,8 @@ const AdminUsers = () => {
                     <td className="px-6 py-4 whitespace-nowrap">{user.username}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{user.region}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.subscription}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.created_at}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.active_subscription}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(user.created_at)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex justify-end space-x-2">
                         <button className="p-1 text-gray-400 hover:text-white">
