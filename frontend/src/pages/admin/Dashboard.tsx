@@ -1,68 +1,255 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import StatCard from "../../components/StatCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Users, Film, CreditCard, TrendingUp, Activity, Server } from "lucide-react";
-import { Pie } from "react-chartjs-2";
+import { Pie, Bar, Line } from "react-chartjs-2"; // Ensure Line is imported
 import {
   Chart as ChartJS,
-  ArcElement,
+  ArcElement, // Keep ArcElement for Pie Chart
   Tooltip,
   Legend,
+  CategoryScale, // For Bar Chart and Line Chart
+  LinearScale, // For Bar Chart and Line Chart
+  BarElement, // For Bar Chart
+  PointElement, // For Line Chart
+  LineElement, // For Line Chart
+  Title, // For Bar Chart and Line Chart
 } from "chart.js";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
-
-// Pie Chart Component
+import HeatMap from 'react-heatmap-grid';
+ChartJS.register(
+  ArcElement, // Register ArcElement for Pie Chart
+  Tooltip,
+  Legend,
+  CategoryScale, // Register for Bar Chart and Line Chart
+  LinearScale, // Register for Bar Chart and Line Chart
+  BarElement, // Register for Bar Chart
+  PointElement, // Register for Line Chart
+  LineElement, // Register for Line Chart
+  Title // Register for Bar Chart and Line Chart
+);
+// Bar Chart Component for Users by Region
+const BarChartBox = ({ title, labels, data }: { title: string, labels: string[], data: number[] }) => {
+  const regionColors = [
+    '#10b981', // Asia
+    '#3b82f6', // Europe
+    '#f97316', // North America
+    '#ec4899', // South America
+    '#8b5cf6', // Africa
+  ];
+  const maxValue = Math.max(...data);
+  const suggestedMax = maxValue * 1.5;
+  return (
+    <div className="bg-gray-800 rounded-lg p-6">
+      <h3 className="text-xl font-semibold text-gray-300 mb-4">{title}</h3>
+      <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Bar
+          data={{
+            labels,
+            datasets: [
+              {
+                label: title,
+                data,
+                backgroundColor: labels.map((_, index) => regionColors[index % regionColors.length]),
+                borderColor: "#1f2937",
+                borderWidth: 1,
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+                labels: {
+                  color: 'white',
+                },
+              },
+              title: {
+                display: false,
+                text: title,
+                color: 'white',
+              },
+              tooltip: {
+                callbacks: {
+                  label: (context) => {
+                    return `${context.label}: ${context.formattedValue}`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: 'white',
+                  align: 'center'
+                },
+                grid: {
+                  color: '#374151',
+                },
+              },
+              y: {
+                ticks: {
+                  color: 'white',
+                },
+                grid: {
+                  color: '#374151',
+                },
+                max: suggestedMax,
+                beginAtZero: true,
+              },
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+// Pie Chart Component (retained for other charts)
 const PieChartBox = ({ title, labels, data, colors }: { title: string, labels: string[], data: number[], colors: string[] }) => (
   <div className="bg-gray-800 rounded-lg p-6">
-    <h3 className="text-lg font-semibold mb-4 text-white">{title}</h3>
-    <Pie
-      data={{
-        labels,
-        datasets: [
-          {
-            data,
-            backgroundColor: colors,
-            borderColor: "#1f2937",
-            borderWidth: 1,
-          },
-        ],
-      }}
-      options={{
-        plugins: {
-          legend: {
-            labels: {
-              color: 'white', 
+    <h3 className="text-xl font-semibold text-gray-300 mb-4">{title}</h3>
+    <div style={{ height: '200px' }}>
+      <Pie
+        data={{
+          labels,
+          datasets: [
+            {
+              data,
+              backgroundColor: colors,
+              borderWidth: 0,
             },
-          },
-          tooltip: {
-            callbacks: {
-              title: (tooltipItem) => {
-                return tooltipItem[0]?.label; 
+          ],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: 'white',
+                usePointStyle: true,
+                pointStyle: 'circle',
+              },
+            },
+            title: {
+              display: false,
+              text: title,
+              color: 'white',
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const label = context.label || '';
+                  const value = context.formattedValue || '';
+                  const percentage = context.dataset.data.length > 0
+                    ? ((Number(value) / context.dataset.data.reduce((a, b) => Number(a) + Number(b), 0)) * 100).toFixed(2) + '%'
+                    : '';
+                  return `${label}: <span class="math-inline">\{value\} \(</span>{percentage})`;
+                },
               },
             },
           },
-        },
-      }}
-    />
+        }}
+      />
+    </div>
   </div>
 );
 
+// Line Chart Component for Monthly Revenue
+const LineChartBox = ({ title, labels, data }: { title: string, labels: string[], data: number[] }) => {
+  const maxValue = Math.max(...data);
+  const suggestedMax = maxValue * 1.5;
+  return (
+    <div className="bg-gray-800 rounded-lg p-6">
+      <h3 className="text-xl font-semibold text-gray-300 mb-4">{title}</h3>
+      <div style={{ height: '200px' }}>
+        <Line
+          data={{
+            labels,
+            datasets: [
+              {
+                label: title,
+                data: data,
+                fill: false,
+                backgroundColor: 'rgba(75,192,192,0.2)',
+                borderColor: 'rgba(75,192,192,1)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: 'rgba(75,192,192,1)',
+                pointBorderColor: '#fff',
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+                labels: {
+                  color: 'white',
+                },
+              },
+              title: {
+                display: false,
+                text: title,
+                color: 'white',
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                  label: (context) => {
+                    return `${context.dataset.label}: ${context.formattedValue}`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: 'white',
+                },
+                grid: {
+                  color: '#374151',
+                },
+              },
+              y: {
+                ticks: {
+                  color: 'white',
+                },
+                grid: {
+                  color: '#374151',
+                },
+                beginAtZero: true,
+                max: suggestedMax,
+              },
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
 const AdminDashboard = () => {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [revenueData, setRevenueData] = useState<{ labels: string[]; data: number[] } | null>(null);
+  const [revenueYearFilter, setRevenueYearFilter] = useState(new Date().getFullYear());
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-
+        // Simulate API call with a delay
         setTimeout(() => {
           setStats({
             totalUsers: 1254,
@@ -103,6 +290,10 @@ const AdminDashboard = () => {
               serverLoad: "Moderate",
               apiLatency: "230ms",
             },
+            monthlyRevenueData: { // Simulate monthly revenue data
+              2024: [2500, 2800, 3100, 2900, 3300, 3000, 3200, 3500, 3300, 3600, 3400, 3700],
+              2025: [3000, 3200, 3500, 3300, 3700, 3400, 3600, 3900, 3700, 4000, 3800, 4100],
+            }
           });
           setLoading(false);
         }, 1000);
@@ -116,17 +307,26 @@ const AdminDashboard = () => {
     fetchStats();
   }, [selectedMonth, selectedYear]);
 
+  useEffect(() => {
+    if (stats?.monthlyRevenueData) {
+      const selectedYearData = stats.monthlyRevenueData[revenueYearFilter] || Array(12).fill(0);
+      const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      setRevenueData({ labels: monthLabels, data: selectedYearData });
+    }
+  }, [stats, revenueYearFilter]);
+
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ];
+
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  const revenueYears = Object.keys(stats?.monthlyRevenueData || {}).map(Number).sort((a, b) => b - a);
 
   return (
     <div className="flex">
       <AdminSidebar />
-
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 bg-gray-900 text-white">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
         {loading ? (
@@ -167,19 +367,13 @@ const AdminDashboard = () => {
               />
             </div>
 
-            {/* Pie Charts */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Charts Row */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <PieChartBox
                 title="Users by Gender"
                 labels={["Male", "Female"]}
                 data={[stats.genderDistribution.male, stats.genderDistribution.female]}
                 colors={["#3b82f6", "#ec4899"]}
-              />
-              <PieChartBox
-                title="Users by Region"
-                labels={Object.keys(stats.regionDistribution)}
-                data={Object.values(stats.regionDistribution)}
-                colors={["#f97316", "#10b981", "#6366f1", "#facc15", "#f43f5e"]}
               />
               <PieChartBox
                 title="Users by Plan"
@@ -189,6 +383,43 @@ const AdminDashboard = () => {
               />
             </div>
 
+            {/* Charts 2 */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <BarChartBox
+                title="Users by Region"
+                labels={Object.keys(stats.regionDistribution)}
+                data={Object.values(stats.regionDistribution)}
+              />
+              
+              {revenueData && (
+                <div className="bg-gray-800 rounded-lg p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-300 mb-4">Revenue ({revenueYearFilter})</h3>
+                  </div>
+                  <div className="mb-4">
+                    <select
+                      className="bg-gray-700 text-white rounded px-4 py-2 text-sm"
+                      value={revenueYearFilter}
+                      onChange={(e) => setRevenueYearFilter(Number(e.target.value))}
+                    >
+                      {revenueYears.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <LineChartBox
+                      title=""
+                      labels={revenueData.labels}
+                      data={revenueData.data}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            
             {/* Month / Year Filters */}
             <div className="flex items-center gap-4 mb-6">
               <div>
@@ -253,40 +484,21 @@ const AdminDashboard = () => {
             <div className="bg-gray-800 rounded-lg p-6 mb-8">
               <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-3 hover:bg-gray-700 rounded-lg transition-colors">
-                  <div className="bg-blue-500/20 text-blue-500 p-2 rounded">
-                    <Users size={20} />
+                {stats.recentActivities.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-4 p-3 hover:bg-gray-700 rounded-lg transition-colors">
+                    <div className={`bg-${["blue", "purple", "green"][index % 3]}-500/20 text-${["blue", "purple", "green"][index % 3]}-500 p-2 rounded`}>
+                      {index === 0 && <Users size={20} />}
+                      {index === 1 && <Film size={20} />}
+                      {index === 2 && <CreditCard size={20} />}
+                      {index > 2 && <Activity size={20} />}
+                    </div>
+                    <div>
+                      <p className="font-medium">{activity.split(' ')[0] === 'User' ? 'New user registered' : activity.split(' ')[0] === 'Movie' ? 'New movie added' : activity.split(' ')[0] === 'Subscription' ? 'New subscription' : activity}</p>
+                      <p className="text-sm text-gray-400">{activity.includes('@') ? activity.split(' ').slice(-1)[0] : activity.includes('‘') ? activity.split('‘')[1]?.split('’')[0] : ''}</p>
+                      <p className="text-xs text-gray-500 mt-1">{(index + 1) * 2} hours ago</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">New user registered</p>
-                    <p className="text-sm text-gray-400">john_doe@example.com</p>
-                    <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-3 hover:bg-gray-700 rounded-lg transition-colors">
-                  <div className="bg-purple-500/20 text-purple-500 p-2 rounded">
-                    <Film size={20} />
-                  </div>
-                  <div>
-                    <p className="font-medium">New movie added</p>
-                    <p className="text-sm text-gray-400">The Shawshank Redemption</p>
-                    <p className="text-xs text-gray-500 mt-1">5 hours ago</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-3 hover:bg-gray-700 rounded-lg transition-colors">
-                  <div className="bg-green-500/20 text-green-500 p-2 rounded">
-                    <CreditCard size={20} />
-                  </div>
-                  <div>
-                    <p className="font-medium">New subscription</p>
-                    <p className="text-sm text-gray-400">
-                      Premium Plan - jane_smith@example.com
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">1 day ago</p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
