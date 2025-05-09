@@ -7,6 +7,9 @@ import AdminSidebar from "../../components/AdminSidebar";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Plus, Edit, Trash2, AlertCircle, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 interface SubscriptionPlan {
   plan_id: number;
@@ -29,59 +32,12 @@ const AdminSubscriptions = () => {
     const fetchSubscriptionPlans = async () => {
       try {
         setLoading(true);
+        const response = await axios.get(`${API_URL}/plans`);
+        setPlans(response.data);
+        setLoading(false);
 
-        setTimeout(() => {
-          setPlans([
-            {
-              plan_id: 1,
-              plan_name: "Basic Plan",
-              price: 9.99,
-              max_devices: 1,
-              hd_available: true,
-              ultra_hd_available: false,
-              duration_days: 30,
-            },
-            {
-              plan_id: 2,
-              plan_name: "Standard Plan",
-              price: 14.99,
-              max_devices: 3,
-              hd_available: true,
-              ultra_hd_available: false,
-              duration_days: 30,
-            },
-            {
-              plan_id: 3,
-              plan_name: "Premium Plan",
-              price: 19.99,
-              max_devices: 5,
-              hd_available: true,
-              ultra_hd_available: true,
-              duration_days: 30,
-            },
-            {
-              plan_id: 4,
-              plan_name: "Family Plan",
-              price: 24.99,
-              max_devices: 8,
-              hd_available: true,
-              ultra_hd_available: true,
-              duration_days: 30,
-            },
-            {
-              plan_id: 5,
-              plan_name: "Annual Basic",
-              price: 99.99,
-              max_devices: 1,
-              hd_available: true,
-              ultra_hd_available: false,
-              duration_days: 365,
-            },
-          ]);
-          setLoading(false);
-        }, 1000);
-      } catch (err) {
-        console.error("Error fetching subscription plans:", err);
+      } catch (err: any) {
+        console.error("Error fetching subscription plans:", err.message);
         setError("Failed to load subscription plans");
         setLoading(false);
       }
@@ -92,6 +48,24 @@ const AdminSubscriptions = () => {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+  };
+
+  const handleDeletePlan = async (selectedPlanID: number) => {
+    if (window.confirm(`This action is irreversible. Are you sure you want to delete a plan ID: ${selectedPlanID}?`)){
+      try {
+        setLoading(true);
+        setError(null);
+        await axios.delete(`${API_URL}/plans/${selectedPlanID}`);
+        setPlans(plans.filter((plan) => plan.plan_id !== selectedPlanID));
+        setLoading(false);
+
+      } catch (err: any) {
+        console.error(`Error deleting a plan witth ID ${selectedPlanID}:`, err.message);
+        setError(`Failed to delete plan with ID ${selectedPlanID}`);
+        setLoading(false);
+
+      }
+    }
   };
 
   const filteredPlans = plans.filter((plan) =>
@@ -191,10 +165,13 @@ const AdminSubscriptions = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex justify-end space-x-2">
+                        {/* edit plan */}
                         <button className="p-1 text-gray-400 hover:text-blue-500">
                           <Edit size={18} />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-red-500">
+
+                        {/* delete plan */}
+                        <button className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeletePlan(plan.plan_id)}>
                           <Trash2 size={18} />
                         </button>
                       </div>
