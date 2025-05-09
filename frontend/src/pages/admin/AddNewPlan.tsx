@@ -54,12 +54,6 @@ const AddNewPlan: React.FC = () => {
     }  finally {
       setLoading(false);
     }
-
-    
-
-    // TODO: Replace with your backend API call
-    // After submission, navigate to another page
-     // Change to your desired page after submission
   };
 
   const handleCancel = () => {
