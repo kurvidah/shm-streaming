@@ -1,11 +1,18 @@
 // src/pages/AddNewPlan.tsx
-import React, { useState } from 'react';
+import React from 'react';
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from "../../components/LoadingSpinner";
 import AdminSidebar from "../../components/AdminSidebar";
+import axios from "axios";
+
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 const AddNewPlan: React.FC = () => {
   const navigate = useNavigate();
-
+  
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [planName, setPlanName] = useState('');
   const [price, setPrice] = useState('');
   const [maxDevice, setMaxDevice] = useState('');
@@ -15,8 +22,10 @@ const AddNewPlan: React.FC = () => {
   });
   const [duration, setDuration] = useState<'monthly' | 'annual' | ''>('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     const planData = {
       planName,
@@ -26,11 +35,25 @@ const AddNewPlan: React.FC = () => {
       duration,
     };
 
-    console.log('Submitted Plan:', planData);
+    const PLAN_DATA = {
+      plan_name: planName,
+      price: parseFloat(price), // Ensure price is a number
+      max_devices: parseInt(maxDevice, 10), // Ensure maxDevice is an integer
+      hd_available: features.hd ? 1 : 0, // Convert boolean to 1 or 0
+      ultra_hd_available: features.ultraHd ? 1 : 0, // Convert boolean to 1 or 0
+      duration_days: duration === 'monthly' ? 30 : (duration === 'annual' ? 365 : 0), // Convert duration to days (adjust as needed)
+    };
 
-    // TODO: Replace with your backend API call
-    // After submission, navigate to another page
-    navigate('/plans'); // Change to your desired page after submission
+    try {
+      const response = await axios.post(`${API_URL}/plans`, PLAN_DATA);
+      console.log('Submitted Plan:', response.data);
+      navigate('/admin/subscriptions');
+    } catch (error: any) {
+      console.error('Error adding plan:', error.response ? error.response.data : error.message);
+      setError('Failed to add plan. Please try again.');
+    }  finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -42,6 +65,7 @@ const AddNewPlan: React.FC = () => {
       <div className="w-full max-w-3xl bg-[#1E293B] p-8 rounded-2xl shadow-md">
         <h2 className="text-2xl font-semibold mb-6">Add New Subscription Plan</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block mb-1">Plan Name</label>
@@ -122,6 +146,7 @@ const AddNewPlan: React.FC = () => {
             >
               Add Plan
             </button>
+
             <button
               type="button"
               onClick={handleCancel}
