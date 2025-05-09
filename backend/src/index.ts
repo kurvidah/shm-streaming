@@ -12,6 +12,7 @@ import { mediaRoutes } from './routes/mediaRoutes.ts'; // Import the media route
 import { reviewRoutes } from './routes/reviewRoutes.ts'; // Import the media routes
 import { subscriptionRoutes } from './routes/subscriptionRoutes.ts'; // Import the subscription routes
 import { watchRoutes } from './routes/watchRoutes.ts'; // Import the watch routes
+import { adminRoutes } from './routes/adminRoutes.ts'; // Import the admin routes
 
 const app = express();
 const port = 8080;
@@ -30,6 +31,7 @@ app.use("/api/v1/media", mediaRoutes)
 app.use("/api/v1/reviews", reviewRoutes)
 app.use("/api/v1/subscription", subscriptionRoutes)
 app.use("/api/v1/watch", watchRoutes)
+app.use("/api/v1/admin", adminRoutes)
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
