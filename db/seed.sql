@@ -11,8 +11,8 @@ VALUES
 INSERT INTO subscription_plan (plan_id, plan_name, price, max_devices, hd_available, ultra_hd_available, duration_days)
 VALUES
 (1, 'Basic Plan', 9.99, 1, TRUE, FALSE, 30),
-(2, 'Standard Plan', 14.99, 3, TRUE, TRUE, 30),
-(3, 'Premium Plan', 19.99, 5, TRUE, TRUE, 30);
+(2, 'Standard Plan', 14.99, 3, TRUE, TRUE, 30);
+
 
 -- Insert sample user subscriptions
 INSERT INTO user_subscription (user_subscription_id, user_id, plan_id, start_date, end_date)
