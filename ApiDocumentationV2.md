@@ -245,6 +245,26 @@ Update the current user's profile.
 
 ---
 
+### `PUT /users/me/reset-password`
+Update the current user's password.
+
+**Request Body**
+```json
+{
+  "current_password": "oldPassword123",
+  "new_password": "newSecurePassword456"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Password reset successfully"
+}
+```
+
+---
+
 ### `DELETE /users/me`
 Delete the current user's account.
 
