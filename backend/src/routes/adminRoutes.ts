@@ -6,12 +6,14 @@ import {
     createOne,
     updateOne,
     deleteOne
-} from "../controllers/adminController";
+} from "../controllers/crudController";
+import { createMovie, getMovieById, getMovies, updateMovie } from "../controllers/movieController";
+import { getUsers } from "../controllers/userController";
 
 const router = express.Router()
 
 let allowedFields = {
-    users: ["username", "email", "password", "role", "gender", "birthdate", "region"],
+    users: ["username", "email", "role", "gender", "birthdate", "region"],
     devices: ["device_type", "device_name", "user_id"],
     media: ["episode", "season", "description", "file_path", "status"],
     movies: ["title", "description", "release_date", "duration", "rating"],
@@ -30,7 +32,7 @@ router
 
 router
     .route("/billings/:id")
-    .get(admin, getById("billing"))
+    .get(admin, getById("billing", "billing_id"))
     .put(admin, updateOne("billing", allowedFields['billing']))
     .delete(admin, deleteOne("billing"))
 
@@ -41,7 +43,7 @@ router
 
 router
     .route("/devices/:id")
-    .get(admin, getById("devices"))
+    .get(admin, getById("devices", "device_id"))
     .put(admin, updateOne("devices", allowedFields['devices']))
     .delete(admin, deleteOne("devices"))
 
@@ -52,19 +54,19 @@ router
 
 router
     .route("/media/:id")
-    .get(admin, getById("media"))
+    .get(admin, getById("media", "media_id"))
     .put(admin, updateOne("media", allowedFields['media']))
     .delete(admin, deleteOne("media"))
 
 router
     .route("/movies")
-    .get(admin, getAll("movies"))
-    .post(admin, createOne("movies", allowedFields['movies']))
+    .get(admin, getMovies)
+    .post(admin, createMovie)
 
 router
     .route("/movies/:id")
-    .get(admin, getById("movies"))
-    .put(admin, updateOne("movies", allowedFields['movies']))
+    .get(admin, getMovieById)
+    .put(admin, updateMovie)
     .delete(admin, deleteOne("movies"))
 
 router
@@ -74,7 +76,7 @@ router
 
 router
     .route("/plans/:id")
-    .get(admin, getById("subscription_plan"))
+    .get(admin, getById("subscription_plan", "plan_id"))
     .put(admin, updateOne("subscription_plan", allowedFields['subscription_plan']))
     .delete(admin, deleteOne("subscription_plan"))
 
@@ -85,7 +87,7 @@ router
 
 router
     .route("/reviews/:id")
-    .get(admin, getById("reviews"))
+    .get(admin, getById("reviews", "review_id"))
     .put(admin, updateOne("reviews", allowedFields['reviews']))
     .delete(admin, deleteOne("reviews"))
 
@@ -96,18 +98,17 @@ router
 
 router
     .route("/subscriptions/:id")
-    .get(admin, getById("user_subscription"))
+    .get(admin, getById("user_subscription", "user_subscription_id"))
     .put(admin, updateOne("user_subscription", allowedFields['user_subscription']))
     .delete(admin, deleteOne("user_subscription"))
 
 router
     .route("/users")
-    .get(admin, getAll("users"))
-    .post(admin, createOne("users", allowedFields['users']))
+    .get(admin, getUsers)
 
 router
     .route("/users/:id")
-    .get(admin, getById("users"))
+    .get(admin, getById("users", "user_id", ["password"]))
     .put(admin, updateOne("users", allowedFields['users']))
     .delete(admin, deleteOne("users"))
 

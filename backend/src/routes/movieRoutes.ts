@@ -7,7 +7,6 @@ const router = express.Router()
 router
     .route("/")
     .get(getMovies)
-    .post(mod, createMovie)
 
 router
     .route("/featured")
@@ -16,7 +15,5 @@ router
 router
     .route("/:id")
     .get(getMovieById)
-    .put(mod, updateMovie)
-    .delete(mod, deleteMovie)
 
 export const movieRoutes = router

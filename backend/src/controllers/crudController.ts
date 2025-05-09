@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import pool from "../db";
 
-export const getAll = (table: string) => async (_req: Request, res: Response) => {
+export const getAll = (table: string, excludeColumns: string[] = []) => async (_req: Request, res: Response) => {
     try {
-        const [rows] = await pool.execute(`SELECT * FROM ${table}`);
+        const excluded = excludeColumns.length > 0 ? excludeColumns.map(col => `\`${col}\``).join(", ") : "";
+        const columns = excluded ? `* EXCEPT (${excluded})` : "*";
+        const [rows] = await pool.execute(`SELECT ${columns} FROM ${table}`);
 
         const count = (rows as any[]).length;
         res.json({ count, rows });
@@ -13,9 +15,11 @@ export const getAll = (table: string) => async (_req: Request, res: Response) =>
     }
 };
 
-export const getById = (table: string, idColumn = "id") => async (req: Request, res: Response) => {
+export const getById = (table: string, idColumn = "id", excludeColumns: string[] = []) => async (req: Request, res: Response) => {
     try {
-        const [rows] = await pool.execute<any[]>(`SELECT * FROM ${table} WHERE ${idColumn} = ?`, [req.params.id]);
+        const excluded = excludeColumns.length > 0 ? excludeColumns.map(col => `\`${col}\``).join(", ") : "";
+        const columns = excluded ? `* EXCEPT (${excluded})` : "*";
+        const [rows] = await pool.execute<any[]>(`SELECT ${columns} FROM ${table} WHERE ${idColumn} = ?`, [req.params.id]);
         if ((rows as any[]).length === 0) {
             return res.status(404).json({ error: `${table.slice(0, -1)} not found` });
         }

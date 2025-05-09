@@ -1,18 +1,15 @@
 import express from "express"
-import { admin } from "../middleware/authMiddleware"
-import { createMedia, deleteMedia, getMedia, getMediaById, updateMedia } from "../controllers/mediaController"
+import { protect } from "../middleware/authMiddleware"
+import { getById, getAll } from "../controllers/crudController.ts"
 
 const router = express.Router()
 
 router
     .route("/")
-    .get(getMedia)
-    .post(admin, createMedia)
+    .get(protect, getAll("media"))
 
 router
     .route("/:id")
-    .get(getMediaById)
-    .put(admin, updateMedia)
-    .delete(admin, deleteMedia)
+    .get(protect, getById("media", "media_id"))
 
 export const mediaRoutes = router

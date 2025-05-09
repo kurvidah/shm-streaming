@@ -1,17 +1,12 @@
 import express from "express"
-import { admin, protect } from "../middleware/authMiddleware"
-import { createReview, deleteReview, getReview, getReviewById } from "../controllers/reviewController"
+import { protect } from "../middleware/authMiddleware"
+import { createReview, getReviews} from "../controllers/reviewController"
 
 const router = express.Router()
 
 router
     .route("/")
-    .get(getReview)
-    .post(createReview)
-    
-router
-    .route("/:id")
-    .get(admin, getReviewById)
-    .delete(admin, deleteReview)
+    .get(getReviews)
+    .post(protect, createReview)
 
 export const reviewRoutes = router
