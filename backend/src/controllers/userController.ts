@@ -2,6 +2,16 @@ import type { Request, Response } from "express";
 import pool from "../db";
 import jwt from "jsonwebtoken";
 
+const regionMap: Record<string, string> = {
+    AF: "Africa",
+    AN: "Antarctica",
+    AS: "Asia",
+    EU: "Europe",
+    NA: "North America",
+    OC: "Oceania",
+    SA: "South America",
+};
+
 const getUserSafe = async (id: string | number) => {
     const [users] = await pool.execute(`
         SELECT 
@@ -25,6 +35,11 @@ const getUserSafe = async (id: string | number) => {
     const user = users[0] as { [key: string]: any, devices?: any[] };
     user.devices = Array.isArray(devices) ? devices : [];
 
+    // Map region code to region name
+    if (user.region && regionMap[user.region]) {
+        user.region = regionMap[user.region];
+    }
+
     return user;
 };
 
@@ -39,8 +54,15 @@ const buildUpdateQuery = (fields: Record<string, any>, isSelfUpdate: boolean = f
             if (isSelfUpdate && key === "password") {
                 continue;
             }
-            updateFields.push(`${key} = ?`);
-            updateValues.push(value);
+
+            // Map region if the key is "region" and the value exists in the regionMap
+            if (key === "region" && regionMap[value]) {
+                updateFields.push(`${key} = ?`);
+                updateValues.push(regionMap[value]);
+            } else {
+                updateFields.push(`${key} = ?`);
+                updateValues.push(value);
+            }
         }
     }
 
