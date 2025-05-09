@@ -150,7 +150,13 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
 
         const movies = await Promise.all((rows as any[]).map(formatMovie));
 
-        res.json(movies);
+        if (movies.length === 0) {
+            res.status(404).json({ error: "No movies found" });
+            return;
+        }
+
+        const movieCount = movies.length;
+        res.json({ count: movieCount, movies });
     } catch (error) {
         console.error("Get movies error:", error);
         res.status(500).json({ error: "Server error" });

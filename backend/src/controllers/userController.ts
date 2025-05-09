@@ -2,20 +2,6 @@ import type { Request, Response } from "express";
 import pool from "../db";
 import jwt from "jsonwebtoken";
 
-const getUserQuery = `
-    SELECT 
-        u.user_id, u.username, u.email, u.role, 
-        u.gender, u.birthdate, u.region, u.created_at,
-        sp.plan_name AS active_subscription
-    FROM users u
-    LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
-    LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
-`;
-
-
-
-const getUserByIdQuery = `${getUserQuery} WHERE u.user_id = ?`;
-
 const getUserSafe = async (id: string | number) => {
     const [users] = await pool.execute(`
         SELECT 
@@ -43,12 +29,16 @@ const getUserSafe = async (id: string | number) => {
 };
 
 
-const buildUpdateQuery = (fields: Record<string, any>) => {
+const buildUpdateQuery = (fields: Record<string, any>, isSelfUpdate: boolean = false) => {
     const updateFields: string[] = [];
     const updateValues: any[] = [];
 
     for (const [key, value] of Object.entries(fields)) {
         if (value !== undefined) {
+            // Prevent self-updating password
+            if (isSelfUpdate && key === "password") {
+                continue;
+            }
             updateFields.push(`${key} = ?`);
             updateValues.push(value);
         }
@@ -96,7 +86,8 @@ export const getUsers = async (_req: Request, res: Response) => {
             if (user) user.devices.push(device);
         }
 
-        res.json([...userMap.values()]);
+        const userCount = userMap.size;
+        res.json({ count: userCount, users: [...userMap.values()] });
     } catch (error) {
         console.error("Get users error:", error);
         res.status(500).json({ error: "Server error" });
@@ -161,7 +152,7 @@ export const updateSelf = async (req: Request, res: Response) => {
         const user = await getUserSafe(userPayload.id);
         if (!user) return res.status(404).json({ error: "User not found" });
 
-        const { updateFields, updateValues } = buildUpdateQuery(req.body);
+        const { updateFields, updateValues } = buildUpdateQuery(req.body, true);
         if (updateFields.length === 0) return res.status(400).json({ error: "No fields to update" });
 
         updateValues.push(userPayload.id);
@@ -202,6 +193,43 @@ export const deleteSelf = async (req: Request, res: Response) => {
         res.json({ message: "User removed" });
     } catch (error) {
         console.error("Delete self error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+// @desc Update self password
+export const updateSelfPassword = async (req: Request, res: Response) => {
+    try {
+        const userPayload = extractUserFromToken(req);
+        if (!userPayload) return res.status(401).json({ error: "Not authorized, no token" });
+
+        const user = await getUserSafe(userPayload.id);
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        const { oldPassword: currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: "Current password and new password are required" });
+        }
+
+        // Verify old password
+        const [passwordRows]: any = await pool.execute(
+            "SELECT password FROM users WHERE user_id = ?",
+            [userPayload.id]
+        );
+        if (!Array.isArray(passwordRows) || passwordRows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const storedPassword = passwordRows[0].password;
+        if (storedPassword !== currentPassword) {
+            return res.status(401).json({ error: "Current password is incorrect" });
+        }
+
+        // Update to new password
+        await pool.execute("UPDATE users SET password = ? WHERE user_id = ?", [newPassword, userPayload.id]);
+        res.json({ message: "Password updated" });
+    } catch (error) {
+        console.error("Update self password error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };

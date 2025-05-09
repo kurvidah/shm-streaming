@@ -20,7 +20,8 @@ export const getBill = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        res.json(billRows);
+        const billCount = billRows.length;
+        res.json({ count: billCount, bills: billRows });
     } catch (error) {
         console.error("Get bill error:", error);
         res.status(500).json({ error: "Server error" });

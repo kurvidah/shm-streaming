@@ -21,7 +21,8 @@ export const getPlans = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        res.json(planRows);
+        const planCount = planRows.length;
+        res.json({ count: planCount, plans: planRows });
     } catch (error) {
         console.error("Get subscription plan error:", error);
         res.status(500).json({ error: "Server error" });

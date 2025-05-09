@@ -20,7 +20,8 @@ export const getDevices = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        res.json(deviceRows);
+        const deviceCount = deviceRows.length;
+        res.json({ count: deviceCount, devices: deviceRows });
     } catch (error) {
         console.error("Get device error:", error);
         res.status(500).json({ error: "Server error" });

@@ -19,8 +19,8 @@ export const getMedia = async (req: Request, res: Response): Promise<void> => {
             res.status(404).json({ error: "Media list empty" });
             return;
         }
-
-        res.json(mediaRows);
+        const mediaCount = mediaRows.length;
+        res.json({ mediaCount, media: mediaRows });
     } catch (error) {
         console.error("Get media plan error:", error);
         res.status(500).json({ error: "Server error" });
@@ -50,7 +50,14 @@ export const getMediaById = async (req: Request, res: Response): Promise<void> =
 
         const media = mediaRows[0] as any;
 
-        res.json(media);
+        // Check if media is empty
+        if (!media) {
+            res.status(404).json({ error: "Media not found" });
+            return;
+        }
+
+        const mediaCount = mediaRows.length;
+        res.json({ count: mediaCount, media });
     } catch (error) {
         console.error("Get media error:", error);
         res.status(500).json({ error: "Server error" });

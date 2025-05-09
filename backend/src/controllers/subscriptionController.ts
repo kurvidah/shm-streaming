@@ -181,7 +181,13 @@ export const getUserPlan = async (req: Request, res: Response): Promise<void> =>
 
         const userSubRows = await getCurrentPlan(id);
 
-        await res.json(userSubRows);
+        if (!userSubRows) {
+            res.status(404).json({ error: "User subscription not found" });
+            return;
+        }
+
+        const userSubCount = userSubRows.length;
+        res.json({ userSubCount, userSubRows });
     } catch (error) {
         console.error("Get user subscription error:", error);
         res.status(500).json({ error: "Server error" });
