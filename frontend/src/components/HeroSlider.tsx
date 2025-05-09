@@ -1,14 +1,14 @@
 "use client";
 
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 interface Movie {
   movie_id: number;
   title: string;
   description: string;
-  banner: string;
+  banner?: string; 
+  poster?: string; 
   slug: string;
 }
 
@@ -23,7 +23,6 @@ const HeroSlider = ({ movies }: HeroSliderProps) => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % movies.length);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [movies.length]);
 
@@ -38,7 +37,7 @@ const HeroSlider = ({ movies }: HeroSliderProps) => {
         className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
         style={{
           backgroundImage: `url(${
-            currentMovie.banner || "/placeholder.svg?height=1080&width=1920"
+            currentMovie.banner || currentMovie.poster || "/placeholder.svg?height=1080&width=1920"
           })`,
         }}
       >
