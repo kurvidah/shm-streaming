@@ -46,7 +46,6 @@ const AddNewPlan: React.FC = () => {
 
     try {
       const response = await axios.post(`${API_URL}/plans`, PLAN_DATA);
-      console.log('Submitted Plan:', response.data);
       navigate('/admin/subscriptions');
     } catch (error: any) {
       console.error('Error adding plan:', error.response ? error.response.data : error.message);

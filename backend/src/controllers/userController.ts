@@ -109,7 +109,7 @@ export const getUsers = async (_req: Request, res: Response) => {
         }
 
         const userCount = userMap.size;
-        res.json({ count: userCount, users: [...userMap.values()] });
+        res.json({ count: userCount, rows: [...userMap.values()] });
     } catch (error) {
         console.error("Get users error:", error);
         res.status(500).json({ error: "Server error" });

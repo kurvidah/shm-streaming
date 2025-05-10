@@ -13,7 +13,9 @@ async function getGenresForMovie(movieId: number): Promise<string[]> {
 
 // Helper: Get media for a movie
 async function getMediaForMovie(movieId: number): Promise<any[]> {
-    const [rows] = await pool.execute(`SELECT * FROM media WHERE movie_id = ?`, [movieId]);
+    const [rows] = await pool.execute(`SELECT * FROM media WHERE movie_id = ?`, [
+        movieId,
+    ]);
     return Array.isArray(rows) ? rows : [];
 }
 
@@ -51,7 +53,7 @@ async function formatMovie(row: any): Promise<any> {
         rating: await getMovieRating(row.movie_id),
         genres: await getGenresForMovie(row.movie_id),
         media: await getMediaForMovie(row.movie_id),
-        views: await getMovieViews(row.movie_id)
+        views: await getMovieViews(row.movie_id),
     };
     return movie;
 }
@@ -67,12 +69,18 @@ async function getOrCreateGenreId(genreName: string): Promise<number> {
         return (existingRows[0] as any).genre_id;
     }
 
-    const [insertResult] = await pool.execute("INSERT INTO genres (genre_name) VALUES (?)", [genreName]);
+    const [insertResult] = await pool.execute(
+        "INSERT INTO genres (genre_name) VALUES (?)",
+        [genreName]
+    );
     return (insertResult as any).insertId;
 }
 
 // Helper: Link movie with genres
-async function linkMovieWithGenres(movieId: number, genres: string[]): Promise<void> {
+async function linkMovieWithGenres(
+    movieId: number,
+    genres: string[]
+): Promise<void> {
     for (const genre of genres) {
         const genreId = await getOrCreateGenreId(genre);
         await pool.execute(
@@ -85,26 +93,33 @@ async function linkMovieWithGenres(movieId: number, genres: string[]): Promise<v
 // @desc    Get featured movies
 // @route   GET /api/v1/movies
 // @access  Public
-export const getFeaturedMovies = async (req: Request, res: Response): Promise<void> => {
+export const getFeaturedMovies = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         // Popularity = (views * 0.7) + (rating * 30) + recency
+        const count = req.query.count ? parseInt(req.query.count as string) : 10;
 
         const [rows] = await pool.execute(
-            `SELECT m.*, (COUNT(DISTINCT wh.user_id) * 0.7 + AVG(r.rating) * 30) AS popularity
-             FROM movies m
-             LEFT JOIN media me ON m.movie_id = me.movie_id
-             LEFT JOIN watch_history wh ON me.media_id = wh.media_id
-             LEFT JOIN reviews r ON m.movie_id = r.movie_id
-             WHERE m.is_available = 1
-             GROUP BY m.movie_id
-             ORDER BY popularity DESC
-             LIMIT 10`
+            `SELECT m.*, 
+            (COUNT(DISTINCT wh.user_id) * 0.7 + AVG(r.rating) * 30 + 
+            (1 / (YEAR(NOW()) - m.release_year + 1)) * 1000) AS popularity
+            FROM movies m
+            LEFT JOIN media me ON m.movie_id = me.movie_id
+            LEFT JOIN watch_history wh ON me.media_id = wh.media_id
+            LEFT JOIN reviews r ON m.movie_id = r.movie_id
+            WHERE m.is_available = 1
+            GROUP BY m.movie_id
+            ORDER BY popularity DESC
+            LIMIT ?`,
+            [count]
         );
-        // console.log("Hello")
 
         const movies = await Promise.all((rows as any[]).map(formatMovie));
 
-        res.json(movies);
+        const movieCount = movies.length;
+        res.json({ count: movieCount, rows: movies });
     } catch (error) {
         console.error("Get featured movies error:", error);
         res.status(500).json({ error: "Server error" });
@@ -156,7 +171,7 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
         }
 
         const movieCount = movies.length;
-        res.json({ count: movieCount, movies });
+        res.json({ count: movieCount, rows: movies });
     } catch (error) {
         console.error("Get movies error:", error);
         res.status(500).json({ error: "Server error" });
@@ -166,7 +181,10 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
 // @desc    Get movie by ID or slug
 // @route   GET /api/v1/movies/:id
 // @access  Public
-export const getMovieById = async (req: Request, res: Response): Promise<void> => {
+export const getMovieById = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const { id } = req.params;
         const isNumeric = /^\d+$/.test(id);
@@ -195,7 +213,10 @@ export const getMovieById = async (req: Request, res: Response): Promise<void> =
 // @desc    Create a movie
 // @route   POST /api/v1/movies
 // @access  Private/Admin
-export const createMovie = async (req: Request, res: Response): Promise<void> => {
+export const createMovie = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const {
             title,
@@ -214,7 +235,7 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
         }
 
         const [result] = await pool.execute(
-            `INSERT INTO movies (title, poster, description, release_year, duration, is_available, tmdb_id)
+            `INSERT INTO movies (title, poster, description, release_year, duration, is_available, imdb_id)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 title,
@@ -239,7 +260,10 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
             await linkMovieWithGenres(movieId, genres);
         }
 
-        const [rows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [movieId]);
+        const [rows] = await pool.execute(
+            "SELECT * FROM movies WHERE movie_id = ?",
+            [movieId]
+        );
 
         if (!Array.isArray(rows) || rows.length === 0) {
             res.status(404).json({ error: "Movie not found after creation" });
@@ -261,15 +285,30 @@ export const createMovie = async (req: Request, res: Response): Promise<void> =>
 // @desc    Update a movie
 // @route   PUT /api/v1/movies/:id
 // @access  Private/Admin
-export const updateMovie = async (req: Request, res: Response): Promise<void> => {
+export const updateMovie = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
-        const { title, poster, description, release_year, genres, duration, is_available, imdb_id } = req.body;
+        const {
+            title,
+            poster,
+            description,
+            release_year,
+            genres,
+            duration,
+            is_available,
+            imdb_id,
+        } = req.body;
         const movieId = Number(req.params.id);
 
-        console.log(req.body.genres)
+        console.log(req.body.genres);
 
         // Check if movie exists
-        const [existingRows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [movieId]);
+        const [existingRows] = await pool.execute(
+            "SELECT * FROM movies WHERE movie_id = ?",
+            [movieId]
+        );
 
         if (!Array.isArray(existingRows) || existingRows.length === 0) {
             res.status(404).json({ error: "Movie not found" });
@@ -297,7 +336,9 @@ export const updateMovie = async (req: Request, res: Response): Promise<void> =>
             updateValues.push(release_year);
         }
         if (genres) {
-            await pool.execute("DELETE FROM movie_genre WHERE movie_id = ?", [movieId]);
+            await pool.execute("DELETE FROM movie_genre WHERE movie_id = ?", [
+                movieId,
+            ]);
             await linkMovieWithGenres(movieId, genres);
         }
         if (duration) {
@@ -316,17 +357,22 @@ export const updateMovie = async (req: Request, res: Response): Promise<void> =>
         if (updateFields.length === 0 && !genres) {
             res.status(400).json({ error: "No fields to update" });
             return;
-        }
-        else if (updateFields.length > 0) {
+        } else if (updateFields.length > 0) {
             // Add movie_id to values
             updateValues.push(req.params.id);
 
             // Update movie
-            await pool.execute(`UPDATE movies SET ${updateFields.join(", ")} WHERE movie_id = ?`, updateValues);
+            await pool.execute(
+                `UPDATE movies SET ${updateFields.join(", ")} WHERE movie_id = ?`,
+                updateValues
+            );
         }
 
         // Get updated movie
-        const [updatedRows] = await pool.execute("SELECT * FROM movies WHERE movie_id = ?", [req.params.id]);
+        const [updatedRows] = await pool.execute(
+            "SELECT * FROM movies WHERE movie_id = ?",
+            [req.params.id]
+        );
 
         if (Array.isArray(updatedRows) && updatedRows.length > 0) {
             const movie = await formatMovie(updatedRows[0]);

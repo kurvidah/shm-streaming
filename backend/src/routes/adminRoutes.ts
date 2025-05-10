@@ -16,7 +16,7 @@ let allowedFields = {
     users: ["username", "email", "role", "gender", "birthdate", "region"],
     devices: ["device_type", "device_name", "user_id"],
     media: ["episode", "season", "description", "file_path", "status"],
-    movies: ["title", "description", "release_date", "duration", "rating"],
+    movies: ["title", "description", "release_date", "duration", "rating", "imdb_id"],
     movie_genre: ["movie_id", "genre_id"],
     genres: ["genre_name", "genre_description"],
     user_subscription: ["plan_id", "user_id", "start_date", "end_date"],
@@ -34,7 +34,7 @@ router
     .route("/billings/:id")
     .get(admin, getById("billing", "billing_id"))
     .put(admin, updateOne("billing", allowedFields['billing']))
-    .delete(admin, deleteOne("billing"))
+    .delete(admin, deleteOne("billing", "billing_id"))
 
 router
     .route("/devices")
@@ -45,7 +45,7 @@ router
     .route("/devices/:id")
     .get(admin, getById("devices", "device_id"))
     .put(admin, updateOne("devices", allowedFields['devices']))
-    .delete(admin, deleteOne("devices"))
+    .delete(admin, deleteOne("devices", 'device_id'))
 
 router
     .route("/media")
@@ -56,7 +56,7 @@ router
     .route("/media/:id")
     .get(admin, getById("media", "media_id"))
     .put(admin, updateOne("media", allowedFields['media']))
-    .delete(admin, deleteOne("media"))
+    .delete(admin, deleteOne("media", "media_id"))
 
 router
     .route("/movies")
@@ -67,7 +67,7 @@ router
     .route("/movies/:id")
     .get(admin, getMovieById)
     .put(admin, updateMovie)
-    .delete(admin, deleteOne("movies"))
+    .delete(admin, deleteOne("movies", "movie_id"))
 
 router
     .route("/plans")
@@ -78,7 +78,7 @@ router
     .route("/plans/:id")
     .get(admin, getById("subscription_plan", "plan_id"))
     .put(admin, updateOne("subscription_plan", allowedFields['subscription_plan']))
-    .delete(admin, deleteOne("subscription_plan"))
+    .delete(admin, deleteOne("subscription_plan", "plan_id"))
 
 router
     .route("/reviews")
@@ -89,7 +89,7 @@ router
     .route("/reviews/:id")
     .get(admin, getById("reviews", "review_id"))
     .put(admin, updateOne("reviews", allowedFields['reviews']))
-    .delete(admin, deleteOne("reviews"))
+    .delete(admin, deleteOne("reviews", "review_id"))
 
 router
     .route("/subscriptions")
@@ -100,16 +100,17 @@ router
     .route("/subscriptions/:id")
     .get(admin, getById("user_subscription", "user_subscription_id"))
     .put(admin, updateOne("user_subscription", allowedFields['user_subscription']))
-    .delete(admin, deleteOne("user_subscription"))
+    .delete(admin, deleteOne("user_subscription", "user_subscription_id"))
 
 router
     .route("/users")
     .get(admin, getUsers)
+    .post(admin, createOne("users", allowedFields['users']))
 
 router
     .route("/users/:id")
     .get(admin, getById("users", "user_id", ["password"]))
     .put(admin, updateOne("users", allowedFields['users']))
-    .delete(admin, deleteOne("users"))
+    .delete(admin, deleteOne("users", "user_id"))
 
 export const adminRoutes = router

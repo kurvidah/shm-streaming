@@ -32,8 +32,8 @@ const AdminSubscriptions = () => {
     const fetchSubscriptionPlans = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/plans`);
-        setPlans(response.data);
+        const response = await axios.get(`${API_URL}/admin/plans`);
+        setPlans(response.data.rows);
         setLoading(false);
 
       } catch (err: any) {
@@ -55,7 +55,7 @@ const AdminSubscriptions = () => {
       try {
         setLoading(true);
         setError(null);
-        await axios.delete(`${API_URL}/plans/${selectedPlanID}`);
+        await axios.delete(`${API_URL}/admin/plans/${selectedPlanID}`);
         setPlans(plans.filter((plan) => plan.plan_id !== selectedPlanID));
         setLoading(false);
 

@@ -29,7 +29,7 @@ export const getReviews = async (req: Request, res: Response): Promise<void> => 
         }
 
         const reviewCount = reviewRows.length;
-        res.json({ count: reviewCount, reviews: reviewRows });
+        res.json({ count: reviewCount, rows: reviewRows });
     } catch (error) {
         console.error("Get reviews error:", error);
         res.status(500).json({ error: "Server error" });

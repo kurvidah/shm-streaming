@@ -31,7 +31,7 @@ const Browse = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_URL}/movies`);
-        setMovies(response.data); // assuming it's an array of movies
+        setMovies(response.data.rows); // assuming it's an array of movies
         setLoading(false);
       } catch (err) {
         console.error("Error fetching movies:", err);

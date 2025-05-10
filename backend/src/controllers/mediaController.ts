@@ -20,7 +20,7 @@ export const getMedia = async (req: Request, res: Response): Promise<void> => {
             return;
         }
         const mediaCount = mediaRows.length;
-        res.json({ mediaCount, media: mediaRows });
+        res.json({ mediaCount, rows: mediaRows });
     } catch (error) {
         console.error("Get media plan error:", error);
         res.status(500).json({ error: "Server error" });

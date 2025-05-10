@@ -27,8 +27,8 @@ const AdminUsers = () => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/users`);
-        setUsers(response.data); 
+        const response = await axios.get(`${API_URL}/admin/users`);
+        setUsers(response.data.rows); 
         setLoading(false);
       } catch (err) {
         console.error("Error fetching users:", err);
@@ -146,7 +146,20 @@ const AdminUsers = () => {
                         <button className="p-1 text-gray-400 hover:text-blue-500">
                           <Edit size={18} />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-red-500">
+                        <button
+                          className="p-1 text-gray-400 hover:text-red-500"
+                          onClick={async () => {
+                          if (window.confirm("Are you sure you want to delete this user?")) {
+                            try {
+                            await axios.delete(`${API_URL}/admin/users/${user.user_id}`);
+                            setUsers(users.filter((u) => u.user_id !== user.user_id));
+                            } catch (err) {
+                            console.error("Error deleting user:", err);
+                            alert("Failed to delete user.");
+                            }
+                          }
+                          }}
+                        >
                           <Trash2 size={18} />
                         </button>
                       </div>

@@ -96,14 +96,12 @@ const AddNewMovie = () => {
         genre: form.genre,
         duration: parseInt(form.duration, 10),
         is_available: form.is_available,
-        tmdb_id: form.imdb_id,
+        imdb_id: form.imdb_id,
       };
 
-      await axios.post(`${API_URL}/movies`, payload, {
+      await axios.post(`${API_URL}/admin/movies`, payload, {
         headers: { "Content-Type": "application/json" },
       });
-
-      console.log(API_URL);
 
       alert("Movie added!");
       navigate("/admin/movies");

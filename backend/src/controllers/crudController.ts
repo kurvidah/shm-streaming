@@ -1,11 +1,29 @@
 import { Request, Response } from "express";
 import pool from "../db";
 
-export const getAll = (table: string, excludeColumns: string[] = []) => async (_req: Request, res: Response) => {
+export const getAll = (table: string, excludeColumns: string[] = []) => async (req: Request, res: Response) => {
     try {
         const excluded = excludeColumns.length > 0 ? excludeColumns.map(col => `\`${col}\``).join(", ") : "";
         const columns = excluded ? `* EXCEPT (${excluded})` : "*";
-        const [rows] = await pool.execute(`SELECT ${columns} FROM ${table}`);
+
+        const filters = Object.entries(req.query)
+            .filter(([key]) => key !== "limit" && key !== "page")
+            .map(([key, value]) => {
+                if (typeof value === "string" && (value.startsWith(">") || value.startsWith("<"))) {
+                    const operator = value[0];
+                    const actualValue = value.slice(1);
+                    return `${key} ${operator} ${pool.escape(actualValue)}`;
+                }
+                return `${key} = ${pool.escape(value)}`;
+            })
+            .join(" AND ");
+        const whereClause = filters ? `WHERE ${filters}` : "";
+
+        const limit = req.query.limit ? `LIMIT ${parseInt(req.query.limit as string, 10)}` : "LIMIT 100";
+        const offset = req.query.page ? `OFFSET ${(parseInt(req.query.page as string, 10) - 1) * parseInt(req.query.limit as string || "100", 10)}` : "OFFSET 0";
+        const pagination = `${limit} ${offset}`;
+
+        const [rows] = await pool.execute(`SELECT ${columns} FROM ${table} ${whereClause} ${pagination}`);
 
         const count = (rows as any[]).length;
         res.json({ count, rows });

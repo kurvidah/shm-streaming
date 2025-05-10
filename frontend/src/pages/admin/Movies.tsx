@@ -32,9 +32,8 @@ const AdminMovies = () => {
       try {
         setLoading(true);
         // fetch from real API if available
-        const response = await axios.get(`${API_URL}/movies`);
-        console.log(response);
-        setMovies(response.data);
+        const response = await axios.get(`${API_URL}/admin/movies`);
+        setMovies(response.data.rows);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching movies:", err);
