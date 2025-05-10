@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../../context/AuthContext"
 import UserSidebar from "../../components/UserSidebar"
 import LoadingSpinner from "../../components/LoadingSpinner"
-import { Check, CreditCard, AlertCircle } from "lucide-react"
+import { Check, CreditCard, AlertCircle, Receipt} from "lucide-react"
+import { useNavigate } from "react-router-dom";
 
 interface SubscriptionPlan {
   plan_id: number
@@ -24,6 +25,8 @@ interface UserSubscriptionData {
 }
 
 const UserSubscription = () => {
+  const navigate = useNavigate();
+  
   const { user } = useAuth()
   const [subscription, setSubscription] = useState<UserSubscriptionData | null>(null)
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
@@ -112,17 +115,18 @@ const UserSubscription = () => {
             {/* Payment Method */}
             <div className="mb-8 bg-gray-800 rounded-lg p-6 shadow-lg">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                Payment Method
+                Billing Invoice
               </h3>
               <div className="flex items-center">
                 <div className="bg-gray-700 rounded p-2 mr-3">
-                  <CreditCard size={24} />
+                  <Receipt size={24} />
                 </div>
                 <div>
-                  <p className="font-medium">Visa ending in 4242</p>
-                  <p className="text-sm text-gray-400">Expires 12/25</p>
+                  <p className="font-medium">Amount Due: </p>
+                  <p className="text-sm text-gray-400">Due Date: </p>
                 </div>
-                <button className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline">Change</button>
+                <button  className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline"
+                onClick={() => navigate("/billing")}>Pay Now</button>
               </div>
             </div>
 
