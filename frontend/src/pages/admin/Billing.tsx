@@ -38,62 +38,12 @@ const AdminBilling = () => {
     const fetchBillingRecords = async () => {
       try {
         setLoading(true);
+        const res = await fetch("/api/admin/billings");
+        if (!res.ok) throw new Error("Failed to fetch billing data");
 
-        setTimeout(() => {
-          setBillingRecords([
-            {
-              billing_id: 1,
-              user: { username: "sara_kim", email: "sara.kim@example.com" },
-              plan_name: "Basic Plan",
-              amount: 9.99,
-              payment_method: "Credit Card",
-              payment_date: "2025-01-10",
-              due_date: "2025-01-20",
-              payment_status: "Paid",
-            },
-            {
-              billing_id: 2,
-              user: { username: "john_doe", email: "john.doe@example.com" },
-              plan_name: "Premium Plan",
-              amount: 19.99,
-              payment_method: "PayPal",
-              payment_date: "2025-02-01",
-              due_date: "2025-02-15",
-              payment_status: "Unpaid",
-            },
-            {
-              billing_id: 3,
-              user: { username: "emma_liu", email: "emma.liu@example.com" },
-              plan_name: "Standard Plan",
-              amount: 14.99,
-              payment_method: "Credit Card",
-              payment_date: "2025-03-01",
-              due_date: "2025-03-15",
-              payment_status: "Paid",
-            },
-            {
-              billing_id: 4,
-              user: { username: "michael_ross", email: "michael.ross@example.com" },
-              plan_name: "Standard Plan",
-              amount: 14.99,
-              payment_method: "PayPal",
-              payment_date: "2025-02-28",
-              due_date: "2025-03-10",
-              payment_status: "Failed",
-            },
-            {
-              billing_id: 5,
-              user: { username: "lucas_chan", email: "lucas.chan@example.com" },
-              plan_name: "Basic Plan",
-              amount: 9.99,
-              payment_method: "Credit Card",
-              payment_date: "2025-03-05",
-              due_date: "2025-03-20",
-              payment_status: "Paid",
-            },
-          ]);
-          setLoading(false);
-        }, 1000);
+        const data = await res.json();
+        setBillingRecords(data);
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching billing records:", err);
         setError("Failed to load billing records");
@@ -157,7 +107,6 @@ const AdminBilling = () => {
       <div className="flex-1 p-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Billing Management</h1>
-
           <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center transition">
             <Download size={20} className="mr-2" />
             Export Report
@@ -166,73 +115,10 @@ const AdminBilling = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-lg p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-400 text-sm">Total Revenue</p>
-                <h3 className="text-2xl font-bold mt-1">
-                  ${totalRevenue.toFixed(2)}
-                </h3>
-              </div>
-              <div className="bg-green-500/20 p-3 rounded-lg">
-                <DollarSign size={24} className="text-green-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-400 text-sm">Paid Invoices</p>
-                <h3 className="text-2xl font-bold mt-1">
-                  {
-                    billingRecords.filter(
-                      (r) => r.payment_status.toLowerCase() === "paid"
-                    ).length
-                  }
-                </h3>
-              </div>
-              <div className="bg-blue-500/20 p-3 rounded-lg">
-                <CreditCard size={24} className="text-blue-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-400 text-sm">Pending Invoices</p>
-                <h3 className="text-2xl font-bold mt-1">
-                  {
-                    billingRecords.filter(
-                      (r) => r.payment_status.toLowerCase() === "unpaid"
-                    ).length
-                  }
-                </h3>
-              </div>
-              <div className="bg-yellow-500/20 p-3 rounded-lg">
-                <Calendar size={24} className="text-yellow-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-400 text-sm">Failed Payments</p>
-                <h3 className="text-2xl font-bold mt-1">
-                  {
-                    billingRecords.filter(
-                      (r) => r.payment_status.toLowerCase() === "failed"
-                    ).length
-                  }
-                </h3>
-              </div>
-              <div className="bg-red-500/20 p-3 rounded-lg">
-                <AlertCircle size={24} className="text-red-500" />
-              </div>
-            </div>
-          </div>
+          <Card title="Total Revenue" value={`$${totalRevenue.toFixed(2)}`} icon={<DollarSign size={24} className="text-green-500" />} bg="green" />
+          <Card title="Paid Invoices" value={billingRecords.filter(r => r.payment_status.toLowerCase() === "paid").length.toString()} icon={<CreditCard size={24} className="text-blue-500" />} bg="blue" />
+          <Card title="Pending Invoices" value={billingRecords.filter(r => r.payment_status.toLowerCase() === "unpaid").length.toString()} icon={<Calendar size={24} className="text-yellow-500" />} bg="yellow" />
+          <Card title="Failed Payments" value={billingRecords.filter(r => r.payment_status.toLowerCase() === "failed").length.toString()} icon={<AlertCircle size={24} className="text-red-500" />} bg="red" />
         </div>
 
         {/* Search and Filters */}
@@ -247,7 +133,6 @@ const AdminBilling = () => {
               onChange={handleSearch}
             />
           </div>
-
           <div className="md:w-64">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -277,27 +162,27 @@ const AdminBilling = () => {
           <div className="bg-gray-800 rounded-lg overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-900">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Username</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Plan</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Payment Method</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Due Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                <tr className="bg-gray-900 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3">Username</th>
+                  <th className="px-6 py-3">Email</th>
+                  <th className="px-6 py-3">Plan</th>
+                  <th className="px-6 py-3">Amount</th>
+                  <th className="px-6 py-3">Payment Method</th>
+                  <th className="px-6 py-3">Due Date</th>
+                  <th className="px-6 py-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+              <tbody>
                 {filteredRecords.map((record) => (
-                  <tr key={record.billing_id} className="hover:bg-gray-750">
-                    <td className="px-6 py-4 whitespace-nowrap">{record.user.username}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{record.user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{record.plan_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">${record.amount.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{record.payment_method}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(record.due_date)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(record.payment_status)}`}>
+                  <tr key={record.billing_id} className="border-t border-gray-700 hover:bg-gray-700/20">
+                    <td className="px-6 py-4">{record.user.username}</td>
+                    <td className="px-6 py-4">{record.user.email}</td>
+                    <td className="px-6 py-4">{record.plan_name}</td>
+                    <td className="px-6 py-4">${record.amount.toFixed(2)}</td>
+                    <td className="px-6 py-4">{record.payment_method}</td>
+                    <td className="px-6 py-4">{formatDate(record.due_date)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`text-sm px-3 py-1 rounded-full font-medium ${getStatusColor(record.payment_status)}`}>
                         {record.payment_status}
                       </span>
                     </td>
@@ -307,6 +192,30 @@ const AdminBilling = () => {
             </table>
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+// 🔹 Card component for reusability
+const Card = ({ title, value, icon, bg }: { title: string; value: string; icon: React.ReactNode; bg: string }) => {
+  const bgClass = {
+    green: "bg-green-500/20",
+    blue: "bg-blue-500/20",
+    yellow: "bg-yellow-500/20",
+    red: "bg-red-500/20",
+  }[bg];
+
+  return (
+    <div className="bg-gray-800 rounded-lg p-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-gray-400 text-sm">{title}</p>
+          <h3 className="text-2xl font-bold mt-1">{value}</h3>
+        </div>
+        <div className={`${bgClass} p-3 rounded-lg`}>
+          {icon}
+        </div>
       </div>
     </div>
   );
