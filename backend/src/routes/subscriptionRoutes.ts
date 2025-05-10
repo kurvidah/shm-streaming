@@ -1,6 +1,6 @@
 import express from "express"
 import { admin, mod, protect } from "../middleware/authMiddleware"
-import { getActivePlan, updatePlan, getUserPlan, updateUserPlan } from "../controllers/subscriptionController"
+import { getActivePlan, updatePlan } from "../controllers/subscriptionController"
 
 const router = express.Router()
 

@@ -131,7 +131,7 @@ export const getFeaturedMovies = async (
 // @access  Public
 export const getMovies = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { search, genre, limit = "100", page = "1", ...filters } = req.query;
+        const { search, genre, limit = "100", page = "1", sortBy, ...filters } = req.query;
 
         const params: any[] = [];
 
@@ -152,58 +152,66 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
         const whereClauses: string[] = [];
         const havingClauses: string[] = [];
 
-        // Raw searchable fields (title, description, imdb_id)
+        // Search by title, description, imdb_id
         if (search) {
             const s = `%${search}%`;
-            whereClauses.push(
-                `(m.title LIKE ? OR m.description LIKE ? OR m.imdb_id LIKE ?)`
-            );
+            whereClauses.push(`(m.title LIKE ? OR m.description LIKE ? OR m.imdb_id LIKE ?)`);
             params.push(s, s, s);
         }
 
-        // Genre filter on derived GROUP_CONCAT
+        // Filter by genre
         if (genre) {
             havingClauses.push(`LOWER(genres) LIKE ?`);
             params.push(`%${(genre as string).toLowerCase()}%`);
         }
 
-        // Handle dynamic filters
+        // Dynamic filters
         for (const [key, val] of Object.entries(filters)) {
-            if (["search", "genre", "limit", "page"].includes(key)) continue;
+            if (["search", "genre", "limit", "page", "sortBy"].includes(key)) continue;
 
-            const fullQuery = `${key.trim()} ${val}`; // Join key and value to form the full query
+            const fullQuery = `${key.trim()} ${val}`;
             const isDerived = ["rating", "genres", "popularity", "views"].some(word => fullQuery.includes(word));
             const clause = isDerived ? fullQuery : `m.${fullQuery}`;
 
             if (isDerived) {
-            havingClauses.push(clause);
+                havingClauses.push(clause);
             } else {
-            whereClauses.push(clause);
+                whereClauses.push(clause);
             }
         }
-        
 
-        const whereSQL = whereClauses.length
-            ? `WHERE ${whereClauses.join(" AND ")}`
-            : "";
-        const havingSQL = havingClauses.length
-            ? `HAVING ${havingClauses.join(" AND ")}`
-            : "";
+        const whereSQL = whereClauses.length ? `WHERE ${whereClauses.join(" AND ")}` : "";
+        const havingSQL = havingClauses.length ? `HAVING ${havingClauses.join(" AND ")}` : "";
 
         const limitVal = parseInt(limit as string, 10);
         const pageVal = parseInt(page as string, 10);
         const offset = (pageVal - 1) * limitVal;
+
+        // Validate sortBy input
+        let orderBySQL = "";
+        if (sortBy) {
+            const [column, direction] = (sortBy as string).split(" ");
+            const allowedColumns = ["title", "release_year", "rating", "views"];
+            const allowedDirections = ["asc", "desc"];
+            if (
+                allowedColumns.includes(column.toLowerCase()) &&
+                allowedDirections.includes((direction || "asc").toLowerCase())
+            ) {
+                orderBySQL = `ORDER BY ${column} ${direction?.toUpperCase() || "ASC"}`;
+            }
+        }
 
         const fullQuery = `
             ${baseQuery}
             ${whereSQL}
             GROUP BY m.movie_id
             ${havingSQL}
+            ${orderBySQL}
             LIMIT ? OFFSET ?
         `;
 
         params.push(limitVal, offset);
-        console.log(fullQuery)
+        console.log(fullQuery);
 
         const [rows] = await pool.execute(fullQuery, params);
         const movies = await Promise.all((rows as any[]).map(formatMovie));

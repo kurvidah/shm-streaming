@@ -11,6 +11,7 @@ import { createMovie, getMovieById, getMovies, updateMovie } from "../controller
 import { getUsers } from "../controllers/userController";
 import { fetchActiveSubscriptions, fetchDashboardSummary, fetchMonthlyRevenue, fetchUsersByGender, fetchUsersByPlan, fetchUsersByRegion } from "../controllers/dashboardController";
 import { getUserBills } from "../controllers/paymentController";
+import { getUserSubscriptions } from "../controllers/subscriptionController";
 
 const router = express.Router()
 
@@ -95,7 +96,7 @@ router
 
 router
     .route("/subscriptions")
-    .get(admin, getAll("user_subscription"))
+    .get(admin, getUserSubscriptions)
     .post(admin, createOne("user_subscription", allowedFields['user_subscription']))
 
 router

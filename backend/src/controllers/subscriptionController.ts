@@ -31,7 +31,6 @@ async function formatSubscription(row: any): Promise<any> {
 
 // Helper: Get the user's current active plan
 const getCurrentPlan = async (userId: string, date: Date = new Date()) : Promise<any> => {
-    console.log(date);
     const [userSubRows] = await pool.execute(
         `SELECT us.* 
          FROM user_subscription us
@@ -50,6 +49,130 @@ const getCurrentPlan = async (userId: string, date: Date = new Date()) : Promise
 
     return resBody;
 }
+
+// @desc    Get all user's subscriptions
+// @route   GET /api/v1/admin/subscriptions
+// @access  Admin
+export const getUserSubscriptions = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { search, limit = "100", page = "1" } = req.query;
+        const allowedSortFields = ['username', 'email', 'total_subscriptions', 'latest_subscription', 'total_revenue'];
+        const sortBy = allowedSortFields.includes(req.query.sortBy as string)
+        ? req.query.sortBy
+        : 'latest_subscription';
+
+        const params: any[] = [];
+
+        let whereClause = "";
+        if (search) {
+            const s = `%${search}%`;
+            whereClause = `WHERE u.username LIKE ? OR u.email LIKE ?`;
+            params.push(s, s);
+        }
+
+        const limitVal = parseInt(limit as string, 10);
+        const pageVal = parseInt(page as string, 10);
+        const offset = (pageVal - 1) * limitVal;
+
+        // Main paginated query
+        const userQuery = `
+            SELECT 
+                u.user_id,
+                u.username,
+                u.email,
+                COUNT(s.user_subscription_id) AS total_subscriptions,
+                MAX(s.end_date) AS latest_subscription,
+                COALESCE(SUM(b.amount), 0) AS total_revenue
+            FROM users u
+            LEFT JOIN user_subscription s ON u.user_id = s.user_id
+            LEFT JOIN billing b ON s.user_subscription_id = b.user_subscription_id
+            ${whereClause}
+            GROUP BY u.user_id
+            ORDER BY ${sortBy} DESC
+            LIMIT ? OFFSET ?
+        `;
+        const userParams = [...params, limitVal, offset];
+        const [users] = await pool.execute(userQuery, userParams);
+
+        // --- Summary Queries ---
+
+        // 1. Active Subscriptions
+        const [activeRes] = await pool.execute(`
+            SELECT COUNT(*) AS active_count
+            FROM user_subscription us
+            JOIN billing b ON us.user_subscription_id = b.user_subscription_id
+            WHERE CURRENT_DATE BETWEEN us.start_date AND us.end_date
+              AND b.payment_status = 'COMPLETED'
+        `);
+        const activeCount = (activeRes as any)[0]?.active_count || 0;
+
+        // 2. Subscriptions Growth
+        const [growthRes] = await pool.execute(`
+            SELECT
+                COUNT(CASE WHEN MONTH(end_date) = MONTH(CURRENT_DATE()) AND YEAR(end_date) = YEAR(CURRENT_DATE()) THEN 1 END) AS current_month,
+                COUNT(CASE WHEN MONTH(end_date) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH) AND YEAR(end_date) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH) THEN 1 END) AS last_month
+            FROM user_subscription
+        `);
+        const { current_month = 0, last_month = 0 } = (growthRes as any)[0] || {};
+        const growthPercent = last_month
+            ? (((current_month - last_month) / last_month) * 100).toFixed(1)
+            : "N/A";
+
+        // 3. Most Popular Plan
+        const [popularPlanRes] = await pool.execute(`
+            SELECT p.plan_name, COUNT(*) AS count
+            FROM user_subscription u
+            LEFT JOIN subscription_plan p ON p.plan_id = u.plan_id
+            JOIN billing b ON u.user_subscription_id = b.user_subscription_id
+            WHERE CURRENT_DATE BETWEEN u.start_date AND u.end_date
+              AND b.payment_status = 'COMPLETED'
+            GROUP BY p.plan_name
+            ORDER BY count DESC
+            LIMIT 1
+        `);
+        const { plan_name: mostPopularPlan = "N/A", count: topPlanCount = 0 } = (popularPlanRes as any)[0] || {};
+
+        // 4. Total Subscriptions (for topPlanPercent)
+        const [totalSubsRes] = await pool.execute(`
+            SELECT COUNT(*) AS total
+            FROM user_subscription us
+            JOIN billing b ON us.user_subscription_id = b.user_subscription_id
+            WHERE CURRENT_DATE BETWEEN us.start_date AND us.end_date
+              AND b.payment_status = 'COMPLETED'
+        `);
+        const totalSubscriptions = (totalSubsRes as any)[0]?.total || 0;
+        const topPlanPercent = totalSubscriptions
+            ? ((topPlanCount / totalSubscriptions) * 100).toFixed(1)
+            : "0.0";
+
+        // 5. Average Revenue Per Subscriber
+        const [revenueRes] = await pool.execute(`
+            SELECT SUM(b.amount) AS total_revenue, COUNT(DISTINCT s.user_id) AS user_count
+            FROM user_subscription s
+            LEFT JOIN billing b ON s.user_subscription_id = b.user_subscription_id
+        `);
+        const { total_revenue = 0, user_count = 0 } = (revenueRes as any)[0] || {};
+        const avgRevenue = user_count
+            ? (total_revenue / user_count).toFixed(2)
+            : "0.00";
+
+        // --- Response ---
+        res.json({
+            summary: {
+                activeSubscriptions: activeCount,
+                growthFromLastMonth: `${growthPercent}%`,
+                mostPopularPlan,
+                topPlanPercent: `${topPlanPercent}% of subscribers`,
+                avgRevenuePerUser: `$${avgRevenue}`
+            },
+            count: (users as any[]).length,
+            rows: users
+        });
+    } catch (error) {
+        console.error("Admin get user subscriptions error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
 
 // @desc    Get user's own plan
 // @route   GET /api/v1/subscription
