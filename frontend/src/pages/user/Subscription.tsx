@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext"
 import UserSidebar from "../../components/UserSidebar"
 import LoadingSpinner from "../../components/LoadingSpinner"
 import { Check, CreditCard, AlertCircle, Receipt} from "lucide-react"
+import { useNavigate } from "react-router-dom";
 
 interface SubscriptionPlan {
   plan_id: number
@@ -24,6 +25,8 @@ interface UserSubscriptionData {
 }
 
 const UserSubscription = () => {
+  const navigate = useNavigate();
+  
   const { user } = useAuth()
   const [subscription, setSubscription] = useState<UserSubscriptionData | null>(null)
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
@@ -122,7 +125,8 @@ const UserSubscription = () => {
                   <p className="font-medium">Amount Due: </p>
                   <p className="text-sm text-gray-400">Due Date: </p>
                 </div>
-                <button className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline">Pay Now</button>
+                <button  className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline"
+                onClick={() => navigate("/billing")}>Pay Now</button>
               </div>
             </div>
 

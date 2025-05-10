@@ -87,7 +87,14 @@ function AppRoutes() {
           </UserRoute>
         }
       />
-      
+      <Route
+        path="/billing"
+        element={
+          <UserRoute>
+            <UserBill />
+          </UserRoute>
+        }
+      />
       <Route
         path="/history"
         element={
