@@ -32,6 +32,10 @@ const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 const AdminBilling = () => {
   const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [paidInvoices, setPaidInvoices] = useState(0);
+  const [pendingInvoices, setPendingInvoices] = useState(0);
+  const [failedPayments, setFailedPayments] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,7 +46,12 @@ const AdminBilling = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_URL}/admin/billings`);
-        setBillingRecords(response.data);
+        const data = response.data;
+        setBillingRecords(data.rows);
+        setTotalRevenue(data.totalRevenue);
+        setPaidInvoices(data.paidInvoices);
+        setPendingInvoices(data.pendingInvoices);
+        setFailedPayments(data.failedPayments);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching billing records:", err);
@@ -85,8 +94,10 @@ const AdminBilling = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
+      case "completed":
       case "paid":
         return "bg-green-500/20 text-green-500";
+      case "pending":
       case "unpaid":
         return "bg-yellow-500/20 text-yellow-500";
       case "failed":
@@ -95,10 +106,6 @@ const AdminBilling = () => {
         return "bg-gray-500/20 text-gray-400";
     }
   };
-
-  const totalRevenue = billingRecords
-    .filter((record) => record.payment_status.toLowerCase() === "paid")
-    .reduce((sum, record) => sum + record.amount, 0);
 
   return (
     <div className="flex">
@@ -123,19 +130,19 @@ const AdminBilling = () => {
           />
           <Card
             title="Paid Invoices"
-            value={billingRecords.filter((r) => r.payment_status.toLowerCase() === "paid").length.toString()}
+            value={paidInvoices.toString()}
             icon={<CreditCard size={24} className="text-blue-500" />}
             bg="blue"
           />
           <Card
             title="Pending Invoices"
-            value={billingRecords.filter((r) => r.payment_status.toLowerCase() === "unpaid").length.toString()}
+            value={pendingInvoices.toString()}
             icon={<Calendar size={24} className="text-yellow-500" />}
             bg="yellow"
           />
           <Card
             title="Failed Payments"
-            value={billingRecords.filter((r) => r.payment_status.toLowerCase() === "failed").length.toString()}
+            value={failedPayments.toString()}
             icon={<AlertCircle size={24} className="text-red-500" />}
             bg="red"
           />
@@ -217,7 +224,7 @@ const AdminBilling = () => {
   );
 };
 
-// 🔹 Card component for reusability
+// 🔹 Card component
 const Card = ({
   title,
   value,
@@ -237,13 +244,13 @@ const Card = ({
   }[bg];
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
+    <div className={`rounded-lg p-6 ${bgClass}`}>
       <div className="flex justify-between items-start">
         <div>
           <p className="text-gray-400 text-sm">{title}</p>
-          <h3 className="text-2xl font-bold mt-1">{value}</h3>
+          <h3 className="text-white text-xl font-bold">{value}</h3>
         </div>
-        <div className={`${bgClass} p-3 rounded-lg`}>{icon}</div>
+        <div>{icon}</div>
       </div>
     </div>
   );
