@@ -233,28 +233,26 @@ export const getMovieById = async (
 
         const movieQuery = `
             SELECT 
-                m.*,
-                ROUND(AVG(r.rating), 1) AS rating,
-                GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
-                COUNT(DISTINCT wh.user_id) AS views
+            m.*,
+            ROUND(AVG(r.rating), 1) AS rating,
+            GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
+            COUNT(DISTINCT wh.user_id) AS views
             FROM movies m
             LEFT JOIN reviews r ON m.movie_id = r.movie_id
             LEFT JOIN movie_genre mg ON m.movie_id = mg.movie_id
             LEFT JOIN genres g ON mg.genre_id = g.genre_id
             LEFT JOIN media me ON m.movie_id = me.movie_id
             LEFT JOIN watch_history wh ON me.media_id = wh.media_id
-            WHERE ${isNumeric ? "m.movie_id = ?" : "LOWER(REPLACE(m.title, ' ', '-')) = ?"}
+            WHERE ${
+            isNumeric
+            ? "m.movie_id = ?"
+            : "REPLACE(REPLACE(LOWER(m.title), ' ', '-'), '.', '') = ?"
+            }
             GROUP BY m.movie_id
         `;
+        console.log(movieQuery)
 
-        const mediaQuery = `
-            SELECT 
-                media_id, episode, season, file_path
-            FROM media
-            WHERE movie_id = ?
-        `;
-
-        const queryParams = [isNumeric ? id : id.toLowerCase()];
+        const queryParams = [isNumeric ? id : slugify(id.toLowerCase(), { lower: true })];
 
         const [movieRows] = await pool.execute(movieQuery, queryParams);
 
@@ -263,11 +261,7 @@ export const getMovieById = async (
             return;
         }
 
-        const movie = movieRows[0];
-        movie.slug = slugify(movie.title, { lower: true });
-
-        const [mediaRows] = await pool.execute(mediaQuery, [movie.movie_id]);
-        movie.media = mediaRows;
+        const movie = await formatMovie(movieRows[0]);
 
         res.json(movie);
     } catch (error) {
