@@ -18,6 +18,7 @@ import Debug from "./pages/Debug";
 
 import UserProfile from "./pages/user/Profile";
 import UserSubscription from "./pages/user/Subscription";
+import UserBill from "./pages/user/Billing";
 import UserWatchHistory from "./pages/user/WatchHistory";
 import UserDevices from "./pages/user/Devices";
 import UserSettings from "./pages/user/UserSettings";
@@ -86,6 +87,7 @@ function AppRoutes() {
           </UserRoute>
         }
       />
+      
       <Route
         path="/history"
         element={
