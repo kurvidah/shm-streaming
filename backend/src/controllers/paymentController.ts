@@ -72,8 +72,33 @@ export const getUserBills = async (
             due_date: row.due_date,
             payment_status: row.payment_status,
         }));
+        const [summaryRows] = await pool.execute(`
+            SELECT 
+            SUM(CASE WHEN b.payment_status = 'COMPLETED' THEN b.amount ELSE 0 END) AS totalRevenue,
+            COUNT(CASE WHEN b.payment_status = 'COMPLETED' THEN 1 ELSE NULL END) AS paidInvoices,
+            COUNT(CASE WHEN b.payment_status = 'PENDING' THEN 1 ELSE NULL END) AS pendingInvoices,
+            COUNT(CASE WHEN b.payment_status = 'FAILED' THEN 1 ELSE NULL END) AS failedPayments
+            FROM billing b
+            JOIN user_subscription us ON b.user_subscription_id = us.user_subscription_id
+            JOIN users u ON us.user_id = u.user_id
+            JOIN subscription_plan sp ON us.plan_id = sp.plan_id
+            WHERE 1=1
+            ${username ? " AND u.username LIKE ?" : ""}
+            ${email ? " AND u.email LIKE ?" : ""}
+            ${plan_name ? " AND sp.plan_name LIKE ?" : ""}
+            ${payment_status ? " AND b.payment_status = ?" : ""}
+        `, queryParams);
 
-        res.json(formattedBills);
+        const summary = summaryRows[0];
+
+        res.json({
+            count: formattedBills.length,
+            totalRevenue: summary.totalRevenue || 0,
+            paidInvoices: summary.paidInvoices || 0,
+            pendingInvoices: summary.pendingInvoices || 0,
+            failedPayments: summary.failedPayments || 0,
+            rows: formattedBills,
+        });
     } catch (error) {
         console.error("Get user bills error:", error);
         res.status(500).json({ error: "Server error" });
