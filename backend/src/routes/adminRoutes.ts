@@ -9,6 +9,7 @@ import {
 } from "../controllers/crudController";
 import { createMovie, getMovieById, getMovies, updateMovie } from "../controllers/movieController";
 import { getUsers } from "../controllers/userController";
+import { fetchActiveSubscriptions, fetchDashboardSummary, fetchMonthlyRevenue, fetchUsersByGender, fetchUsersByPlan, fetchUsersByRegion } from "../controllers/dashboardController";
 
 const router = express.Router()
 
@@ -112,5 +113,29 @@ router
     .get(admin, getById("users", "user_id", ["password"]))
     .put(admin, updateOne("users", allowedFields['users']))
     .delete(admin, deleteOne("users", "user_id"))
+
+router
+    .route("/dashboard/summary")
+    .get(admin, fetchDashboardSummary)
+
+router
+    .route("/dashboard/users-by-gender")
+    .get(admin, fetchUsersByGender)
+
+router
+    .route("/dashboard/users-by-plan")
+    .get(admin, fetchUsersByPlan)
+
+router
+    .route("/dashboard/users-by-region")
+    .get(admin, fetchUsersByRegion)
+
+router
+    .route("/dashboard/revenue")
+    .get(admin, fetchMonthlyRevenue)
+
+router
+    .route("/dashboard/active-subscription")
+    .get(admin, fetchActiveSubscriptions)
 
 export const adminRoutes = router
