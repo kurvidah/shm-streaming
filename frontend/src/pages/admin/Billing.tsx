@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import AdminSidebar from "../../components/AdminSidebar";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import {
@@ -27,6 +28,8 @@ interface BillingRecord {
   payment_status: string;
 }
 
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+
 const AdminBilling = () => {
   const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,11 +41,8 @@ const AdminBilling = () => {
     const fetchBillingRecords = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/admin/billings");
-        if (!res.ok) throw new Error("Failed to fetch billing data");
-
-        const data = await res.json();
-        setBillingRecords(data);
+        const response = await axios.get(`${API_URL}/admin/billings`);
+        setBillingRecords(response.data);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching billing records:", err);
@@ -115,10 +115,30 @@ const AdminBilling = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card title="Total Revenue" value={`$${totalRevenue.toFixed(2)}`} icon={<DollarSign size={24} className="text-green-500" />} bg="green" />
-          <Card title="Paid Invoices" value={billingRecords.filter(r => r.payment_status.toLowerCase() === "paid").length.toString()} icon={<CreditCard size={24} className="text-blue-500" />} bg="blue" />
-          <Card title="Pending Invoices" value={billingRecords.filter(r => r.payment_status.toLowerCase() === "unpaid").length.toString()} icon={<Calendar size={24} className="text-yellow-500" />} bg="yellow" />
-          <Card title="Failed Payments" value={billingRecords.filter(r => r.payment_status.toLowerCase() === "failed").length.toString()} icon={<AlertCircle size={24} className="text-red-500" />} bg="red" />
+          <Card
+            title="Total Revenue"
+            value={`$${totalRevenue.toFixed(2)}`}
+            icon={<DollarSign size={24} className="text-green-500" />}
+            bg="green"
+          />
+          <Card
+            title="Paid Invoices"
+            value={billingRecords.filter((r) => r.payment_status.toLowerCase() === "paid").length.toString()}
+            icon={<CreditCard size={24} className="text-blue-500" />}
+            bg="blue"
+          />
+          <Card
+            title="Pending Invoices"
+            value={billingRecords.filter((r) => r.payment_status.toLowerCase() === "unpaid").length.toString()}
+            icon={<Calendar size={24} className="text-yellow-500" />}
+            bg="yellow"
+          />
+          <Card
+            title="Failed Payments"
+            value={billingRecords.filter((r) => r.payment_status.toLowerCase() === "failed").length.toString()}
+            icon={<AlertCircle size={24} className="text-red-500" />}
+            bg="red"
+          />
         </div>
 
         {/* Search and Filters */}
@@ -198,7 +218,17 @@ const AdminBilling = () => {
 };
 
 // 🔹 Card component for reusability
-const Card = ({ title, value, icon, bg }: { title: string; value: string; icon: React.ReactNode; bg: string }) => {
+const Card = ({
+  title,
+  value,
+  icon,
+  bg,
+}: {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  bg: string;
+}) => {
   const bgClass = {
     green: "bg-green-500/20",
     blue: "bg-blue-500/20",
@@ -213,9 +243,7 @@ const Card = ({ title, value, icon, bg }: { title: string; value: string; icon: 
           <p className="text-gray-400 text-sm">{title}</p>
           <h3 className="text-2xl font-bold mt-1">{value}</h3>
         </div>
-        <div className={`${bgClass} p-3 rounded-lg`}>
-          {icon}
-        </div>
+        <div className={`${bgClass} p-3 rounded-lg`}>{icon}</div>
       </div>
     </div>
   );
