@@ -56,9 +56,12 @@ const buildUpdateQuery = (fields: Record<string, any>, isSelfUpdate: boolean = f
             }
 
             // Map region if the key is "region" and the value exists in the regionMap
-            if (key === "region" && regionMap[value]) {
-                updateFields.push(`${key} = ?`);
-                updateValues.push(regionMap[value]);
+            if (key === "region" && Object.values(regionMap).includes(value)) {
+                const regionCode = Object.keys(regionMap).find(code => regionMap[code] === value);
+                if (regionCode) {
+                    updateFields.push(`${key} = ?`);
+                    updateValues.push(regionCode);
+                }
             } else {
                 updateFields.push(`${key} = ?`);
                 updateValues.push(value);
@@ -76,40 +79,81 @@ const extractUserFromToken = (req: Request) => {
 };
 
 // @desc Get all users
-export const getUsers = async (_req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
     try {
-        const [userRows] : any = await pool.execute(`
+        const queryParams = req.query;
+
+        // Extract filters from query parameters
+        const filters: string[] = [];
+        const values: any[] = [];
+        if (queryParams.username) {
+            filters.push("u.username = ?");
+            values.push(queryParams.username);
+        }
+        if (queryParams.email) {
+            filters.push("u.email = ?");
+            values.push(queryParams.email);
+        }
+        if (queryParams.role) {
+            filters.push("u.role = ?");
+            values.push(queryParams.role);
+        }
+        if (queryParams.region) {
+            filters.push("u.region = ?");
+            values.push(queryParams.region);
+        }
+
+        const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+
+        const [users]: any = await pool.execute(`
             SELECT 
-                u.user_id, u.username, u.email, u.role, 
-                u.gender, u.birthdate, u.region, u.created_at,
-                sp.plan_name AS active_subscription
+            u.user_id, u.username, u.email, u.role, 
+            u.gender, u.birthdate, 
+            CASE 
+                WHEN u.region IS NOT NULL AND u.region IN ('AF', 'AN', 'AS', 'EU', 'NA', 'OC', 'SA') 
+                THEN CASE u.region
+                WHEN 'AF' THEN 'Africa'
+                WHEN 'AN' THEN 'Antarctica'
+                WHEN 'AS' THEN 'Asia'
+                WHEN 'EU' THEN 'Europe'
+                WHEN 'NA' THEN 'North America'
+                WHEN 'OC' THEN 'Oceania'
+                WHEN 'SA' THEN 'South America'
+                END
+                ELSE u.region
+            END AS region,
+            u.created_at,
+            sp.plan_name AS active_subscription
             FROM users u
             LEFT JOIN user_subscription s ON u.user_id = s.user_id AND s.end_date > NOW()
             LEFT JOIN subscription_plan sp ON s.plan_id = sp.plan_id
-        `);
+            ${whereClause}
+        `, values);
 
-        if (!Array.isArray(userRows) || userRows.length === 0) {
+        const userIds = users.map((user: any) => user.user_id);
+
+        let devices: any[] = [];
+        if (userIds.length > 0) {
+            const [deviceRows]: any = await pool.execute(`
+            SELECT 
+                d.user_id, d.device_id, d.device_type, d.device_name
+            FROM device d
+            WHERE d.user_id IN (${userIds.map(() => '?').join(', ')})
+            `, userIds);
+
+            devices = deviceRows;
+        }
+
+        const rows = users.map((user: any) => {
+            const userDevices = devices.filter((device: any) => device.user_id === user.user_id);
+            return { ...user, devices: userDevices };
+        });
+
+        if (!Array.isArray(rows) || rows.length === 0) {
             return res.status(404).json({ error: "User list empty" });
         }
 
-        const [deviceRows] = await pool.execute(`
-            SELECT user_id, device_id, device_type, device_name
-            FROM device
-        `);
-
-        const userMap = new Map<number, any>();
-        for (const user of userRows) {
-            user.devices = [];
-            userMap.set(user.user_id, user);
-        }
-
-        for (const device of deviceRows as any[]) {
-            const user = userMap.get(device.user_id);
-            if (user) user.devices.push(device);
-        }
-
-        const userCount = userMap.size;
-        res.json({ count: userCount, rows: [...userMap.values()] });
+        res.json({ count: rows.length, rows });
     } catch (error) {
         console.error("Get users error:", error);
         res.status(500).json({ error: "Server error" });

@@ -131,47 +131,89 @@ export const getFeaturedMovies = async (
 // @access  Public
 export const getMovies = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { search, genre, release_year, is_available } = req.query;
+        const { search, genre, limit = "100", page = "1", ...filters } = req.query;
 
-        let query = `SELECT DISTINCT m.* FROM movies m `;
-        const queryParams: any[] = [];
+        const params: any[] = [];
 
-        if (genre) {
-            query += `
-        JOIN movie_genre mg ON m.movie_id = mg.movie_id
-        JOIN genres g ON mg.genre_id = g.genre_id
-        WHERE LOWER(g.genre_name) = ?`;
-            queryParams.push(genre.toString().toLowerCase());
-        } else {
-            query += `WHERE 1=1`;
-        }
+        const baseQuery = `
+            SELECT 
+            m.*,
+            ROUND(AVG(r.rating), 1) AS rating,
+            GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
+            COUNT(DISTINCT wh.user_id) AS views
+            FROM movies m
+            LEFT JOIN reviews r ON m.movie_id = r.movie_id
+            LEFT JOIN movie_genre mg ON m.movie_id = mg.movie_id
+            LEFT JOIN genres g ON mg.genre_id = g.genre_id
+            LEFT JOIN media me ON m.movie_id = me.movie_id
+            LEFT JOIN watch_history wh ON me.media_id = wh.media_id
+        `;
 
+        const whereClauses: string[] = [];
+        const havingClauses: string[] = [];
+
+        // Raw searchable fields (title, description, imdb_id)
         if (search) {
-            query += ` AND (m.title LIKE ? OR m.description LIKE ? OR m.imdb_id LIKE ?)`;
-            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+            const s = `%${search}%`;
+            whereClauses.push(
+                `(m.title LIKE ? OR m.description LIKE ? OR m.imdb_id LIKE ?)`
+            );
+            params.push(s, s, s);
         }
 
-        if (release_year) {
-            query += ` AND m.release_year = ?`;
-            queryParams.push(release_year);
+        // Genre filter on derived GROUP_CONCAT
+        if (genre) {
+            havingClauses.push(`LOWER(genres) LIKE ?`);
+            params.push(`%${(genre as string).toLowerCase()}%`);
         }
 
-        if (is_available !== undefined) {
-            query += ` AND m.is_available = ?`;
-            queryParams.push(is_available === "true" ? 1 : 0);
+        // Handle dynamic filters
+        for (const [key, val] of Object.entries(filters)) {
+            if (["search", "genre", "limit", "page"].includes(key)) continue;
+
+            const fullQuery = `${key.trim()} ${val}`; // Join key and value to form the full query
+            const isDerived = ["rating", "genres", "popularity", "views"].some(word => fullQuery.includes(word));
+            const clause = isDerived ? fullQuery : `m.${fullQuery}`;
+
+            if (isDerived) {
+            havingClauses.push(clause);
+            } else {
+            whereClauses.push(clause);
+            }
         }
+        
 
-        const [rows] = await pool.execute(query, queryParams);
+        const whereSQL = whereClauses.length
+            ? `WHERE ${whereClauses.join(" AND ")}`
+            : "";
+        const havingSQL = havingClauses.length
+            ? `HAVING ${havingClauses.join(" AND ")}`
+            : "";
 
+        const limitVal = parseInt(limit as string, 10);
+        const pageVal = parseInt(page as string, 10);
+        const offset = (pageVal - 1) * limitVal;
+
+        const fullQuery = `
+            ${baseQuery}
+            ${whereSQL}
+            GROUP BY m.movie_id
+            ${havingSQL}
+            LIMIT ? OFFSET ?
+        `;
+
+        params.push(limitVal, offset);
+        console.log(fullQuery)
+
+        const [rows] = await pool.execute(fullQuery, params);
         const movies = await Promise.all((rows as any[]).map(formatMovie));
 
-        if (movies.length === 0) {
+        if (!movies.length) {
             res.status(404).json({ error: "No movies found" });
             return;
         }
 
-        const movieCount = movies.length;
-        res.json({ count: movieCount, rows: movies });
+        res.json({ count: movies.length, rows: movies });
     } catch (error) {
         console.error("Get movies error:", error);
         res.status(500).json({ error: "Server error" });
@@ -189,20 +231,44 @@ export const getMovieById = async (
         const { id } = req.params;
         const isNumeric = /^\d+$/.test(id);
 
-        let query = isNumeric
-            ? `SELECT * FROM movies WHERE movie_id = ?`
-            : `SELECT * FROM movies WHERE LOWER(REPLACE(title, " ", "-")) = ?`;
+        const movieQuery = `
+            SELECT 
+                m.*,
+                ROUND(AVG(r.rating), 1) AS rating,
+                GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
+                COUNT(DISTINCT wh.user_id) AS views
+            FROM movies m
+            LEFT JOIN reviews r ON m.movie_id = r.movie_id
+            LEFT JOIN movie_genre mg ON m.movie_id = mg.movie_id
+            LEFT JOIN genres g ON mg.genre_id = g.genre_id
+            LEFT JOIN media me ON m.movie_id = me.movie_id
+            LEFT JOIN watch_history wh ON me.media_id = wh.media_id
+            WHERE ${isNumeric ? "m.movie_id = ?" : "LOWER(REPLACE(m.title, ' ', '-')) = ?"}
+            GROUP BY m.movie_id
+        `;
+
+        const mediaQuery = `
+            SELECT 
+                media_id, episode, season, file_path
+            FROM media
+            WHERE movie_id = ?
+        `;
 
         const queryParams = [isNumeric ? id : id.toLowerCase()];
 
-        const [rows] = await pool.execute(query, queryParams);
+        const [movieRows] = await pool.execute(movieQuery, queryParams);
 
-        if (!Array.isArray(rows) || rows.length === 0) {
+        if (!Array.isArray(movieRows) || movieRows.length === 0) {
             res.status(404).json({ error: "Movie not found" });
             return;
         }
 
-        const movie = await formatMovie(rows[0]);
+        const movie = movieRows[0];
+        movie.slug = slugify(movie.title, { lower: true });
+
+        const [mediaRows] = await pool.execute(mediaQuery, [movie.movie_id]);
+        movie.media = mediaRows;
+
         res.json(movie);
     } catch (error) {
         console.error("Get movie error:", error);
