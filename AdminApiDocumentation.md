@@ -4,13 +4,13 @@
 
 The generic CRUD controller is implemented in `controllers/crudController.ts`. It provides reusable functions for handling CRUD operations by accepting parameters like table name, ID column, allowed fields, and excluded columns.
 
-| Method | Path              | Action       | Controller Function |
-|--------|-------------------|--------------|---------------------|
-| GET    | /resource         | List all     | `getAll(...)`       |
-| GET    | /resource/:id     | Get by ID    | `getById(...)`      |
-| POST   | /resource         | Create       | `createOne(...)`    |
-| PUT    | /resource/:id     | Update       | `updateOne(...)`    |
-| DELETE | /resource/:id     | Delete       | `deleteOne(...)`    |
+| Method | Path                | Action    | Controller Function |
+| ------ | ------------------- | --------- | ------------------- |
+| GET    | /admin/resource     | List all  | `getAll(...)`       |
+| GET    | /admin/resource/:id | Get by ID | `getById(...)`      |
+| POST   | /admin/resource     | Create    | `createOne(...)`    |
+| PUT    | /admin/resource/:id | Update    | `updateOne(...)`    |
+| DELETE | /admin/resource/:id | Delete    | `deleteOne(...)`    |
 
 ---
 
@@ -18,7 +18,7 @@ The generic CRUD controller is implemented in `controllers/crudController.ts`. I
 
 The `adminRoutes` file includes routes that support:
 
-- **Filtering**: Use query parameters (e.g., `GET /resource?field=value`).
+- **Filtering**: Use query parameters (e.g., `GET /admin/resource?field=value`).
 - **Pagination**: Use `limit` and `page` query parameters.
 - **Creation and Update**: Send data in the request body (`POST`, `PUT`).
 
@@ -26,17 +26,18 @@ All routes require admin access, enforced by the `admin` middleware.
 
 ### Query Parameters
 
-| Parameter   | Applies To         | Description                              |
-|-------------|--------------------|------------------------------------------|
-| Any column  | All `GET /resource`| Filter results by matching values        |
-| `limit`     | All `GET /resource`| Maximum number of records to return (default: 100) |
-| `page`      | All `GET /resource`| Page number for pagination (default: 1)  |
+| Parameter  | Applies To                | Description                                        |
+| ---------- | ------------------------- | -------------------------------------------------- |
+| Any column | All `GET /admin/resource` | Filter results by matching values                  |
+| `limit`    | All `GET /admin/resource` | Maximum number of records to return (default: 100) |
+| `page`     | All `GET /admin/resource` | Page number for pagination (default: 1)            |
 
 Query parameters support comparison operators for filtering results. You can use `key>value` or `key<value` to filter records based on greater-than or less-than conditions.
 
 #### Examples:
-- **GET** `/movies?rating>3` - Fetch movies with a rating greater than 3.
-- **GET** `/media?season<5` - Fetch media items from seasons less than 5.
+
+- **GET** `/admin/movies?rating>3` - Fetch movies with a rating greater than 3.
+- **GET** `/admin/media?season<5` - Fetch media items from seasons less than 5.
 
 This feature allows for more dynamic and precise filtering of data.
 
@@ -45,7 +46,8 @@ This feature allows for more dynamic and precise filtering of data.
 ### Routes and Examples
 
 #### Billing
-- **GET** `/billings?payment_status=paid&limit=5&page=2`
+
+- **GET** `/admin/billings?payment_status=paid&limit=5&page=2`
 - **POST/PUT Body**:
   ```json
   {
@@ -60,7 +62,8 @@ This feature allows for more dynamic and precise filtering of data.
   ```
 
 #### Devices
-- **GET** `/devices?user_id=1&device_type=tv`
+
+- **GET** `/admin/devices?user_id=1&device_type=tv`
 - **POST/PUT Body**:
   ```json
   {
@@ -71,7 +74,8 @@ This feature allows for more dynamic and precise filtering of data.
   ```
 
 #### Media
-- **GET** `/media?season=2&status=available`
+
+- **GET** `/admin/media?season=2&status=available`
 - **POST/PUT Body**:
   ```json
   {
@@ -84,7 +88,8 @@ This feature allows for more dynamic and precise filtering of data.
   ```
 
 #### Movies
-- **GET** `/movies?rating>3`
+
+- **GET** `/admin/movies?rating>3`
 - **POST/PUT Body**:
   ```json
   {
@@ -98,7 +103,8 @@ This feature allows for more dynamic and precise filtering of data.
   ```
 
 #### Subscription Plans
-- **GET** `/plans?hd_available=true`
+
+- **GET** `/admin/plans?hd_available=true`
 - **POST/PUT Body**:
   ```json
   {
@@ -112,7 +118,8 @@ This feature allows for more dynamic and precise filtering of data.
   ```
 
 #### Reviews
-- **GET** `/reviews?movie_id=5&rating=5`
+
+- **GET** `/admin/reviews?movie_id=5&rating=5`
 - **POST/PUT Body**:
   ```json
   {
@@ -125,7 +132,8 @@ This feature allows for more dynamic and precise filtering of data.
   ```
 
 #### User Subscriptions
-- **GET** `/subscriptions?user_id=1`
+
+- **GET** `/admin/subscriptions?user_id=1`
 - **POST/PUT Body**:
   ```json
   {
@@ -137,7 +145,8 @@ This feature allows for more dynamic and precise filtering of data.
   ```
 
 #### Users
-- **GET** `/users?role=admin&region=NA`
+
+- **GET** `/admin/users?role=admin&region=NA`
 - **POST/PUT Body**:
   ```json
   {
@@ -149,4 +158,4 @@ This feature allows for more dynamic and precise filtering of data.
     "region": "NA"
   }
   ```
-> **Note**: `GET /users/:id` excludes the `password` field by default.
+  > **Note**: `GET /admin/users/:id` excludes the `password` field by default.

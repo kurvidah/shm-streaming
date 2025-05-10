@@ -8,7 +8,7 @@ CREATE TABLE users (
     role ENUM('USER', 'MODERATOR', 'ADMIN') NOT NULL DEFAULT 'USER',
     gender VARCHAR(50),
     birthdate DATE,
-    region CHAR(2), -- Use ISO 3166-1 alpha-2 country codes
+    region CHAR(2), -- Use continent codes
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
