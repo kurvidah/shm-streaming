@@ -49,6 +49,24 @@ const AdminMovies = () => {
     setSearchTerm(e.target.value);
   };
 
+  const handleDeleteMovie = async (selectedMovieID: number) => {
+    if (window.confirm(`This action is irreversible. Are you sure you want to delete a movie ID: ${selectedMovieID}?`)){
+      try {
+        setLoading(true);
+        setError(null);
+        await axios.delete(`${API_URL}/admin/movies/${selectedMovieID}`);
+        setMovies(movies.filter((movie) => movie.movie_id !== selectedMovieID));
+        setLoading(false);
+
+      } catch (err: any) {
+        console.error(`Error deleting a plan witth ID ${selectedMovieID}:`, err.message);
+        setError(`Failed to delete plan with ID ${selectedMovieID}`);
+        setLoading(false);
+
+      }
+    }
+  };
+
   const filteredMovies = movies.filter(
     (movie) =>
       movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -155,7 +173,10 @@ const AdminMovies = () => {
                         <button className="p-1 text-gray-400 hover:text-blue-500">
                           <Edit size={18} />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-red-500">
+
+
+
+                        <button className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeleteMovie(movies.movie_id_id)}>
                           <Trash2 size={18} />
                         </button>
                       </div>
