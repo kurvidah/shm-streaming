@@ -299,3 +299,49 @@ export const updateSelfPassword = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+// @desc    Delete a user's device if not active
+// @route   DELETE /api/v1/user/device/:deviceId
+// @access  Private
+export const deleteDevice = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+
+        if (!req.headers.authorization || !req.headers.authorization.startsWith("Bearer")) {
+            res.status(401).json({ error: "Not authorized, token missing" });
+            return;
+        }
+
+        const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
+        const userId = self.user_id;
+        const { deviceId } = req.params;
+
+        // Fetch the device for this user
+        const [deviceRows] = await pool.execute(
+            "SELECT * FROM device WHERE device_id = ? AND user_id = ?",
+            [deviceId, userId]
+        );
+
+        if ((deviceRows as any[]).length === 0) {
+            res.status(404).json({ error: "Device not found" });
+            return;
+        }
+
+        const device = (deviceRows as any)[0];
+        if (device.is_active) {
+            res.status(400).json({ error: "Cannot delete an active device" });
+            return;
+        }
+
+        // Delete the device
+        await pool.execute(
+            "DELETE FROM device WHERE device_id = ? AND user_id = ?",
+            [deviceId, userId]
+        );
+
+        res.json({ message: "Device deleted successfully" });
+    } catch (error) {
+        console.error("Delete device error:", error);
+        res.status(500).json({ error: "Server error or invalid token" });
+    }
+};

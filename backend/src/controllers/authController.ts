@@ -80,22 +80,41 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const [deviceRows] = await pool.execute(
-            "SELECT * FROM device WHERE user_id = ?",
-            [user.user_id]
+        // Check if device already exists
+        const [existingDeviceRows] = await pool.execute(
+            "SELECT * FROM device WHERE user_id = ? AND device_type = ? AND device_name = ?",
+            [user.user_id, deviceType, deviceName]
         );
-        if (!Array.isArray(deviceRows) || deviceRows.length === 0) {
-            await pool.execute(
+
+        let deviceId: number;
+        if ((existingDeviceRows as any[]).length === 0) {
+            const [insertRes] = await pool.execute(
                 "INSERT INTO device (user_id, device_type, device_name) VALUES (?, ?, ?)",
                 [user.user_id, deviceType, deviceName]
             );
+            deviceId = (insertRes as any).insertId;
+        } else {
+            deviceId = (existingDeviceRows as any)[0].device_id;
         }
 
-        const [updatedDeviceRows] = await pool.execute(
-            "SELECT * FROM device WHERE user_id = ?",
+        // Deactivate all devices for the user
+        await pool.execute(
+            "UPDATE device SET is_active = FALSE WHERE user_id = ?",
             [user.user_id]
         );
-        const device = (updatedDeviceRows as any[])[0];
+
+        // Activate current device
+        await pool.execute(
+            "UPDATE device SET is_active = TRUE WHERE device_id = ?",
+            [deviceId]
+        );
+
+        // Return current device info
+        const [deviceRows] = await pool.execute(
+            "SELECT * FROM device WHERE device_id = ?",
+            [deviceId]
+        );
+        const device = (deviceRows as any)[0];
 
         res.json({
             user_id: user.user_id,

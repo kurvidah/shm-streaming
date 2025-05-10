@@ -1,5 +1,5 @@
 import express from "express"
-import { deleteSelf, deleteUser, getSelf, getUserById, getUsers, updateSelf, updateSelfPassword, updateUser } from "../controllers/userController"
+import { deleteDevice, deleteSelf, deleteUser, getSelf, getUserById, getUsers, updateSelf, updateSelfPassword, updateUser } from "../controllers/userController"
 import { protect } from "../middleware/authMiddleware"
 
 const router = express.Router()
@@ -13,5 +13,9 @@ router
     .get(protect, getSelf)
     .put(protect, updateSelf)
     .delete(protect, deleteSelf)
+
+router
+    .route("/device/:id")
+    .delete(protect, deleteDevice)
 
 export const userRoutes = router

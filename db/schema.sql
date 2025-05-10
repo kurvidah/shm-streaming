@@ -108,5 +108,6 @@ CREATE TABLE device (
     device_type VARCHAR(100) NOT NULL,
     device_name VARCHAR(255) NOT NULL,
     registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
