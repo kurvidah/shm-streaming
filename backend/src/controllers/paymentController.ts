@@ -2,6 +2,84 @@ import type { Request, Response } from "express";
 import pool from "../db";
 import jwt from "jsonwebtoken";
 
+// @desc    Get all bills
+// @route   GET /api/v1/admin/billings
+// @access  Private
+export const getUserBills = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { username, email, plan_name, payment_status } = req.query;
+
+        let query = `
+            SELECT 
+                b.billing_id,
+                u.username,
+                u.email,
+                sp.plan_name,
+                b.amount,
+                b.payment_method,
+                b.payment_date,
+                b.due_date,
+                b.payment_status
+            FROM billing b
+            JOIN user_subscription us ON b.user_subscription_id = us.user_subscription_id
+            JOIN users u ON us.user_id = u.user_id
+            JOIN subscription_plan sp ON us.plan_id = sp.plan_id
+            WHERE 1=1
+        `;
+
+        const queryParams: any[] = [];
+
+        if (username) {
+            query += " AND u.username LIKE ?";
+            queryParams.push(`%${username}%`);
+        }
+
+        if (email) {
+            query += " AND u.email LIKE ?";
+            queryParams.push(`%${email}%`);
+        }
+
+        if (plan_name) {
+            query += " AND sp.plan_name LIKE ?";
+            queryParams.push(`%${plan_name}%`);
+        }
+
+        if (payment_status) {
+            query += " AND b.payment_status = ?";
+            queryParams.push(payment_status);
+        }
+
+        const [rows] = await pool.execute(query, queryParams);
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            res.status(404).json({ error: "No bills found" });
+            return;
+        }
+
+        const formattedBills = rows.map((row: any) => ({
+            billing_id: row.billing_id,
+            user: {
+                username: row.username,
+                email: row.email,
+            },
+            plan_name: row.plan_name,
+            amount: row.amount,
+            payment_method: row.payment_method,
+            payment_date: row.payment_date,
+            due_date: row.due_date,
+            payment_status: row.payment_status,
+        }));
+
+        res.json(formattedBills);
+    } catch (error) {
+        console.error("Get user bills error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
 // @desc    Get self bills
 // @route   GET /api/v1/bills
 // @access  Private

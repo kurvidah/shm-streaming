@@ -10,6 +10,7 @@ import {
 import { createMovie, getMovieById, getMovies, updateMovie } from "../controllers/movieController";
 import { getUsers } from "../controllers/userController";
 import { fetchActiveSubscriptions, fetchDashboardSummary, fetchMonthlyRevenue, fetchUsersByGender, fetchUsersByPlan, fetchUsersByRegion } from "../controllers/dashboardController";
+import { getUserBills } from "../controllers/paymentController";
 
 const router = express.Router()
 
@@ -28,7 +29,7 @@ let allowedFields = {
 
 router
     .route("/billings")
-    .get(admin, getAll("billing"))
+    .get(admin, getUserBills)
     .post(admin, createOne("billing", allowedFields['billing']))
 
 router
