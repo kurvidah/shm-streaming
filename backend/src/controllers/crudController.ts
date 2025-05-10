@@ -25,7 +25,8 @@ export const getAll = (table: string, excludeColumns: string[] = []) => async (r
 
         const [rows] = await pool.execute(`SELECT ${columns} FROM ${table} ${whereClause} ${pagination}`);
 
-        const count = (rows as any[]).length;
+        const [count] = await pool.execute(`SELECT COUNT(*) FROM ${table}`);
+        
         res.json({ count, rows });
     } catch (error) {
         console.error(`Get all from ${table} error:`, error);
