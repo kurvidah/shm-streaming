@@ -1,16 +1,19 @@
 "use client"
 
+import { Smartphone, Laptop, AlertCircle, Tv, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react"
+import axios from "axios"
 import { useAuth } from "../../context/AuthContext"
 import UserSidebar from "../../components/UserSidebar"
 import LoadingSpinner from "../../components/LoadingSpinner"
-import { Smartphone, Laptop, Tv, Trash2, AlertCircle } from "lucide-react"
+
+
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 interface Device {
   device_id: number
   device_type: string
   device_name: string
-  registered_at: string
 }
 
 const UserDevices = () => {
@@ -25,34 +28,10 @@ const UserDevices = () => {
       try {
         setLoading(true)
 
-        // In a real app, you would fetch this data from your API
-        // const response = await axios.get(`/api/devices/`);
-        // setDevices(response.data);
+        const response = await axios.get(`${API_URL}/users`)
 
-        // For demo purposes
-        setTimeout(() => {
-          setDevices([
-            {
-              device_id: 1,
-              device_type: "Phone",
-              device_name: "iPhone 12",
-              registered_at: "2025-03-01T10:30:00Z",
-            },
-            {
-              device_id: 2,
-              device_type: "Laptop",
-              device_name: "MacBook Pro",
-              registered_at: "2025-02-20T13:00:00Z",
-            },
-            {
-              device_id: 3,
-              device_type: "TV",
-              device_name: "Samsung Smart TV",
-              registered_at: "2025-01-18T09:00:00Z",
-            },
-          ])
-          setLoading(false)
-        }, 1000)
+        setDevices(response.data.devices)
+        setLoading(false)
       } catch (err) {
         console.error("Error fetching devices:", err)
         setError("Failed to load devices")
@@ -61,20 +40,16 @@ const UserDevices = () => {
     }
 
     fetchDevices()
-  }, [])
+  }, [])  
 
   const handleRemoveDevice = async (deviceId: number) => {
     try {
       setRemoving(deviceId)
 
-      // In a real app, you would call your API
-      // await axios.delete(`/api/devices/${deviceId}/`);
+      await axios.delete(`${API_URL}/users?device_id=${deviceId}`)
 
-      // For demo purposes
-      setTimeout(() => {
-        setDevices(devices.filter((device) => device.device_id !== deviceId))
-        setRemoving(null)
-      }, 1000)
+      setDevices(devices.filter((device) => device.device_id !== deviceId))
+      setRemoving(null)
     } catch (err) {
       console.error("Error removing device:", err)
       setRemoving(null)
@@ -84,15 +59,15 @@ const UserDevices = () => {
   const getDeviceIcon = (deviceType: string) => {
     switch (deviceType.toLowerCase()) {
       case "phone":
-        return <Smartphone size={24} />
-      case "laptop":
-        return <Laptop size={24} />
+        return <Smartphone size={24} />;  
+      case "Desktop":
+        return <Laptop size={24} />;  
       case "tv":
-        return <Tv size={24} />
+        return <Tv size={24} />;  
       default:
-        return <Smartphone size={24} />
+        return <Smartphone size={24} />;  
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -141,7 +116,7 @@ const UserDevices = () => {
                       className="bg-gray-700 rounded-lg p-4 flex items-center justify-between"
                     >
                       <div className="flex items-center">
-                        <div className="bg-gray-600 p-3 rounded-lg mr-4">{getDeviceIcon(device.device_type)}</div>
+                        <div className="bg-gray-600 p-3 rounded-lg mr-4 text-xl">{getDeviceIcon(device.device_type)}</div>
                         <div>
                           <h3 className="font-semibold">{device.device_name}</h3>
                           <p className="text-sm text-gray-400">
@@ -150,7 +125,7 @@ const UserDevices = () => {
                         </div>
                       </div>
 
-                      <button
+                      {/*<button
                         onClick={() => handleRemoveDevice(device.device_id)}
                         disabled={removing === device.device_id}
                         className="text-gray-400 hover:text-red-500 p-2 rounded-lg transition disabled:opacity-50"
@@ -160,7 +135,8 @@ const UserDevices = () => {
                         ) : (
                           <Trash2 size={20} />
                         )}
-                      </button>
+                      </button>*/}
+
                     </div>
                   ))}
                 </div>
@@ -212,4 +188,3 @@ const UserDevices = () => {
 }
 
 export default UserDevices
-
