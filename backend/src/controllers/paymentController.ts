@@ -162,7 +162,11 @@ export const payBill = async (req: Request, res: Response): Promise<void> => {
             req.headers.authorization &&
             req.headers.authorization.startsWith("Bearer")
         ) {
-            const { billing_id, payment_method } = req.body;
+            const { billing_id, payment_method } = req.query;
+            if (!billing_id || !payment_method) {
+                res.status(400).json({ error: "Missing required billing_id or payment_method" });
+                return;
+            }
 
             // Verify token
             const self: any = jwt.verify(

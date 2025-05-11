@@ -250,17 +250,21 @@ export const updatePlan = async (req: Request, res: Response): Promise<void> => 
                 const user_subscription_id = (result as any).insertId;
 
                 // Add a new billing entry
-                await pool.execute(
+                const [billingResult] =await pool.execute(
                     "INSERT INTO billing (user_subscription_id, payment_status, amount, due_date) VALUES (?, ?, ?, ?)",
                     [user_subscription_id, 'PENDING', price, end_date]
                 );
+
+                const billing_id = (billingResult as any).insertId;
+
 
                 const newSubscription = await formatSubscription({
                     user_subscription_id,
                     user_id: self.id,
                     plan_id,
                     start_date,
-                    end_date
+                    end_date,
+                    billing_id
                 });
 
                 res.json({ message: "Subscription plan added after current plan", subscription: newSubscription });
