@@ -124,3 +124,30 @@ CREATE TABLE device (
     is_active BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- INDEXING
+
+-- For movie lookups and filters
+CREATE INDEX idx_movies_release_year ON movies(release_year);
+CREATE INDEX idx_movies_title ON movies(title);
+CREATE INDEX idx_movies_imdb_id ON movies(imdb_id);
+
+-- For joining reviews with movies
+CREATE INDEX idx_reviews_movie_id ON reviews(movie_id);
+
+-- For joining movie_genre and genres
+CREATE INDEX idx_movie_genre_movie_id ON movie_genre(movie_id);
+CREATE INDEX idx_movie_genre_genre_id ON movie_genre(genre_id);
+CREATE INDEX idx_genres_genre_id ON genres(genre_id);
+
+-- For joining media with movies and watch history
+CREATE INDEX idx_media_movie_id ON media(movie_id);
+CREATE INDEX idx_media_media_id ON media(media_id);
+CREATE INDEX idx_watch_history_media_id ON watch_history(media_id);
+
+-- For tracking watch history
+CREATE INDEX idx_watch_history_user_id_media_id ON watch_history(user_id, media_id);
+
+-- For users lookup
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_username ON users(username);
