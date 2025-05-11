@@ -207,7 +207,12 @@ export const getActivePlan = async (req: Request, res: Response): Promise<void> 
 export const updatePlan = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
-        const { plan_id } = req.body;
+        const { plan_id } = req.query;
+
+        if (!plan_id) {
+            res.status(400).json({ error: "Missing required plan_id" });
+            return;
+        }
 
         if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
             // Verify token
