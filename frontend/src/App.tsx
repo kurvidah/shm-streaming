@@ -87,6 +87,7 @@ function AppRoutes() {
           </UserRoute>
         }
       />
+<<<<<<< HEAD
       <Route
         path="/billing"
         element={
@@ -95,6 +96,10 @@ function AppRoutes() {
           </UserRoute>
         }
       />
+||||||| d1cec12 (Billing.tsx)
+      
+=======
+>>>>>>> parent of d1cec12 (Billing.tsx)
       <Route
         path="/history"
         element={
