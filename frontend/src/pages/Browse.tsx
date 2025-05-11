@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import MovieCard from "../components/MovieCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { Search } from "lucide-react";
 import axios from "axios";
 
-const API_URL = `/api/v1`;
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 const Browse = () => {
   const [movies, setMovies] = useState([]);
@@ -14,44 +14,55 @@ const Browse = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [genre, setGenre] = useState("");
-  const [year, setYear] = useState("");
+  const [yearRange, setYearRange] = useState("");
 
   const genres = [
     "Action", "Comedy", "Drama", "Sci-Fi", "Horror",
     "Romance", "Thriller", "Animation",
   ];
-  const years = Array.from(
-    { length: 30 },
-    (_, i) => new Date().getFullYear() - i
-  );
 
+  const currentYear = new Date().getFullYear();
+  const startYear = 1900;
+  const decadeRanges: string[] = [];
+
+  for (let year = startYear; year < currentYear; year += 10) {
+    const end = Math.min(year + 10, currentYear);
+    decadeRanges.push(`${year}-${end}`);
+  }
   
-  useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${API_URL}/movies`);
-        setMovies(response.data.rows); // assuming it's an array of movies
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching movies:", err);
-        setError("Failed to load movies");
-        setLoading(false);
-      }
-    };
+  const sortedDecadeRanges = decadeRanges.reverse();
 
-    fetchMovies();
+  const fetchMovies = useCallback(async (search: string, genre: string, year: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params: any = {};
+      if (search.trim()) params.search = search.trim();
+      if (genre) params.genre = genre;
+      if (year) {
+        const [start, end] = year.split("-");
+        if (start && end) {
+          params.startYear = parseInt(start); 
+          params.endYear = parseInt(end); 
+        }
+      }
+
+      const response = await axios.get(`${API_URL}/movies`, { params });
+      console.log("Fetching movies with params:", params);
+
+      setMovies(response.data.rows);
+    } catch (err) {
+      console.error("Error fetching movies:", err);
+      setError("Failed to load movies");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  
-  const filteredMovies = movies.filter((movie) => {
-    const matchesSearch = movie.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesGenre = genre ? movie.genre === genre : true;
-    const matchesYear = year ? movie.release_year?.toString() === year : true;
-    return matchesSearch && matchesGenre && matchesYear;
-  });
+  useEffect(() => {
+    fetchMovies(searchTerm, genre, yearRange);
+  }, [searchTerm, genre, yearRange, fetchMovies]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -61,14 +72,15 @@ const Browse = () => {
     setGenre(e.target.value);
   };
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setYear(e.target.value);
+  const handleYearRangeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setYearRange(e.target.value);
   };
 
   const resetFilters = () => {
     setSearchTerm("");
     setGenre("");
-    setYear("");
+    setYearRange("");
+    fetchMovies("", "", "");
   };
 
   return (
@@ -108,13 +120,13 @@ const Browse = () => {
 
             <select
               className="bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
-              value={year}
-              onChange={handleYearChange}
+              value={yearRange}
+              onChange={handleYearRangeChange}
             >
               <option value="">All Years</option>
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
+              {sortedDecadeRanges.map((range) => (
+                <option key={range} value={range}>
+                  {range}
                 </option>
               ))}
             </select>
@@ -141,13 +153,13 @@ const Browse = () => {
         <>
           <div className="mb-6 flex justify-between items-center">
             <h2 className="text-xl font-semibold">
-              {searchTerm || genre || year ? "Search Results" : "All Movies"}
+              {searchTerm || genre || yearRange ? "Search Results" : "All Movies"}
             </h2>
-            <p className="text-gray-400">{filteredMovies.length} movies found</p>
+            <p className="text-gray-400">{movies.length} movies found</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {filteredMovies.map((movie) => (
+            {movies.map((movie) => (
               <MovieCard key={movie.movie_id} movie={movie} />
             ))}
           </div>
