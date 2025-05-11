@@ -6,6 +6,11 @@ WORKDIR /app
 # Copy package files
 COPY package.json bun.lock* ./
 
+# Install ffmpeg
+RUN apt-get update && apt install ffmpeg -y && \
+    ffmpeg -version && \
+    ffprobe -version
+
 # Install dependencies with bun
 RUN bun install
 

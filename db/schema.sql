@@ -83,9 +83,9 @@ CREATE TABLE media (
 CREATE TABLE watch_history (
     user_id INTEGER,
     media_id INTEGER,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    watch_duration INTEGER NOT NULL, -- Watch duration in seconds
-    PRIMARY KEY (user_id, media_id, timestamp),
+    watched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    watch_duration INTEGER NOT NULL DEFAULT 0, -- Watch duration in seconds
+    PRIMARY KEY (user_id, media_id, watched_at),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE
 );

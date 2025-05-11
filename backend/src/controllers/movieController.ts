@@ -137,10 +137,12 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
 
         const baseQuery = `
             SELECT 
-            m.*,
-            ROUND(AVG(r.rating), 1) AS rating,
-            GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
-            COUNT(DISTINCT wh.user_id) AS views
+                m.*,
+                ROUND(AVG(r.rating), 1) AS rating,
+                GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
+                COUNT(DISTINCT wh.user_id) AS views,
+                (COUNT(DISTINCT wh.user_id) * 0.7 + AVG(r.rating) * 30 + 
+                (1 / (YEAR(NOW()) - m.release_year + 1)) * 1000) AS popularity
             FROM movies m
             LEFT JOIN reviews r ON m.movie_id = r.movie_id
             LEFT JOIN movie_genre mg ON m.movie_id = mg.movie_id
@@ -152,31 +154,49 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
         const whereClauses: string[] = [];
         const havingClauses: string[] = [];
 
-        // Search by title, description, imdb_id
+        // Search
         if (search) {
             const s = `%${search}%`;
-            whereClauses.push(`(m.title LIKE ? OR m.description LIKE ? OR m.imdb_id LIKE ?)`);
-            params.push(s, s, s);
+            whereClauses.push(`
+                (
+                    m.title LIKE ? OR 
+                    m.description LIKE ? OR 
+                    m.imdb_id LIKE ? OR
+                    me.description LIKE ?
+                )
+            `);
+            params.push(s, s, s, s);
         }
 
-        // Filter by genre
+        // Genre filter (post-aggregation)
         if (genre) {
             havingClauses.push(`LOWER(genres) LIKE ?`);
             params.push(`%${(genre as string).toLowerCase()}%`);
         }
 
-        // Dynamic filters
+        // Whitelist for valid filters
+        const allowedRawColumns = ["m.release_year", "m.duration"];
+        const allowedDerivedColumns = ["rating", "views"];
+        const allowedOperators = [">", "<", ">=", "<=", "=", "!="];
+
         for (const [key, val] of Object.entries(filters)) {
             if (["search", "genre", "limit", "page", "sortBy"].includes(key)) continue;
 
-            const fullQuery = `${key.trim()} ${val}`;
-            const isDerived = ["rating", "genres", "popularity", "views"].some(word => fullQuery.includes(word));
-            const clause = isDerived ? fullQuery : `m.${fullQuery}`;
+            const match = (val as string).match(/(<=|>=|!=|=|<|>)/);
+            if (!match) continue;
 
-            if (isDerived) {
-                havingClauses.push(clause);
-            } else {
-                whereClauses.push(clause);
+            const [op] = match;
+            const column = key.trim();
+            const value = (val as string).split(op)[1]?.trim();
+
+            if (!value || isNaN(Number(value))) continue;
+
+            if (allowedRawColumns.includes(`m.${column}`)) {
+                whereClauses.push(`m.${column} ${op} ?`);
+                params.push(value);
+            } else if (allowedDerivedColumns.includes(column)) {
+                havingClauses.push(`${column} ${op} ?`);
+                params.push(value);
             }
         }
 
@@ -187,17 +207,15 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
         const pageVal = parseInt(page as string, 10);
         const offset = (pageVal - 1) * limitVal;
 
-        // Validate sortBy input
+        // Sort
         let orderBySQL = "";
         if (sortBy) {
             const [column, direction] = (sortBy as string).split(" ");
-            const allowedColumns = ["title", "release_year", "rating", "views"];
-            const allowedDirections = ["asc", "desc"];
-            if (
-                allowedColumns.includes(column.toLowerCase()) &&
-                allowedDirections.includes((direction || "asc").toLowerCase())
-            ) {
-                orderBySQL = `ORDER BY ${column} ${direction?.toUpperCase() || "ASC"}`;
+            const allowedSorts = ["title", "release_year", "rating", "views"];
+            const dir = (direction || "asc").toUpperCase();
+
+            if (allowedSorts.includes(column.toLowerCase()) && ["ASC", "DESC"].includes(dir)) {
+                orderBySQL = `ORDER BY ${column} ${dir}`;
             }
         }
 
@@ -211,8 +229,6 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
         `;
 
         params.push(limitVal, offset);
-        console.log(fullQuery);
-
         const [rows] = await pool.execute(fullQuery, params);
         const movies = await Promise.all((rows as any[]).map(formatMovie));
 
@@ -227,6 +243,7 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
 
 // @desc    Get movie by ID or slug
 // @route   GET /api/v1/movies/:id
