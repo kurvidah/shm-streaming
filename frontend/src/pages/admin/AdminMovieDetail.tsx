@@ -8,7 +8,7 @@ import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 const AdminMoviesDetail = () =>{
     const navigate = useNavigate();
@@ -38,7 +38,7 @@ const AdminMoviesDetail = () =>{
         }[];
     }>(null);
 
-    const { movieId } = useParams();
+    const movieId = useParams().movieID;
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -50,7 +50,6 @@ const AdminMoviesDetail = () =>{
             try {
                 setLoading(true);
                 const response = await axios.get(`${API_URL}/admin/movies/${movieId}`);
-                console.log("Fetched movie:", response.data);
                 setMovie(response.data);
                 setLoading(false);
             } catch (err: any) {
@@ -67,11 +66,6 @@ const AdminMoviesDetail = () =>{
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
-    
-    const filteredMovies = movie.filter((movie) =>
-        movie.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
 
 
     return (
