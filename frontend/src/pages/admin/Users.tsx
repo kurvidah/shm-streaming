@@ -6,7 +6,7 @@ import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);

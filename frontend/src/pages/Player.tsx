@@ -19,7 +19,7 @@ const Player = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/movies/${id}/`
+          `/api/movies/${id}/`
         );
         setMovieData(response.data);
         setLoading(false);

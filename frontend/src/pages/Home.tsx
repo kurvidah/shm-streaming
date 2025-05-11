@@ -5,7 +5,7 @@ import axios from "axios";
 import HeroSlider from "../components/HeroSlider";
 import MovieCard from "../components/MovieCard";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 const Home = () => {
   const [movies, setMovies] = useState([]);

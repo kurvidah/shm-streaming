@@ -8,7 +8,7 @@ import React, {
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 interface User {
   user_id: number;

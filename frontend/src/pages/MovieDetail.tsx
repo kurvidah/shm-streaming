@@ -7,7 +7,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { Play, Star, Clock, Calendar, Film } from "lucide-react";
 import React from "react";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 const MovieDetail = () => {
   const { slug } = useParams<{ slug: string }>();

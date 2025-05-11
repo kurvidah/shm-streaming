@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, AlertCircle, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 interface SubscriptionPlan {
   plan_id: number;

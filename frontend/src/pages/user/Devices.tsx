@@ -26,7 +26,7 @@ const UserDevices = () => {
         setLoading(true)
 
         // In a real app, you would fetch this data from your API
-        // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/devices/`);
+        // const response = await axios.get(`/api/devices/`);
         // setDevices(response.data);
 
         // For demo purposes
@@ -68,7 +68,7 @@ const UserDevices = () => {
       setRemoving(deviceId)
 
       // In a real app, you would call your API
-      // await axios.delete(`${import.meta.env.VITE_API_URL}/api/devices/${deviceId}/`);
+      // await axios.delete(`/api/devices/${deviceId}/`);
 
       // For demo purposes
       setTimeout(() => {

@@ -32,7 +32,7 @@ const UserWatchHistory = () => {
         setLoading(true)
 
         // In a real app, you would fetch this data from your API
-        // const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/watch-history/`);
+        // const response = await axios.get(`/api/watch-history/`);
         // setHistory(response.data);
 
         // For demo purposes

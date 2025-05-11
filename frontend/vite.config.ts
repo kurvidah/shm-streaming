@@ -14,6 +14,9 @@ export default defineConfig(({ mode }) => {
       host: "0.0.0.0",
       port: 3000,
       strictPort: true,
+      proxy: {
+        '/api': 'http://backend:8080',
+      },
     },
     // Add clear error overlay
     clearScreen: false,

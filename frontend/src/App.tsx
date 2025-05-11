@@ -35,7 +35,7 @@ import AdminAddNewPlan from "./pages/admin/AddNewPlan";
 
 import NotFound from "./pages/NotFound";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 // Protected route component for user routes
 const UserRoute = ({ children }: { children: React.ReactNode }) => {
