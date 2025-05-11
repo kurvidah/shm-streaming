@@ -135,9 +135,20 @@ const AdminMovies = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+
+              <tbody className="divide-y divide-grey-700">
                 {filteredMovies.map((movie) => (
-                  <tr key={movie.movie_id} className="hover:bg-gray-750">
+                  <tr key={movie.movie_id} className="hover:bg-grey-750 hover:bg-gray-300 cursor-pointer" // {/* ทำไมตรงนี้ไม่เวิร์ค */}
+                    onClick = {() => {console.log("Navigating to:", `/admin/movies/detail/${movie.movie_id}`); 
+                    navigate(`/admin/movies/detail/${movie.movie_id}`);}}
+                    
+                    // {/*onMouseOver={(event) => {
+                    //   event.target.classList.add('bg-gray-300'); // Add a light grey background class
+                    // }}
+                    // onMouseOut={(event) => {
+                    //   event.target.classList.remove('bg-gray-300'); // Remove the light grey background class
+                    // }}*/}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
@@ -183,6 +194,8 @@ const AdminMovies = () => {
                     </td>
                   </tr>
                 ))}
+
+
               </tbody>
             </table>
           </div>
