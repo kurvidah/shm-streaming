@@ -26,6 +26,7 @@ import UserSettings from "./pages/user/UserSettings";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminMovies from "./pages/admin/Movies";
+import AdminMoviesDetail from "./pages/admin/AdminMovieDetail";
 import AdminSubscriptions from "./pages/admin/Subscriptions";
 import AdminBilling from "./pages/admin/Billing";
 import AdminSettings from "./pages/admin/AdminSettings";
@@ -143,13 +144,20 @@ function AppRoutes() {
             <AdminAddNewUser />
           </AdminRoute>
         }
-      />{" "}
-      {/* เพิ่ม route นี้ */}
+      />
       <Route
         path="/admin/movies"
         element={
           <AdminRoute>
             <AdminMovies />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/movies/detail/:movieID"
+        element={
+          <AdminRoute>
+            <AdminMoviesDetail />
           </AdminRoute>
         }
       />
