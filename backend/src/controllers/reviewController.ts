@@ -9,7 +9,9 @@ export const getReviews = async (req: Request, res: Response): Promise<void> => 
     try {
         const { movie_id, media_id } = req.query;
 
-        let query = "SELECT * FROM reviews";
+        let query = `SELECT r.* , users.username  FROM reviews r
+            JOIN users ON r.user_id = users.user_id
+        `;
         const queryParams: any[] = [];
 
         if (movie_id) {
@@ -18,6 +20,9 @@ export const getReviews = async (req: Request, res: Response): Promise<void> => 
         } else if (media_id) {
             query += " WHERE media_id = ?";
             queryParams.push(media_id);
+        } else {
+            res.status(400).json({ error: "Must provide either movie_id or media_id" });
+            return;
         }
 
         // Get reviews
