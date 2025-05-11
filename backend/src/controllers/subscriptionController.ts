@@ -25,7 +25,8 @@ async function formatSubscription(row: any): Promise<any> {
         start_date: row.start_date,
         end_date: row.end_date,
         duration_days: planDetails.duration_days,
-        price: planDetails.price
+        price: planDetails.price,
+        billing_id: row.billing_id,
     };
 }
 
@@ -186,10 +187,23 @@ export const getActivePlan = async (req: Request, res: Response): Promise<void> 
             const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
             // console.log("self", self);
 
-            // Get subscription plan details
-            const activeSubscription = await getCurrentPlan(self.id);
+            // Get all paid plans
+            const [planRows] = await pool.execute(`
+                SELECT 
+                    us.user_id,
+                    us.plan_id,
+                    b.billing_id,
+                    sp.plan_name,
+                    b.payment_date,
+                    us.start_date,
+                    us.end_date
+                FROM user_subscription us
+                JOIN subscription_plan sp ON us.plan_id = sp.plan_id
+                JOIN billing b ON us.user_subscription_id = b.user_subscription_id
+                WHERE us.user_id = ? AND us.end_date > CURRENT_DATE AND b.payment_status = 'COMPLETED'
+            `, [self.id]);
 
-            res.json(activeSubscription);
+            res.json(planRows);
         }
 
         if (!token) {
@@ -256,8 +270,8 @@ export const updatePlan = async (req: Request, res: Response): Promise<void> => 
 
                 // Add a new billing entry
                 const [billingResult] =await pool.execute(
-                    "INSERT INTO billing (user_subscription_id, payment_status, amount, due_date) VALUES (?, ?, ?, ?)",
-                    [user_subscription_id, 'PENDING', price, end_date]
+                    "INSERT INTO billing (user_subscription_id, payment_status, amount, due_date) VALUES (?, ?, ?, NOW() + INTERVAL 7 DAY)",
+                    [user_subscription_id, 'PENDING', price]
                 );
 
                 const billing_id = (billingResult as any).insertId;
@@ -294,9 +308,9 @@ export const updatePlan = async (req: Request, res: Response): Promise<void> => 
                 const user_subscription_id = (result as any).insertId;
 
                 // Add a new billing entry
-                const [billingResult] = await pool.execute(
-                    "INSERT INTO billing (user_subscription_id, payment_status, amount, due_date) VALUES (?, ?, ?, ?)",
-                    [user_subscription_id, 'PENDING', price, end_date]
+                const [billingResult] =await pool.execute(
+                    "INSERT INTO billing (user_subscription_id, payment_status, amount, due_date) VALUES (?, ?, ?, NOW() + INTERVAL 7 DAY)",
+                    [user_subscription_id, 'PENDING', price]
                 );
 
                 const billing_id = (billingResult as any).insertId;

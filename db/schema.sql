@@ -43,6 +43,15 @@ CREATE TABLE billing (
     FOREIGN KEY (user_subscription_id) REFERENCES user_subscription(user_subscription_id) ON DELETE CASCADE
 );
 
+CREATE TRIGGER update_billing_failed_status
+ BEFORE INSERT ON billing
+ FOR EACH ROW
+BEGIN
+    IF NEW.due_date < CURRENT_TIMESTAMP AND NEW.payment_status != 'COMPLETED' THEN
+        SET NEW.payment_status = 'FAILED';
+    END IF;
+END;
+
 CREATE TABLE movies (
     movie_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
