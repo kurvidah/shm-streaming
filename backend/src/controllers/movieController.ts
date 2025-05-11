@@ -168,34 +168,36 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
             params.push(s, s, s, s);
         }
 
-        // Genre filter (post-aggregation)
+        // Genre
         if (genre) {
             havingClauses.push(`LOWER(genres) LIKE ?`);
             params.push(`%${(genre as string).toLowerCase()}%`);
         }
 
-        // Whitelist for valid filters
-        const allowedRawColumns = ["m.release_year", "m.duration"];
-        const allowedDerivedColumns = ["rating", "views"];
-        const allowedOperators = [">", "<", ">=", "<=", "=", "!="];
+        // Whitelist
+        const allowedRawColumns = ["release_year", "duration"];
+        const allowedDerivedColumns = ["rating", "views", "popularity"];
+        const allowedOperators = ["<=", ">=", "!=", "<", ">", "="];
 
         for (const [key, val] of Object.entries(filters)) {
             if (["search", "genre", "limit", "page", "sortBy"].includes(key)) continue;
+            if (typeof val !== "string") continue;
 
-            const match = (val as string).match(/(<=|>=|!=|=|<|>)/);
-            if (!match) continue;
+            const combined = `${key}${val}`; // example: release_year<=2010
+            const op = allowedOperators.find(o => combined.includes(o));
+            if (!op) continue;
 
-            const [op] = match;
-            const column = key.trim();
-            const value = (val as string).split(op)[1]?.trim();
+            const [column, valueRaw] = combined.split(op);
+            const columnTrimmed = column.trim();
+            const value = valueRaw.trim();
 
             if (!value || isNaN(Number(value))) continue;
 
-            if (allowedRawColumns.includes(`m.${column}`)) {
-                whereClauses.push(`m.${column} ${op} ?`);
+            if (allowedRawColumns.includes(columnTrimmed)) {
+                whereClauses.push(`m.${columnTrimmed} ${op} ?`);
                 params.push(value);
-            } else if (allowedDerivedColumns.includes(column)) {
-                havingClauses.push(`${column} ${op} ?`);
+            } else if (allowedDerivedColumns.includes(columnTrimmed)) {
+                havingClauses.push(`${columnTrimmed} ${op} ?`);
                 params.push(value);
             }
         }
@@ -211,9 +213,8 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
         let orderBySQL = "";
         if (sortBy) {
             const [column, direction] = (sortBy as string).split(" ");
-            const allowedSorts = ["title", "release_year", "rating", "views"];
+            const allowedSorts = ["title", "release_year", "rating", "views", "popularity"];
             const dir = (direction || "asc").toUpperCase();
-
             if (allowedSorts.includes(column.toLowerCase()) && ["ASC", "DESC"].includes(dir)) {
                 orderBySQL = `ORDER BY ${column} ${dir}`;
             }
