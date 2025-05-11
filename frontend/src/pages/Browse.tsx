@@ -22,7 +22,7 @@ const Browse = () => {
   ];
 
   const currentYear = new Date().getFullYear();
-  const startYear = 1900;
+  const startYear = 1980;
   const decadeRanges: string[] = [];
 
   for (let year = startYear; year < currentYear; year += 10) {
@@ -43,10 +43,11 @@ const Browse = () => {
       if (year) {
         const [start, end] = year.split("-");
         if (start && end) {
-          params.startYear = parseInt(start); 
-          params.endYear = parseInt(end); 
+          params["release_year>"] = parseInt(start);
+          params["release_year<"] = parseInt(end);
         }
       }
+
 
       const response = await axios.get(`${API_URL}/movies`, { params });
       console.log("Fetching movies with params:", params);
