@@ -9,7 +9,7 @@ const API_URL = `/api/v1`;
 
 const AddNewMedia: React.FC = () => {
   const navigate = useNavigate();
-  const movieId = useParams().movieID;
+  const movieID = useParams().movieID;
 
   const [episode, setEpisode] = useState("");
   const [season, setSeason] = useState("");
@@ -25,7 +25,7 @@ const AddNewMedia: React.FC = () => {
     setError(null);
 
     const mediaData = {
-      movie_id: parseInt(movieID || "0", 10),
+    //   movie_id: parseInt(movieID || "0", 10),
       episode: parseInt(episode, 10),
       season: parseInt(season, 10),
       description,
