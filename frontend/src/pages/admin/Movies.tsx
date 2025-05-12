@@ -45,26 +45,15 @@ const AdminMovies = () => {
     fetchMovies();
   }, []);
 
-  // const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setSearchTerm(e.target.value);
-  // };
-
   const handleSearch = async (searchQuery) => {
     setSearchTerm(searchQuery);
     try {
-      const response = await axios.get(`${API_URL}/movies/search?=${searchQuery}`);
-      setMovies(response.data); // assuming API returns an array of movie objects
+      const response = await axios.get(`${API_URL}/movies?search=${searchQuery}`);
+      setMovies(response.data.rows); // assuming API returns an array of movie objects
     } catch (error) {
       console.error("Error fetching movies:", error);
     }
-  };
-
-  // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const newTerm = e.target.value;
-  //   setSearchTerm(newTerm);
-  //   handleSearch(newTerm); // Optional: debounce if needed
-  // };
-  
+  };  
 
   const handleDeleteMovie = async (selectedMovieID: number) => {
     if (window.confirm(`This action is irreversible. Are you sure you want to delete a movie ID: ${selectedMovieID}?`)){
@@ -83,12 +72,6 @@ const AdminMovies = () => {
       }
     }
   };
-
-  // const filteredMovies = movies.filter(
-  //   (movie) =>
-  //     movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
 
   return (
     <div className="flex">
@@ -194,8 +177,6 @@ const AdminMovies = () => {
                         <button className="p-1 text-gray-400 hover:text-blue-500">
                           <Edit size={18} />
                         </button>
-
-
 
                         <button className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeleteMovie(movie.movie_id)}>
                           <Trash2 size={18} />
