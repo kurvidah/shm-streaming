@@ -1,14 +1,8 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = `/api/v1`;
+const API_URL = "/api/v1";
 
 interface User {
   user_id: number;
@@ -31,6 +25,7 @@ interface AuthContextType {
   login: (identifier: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
+  deleteAccount: () => Promise<void>;  // เพิ่มฟังก์ชัน deleteAccount
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,25 +64,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = async (data: RegisterData) => {
     const response = await axios.post(`${API_URL}/auth/register`, data);
-    const { token, ...userData } = response.data;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-
-    setUser(userData);
-    navigate("/");
+    // ไม่ได้เก็บ token หรือ user ที่นี่
   };
 
   const logout = () => {
+    setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     delete axios.defaults.headers.common["Authorization"];
-    setUser(null);
     navigate("/login");
   };
 
+  // ฟังก์ชันสำหรับลบบัญชี
+  const deleteAccount = async () => {
+    try {
+      await axios.delete(`${API_URL}/users`);  // ลบบัญชีจาก API
+      logout();  // ทำการ logout
+    } catch (error) {
+      console.error("Failed to delete account", error);
+      throw error;  // ส่งต่อข้อผิดพลาด
+    }
+  };
+
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

@@ -51,7 +51,7 @@ const Register = () => {
         email: formData.email,
         password: formData.password,
       });
-      navigate("/");
+      navigate("/login");
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(

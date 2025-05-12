@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom"
 const API_URL = `/api/v1`;
 
 const UserProfile = () => {
-  const { user } = useAuth()
+  const { user, deleteAccount } = useAuth()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
@@ -27,6 +27,7 @@ const UserProfile = () => {
     newPassword: "",
     confirmPassword: "",
   })
+
 
   // ฟังก์ชันในการแปลงวันที่จาก timestamp หรือรูปแบบอื่นๆ ให้เป็น 'YYYY-MM-DD'
   const formatDate = (date: string | number | Date): string => {
@@ -114,14 +115,15 @@ const UserProfile = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      await axios.delete(`${API_URL}/users`)
-      alert("Your account has been deleted.")
-      navigate("/login")
+      await deleteAccount();  // เรียก deleteAccount จาก AuthContext
+      alert("Your account has been deleted.");
+      navigate("/login");  
     } catch (error) {
-      console.error("Failed to delete account:", error)
-      alert("Failed to delete account.")
+      console.error("Failed to delete account:", error);
+      alert("Failed to delete account.");
     }
-  }
+  };
+
 
   return (
     <div className="flex">

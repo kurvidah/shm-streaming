@@ -1,7 +1,5 @@
-"use client";
-
-import { Link } from "react-router-dom";
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
@@ -154,7 +152,7 @@ const Navbar = () => {
                   className="block text-white hover:text-red-500 transition"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                My Account
+                  My Account
                 </Link>
               )}
               <button
