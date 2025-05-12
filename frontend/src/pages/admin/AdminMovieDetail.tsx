@@ -100,10 +100,10 @@ const AdminMoviesDetail = () =>{
     
                 <button
                     className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition"
-                    onClick={() => navigate("/admin/movies/add")}
+                    onClick={() => navigate(`/admin/movies/detail/${movieId}/addMedia`)}
                 >
                     <Plus size={20} className="mr-2" />
-                    Add New Movie
+                    Add New Media
                 </button>
                 </div>
     
