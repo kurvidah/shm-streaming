@@ -30,21 +30,16 @@ interface UserSubscriptionData {
 const UserSubscription = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
+  console.log(user)
   const [subscription, setSubscription] = useState<UserSubscriptionData | null>(null)
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [upgrading, setUpgrading] = useState(false)
 
-  const [paymentInfo, setPaymentInfo] = useState<{
-      amount: number
-      due_date: string
-  } | null>(null)
-
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPlans = async () => {
       try {
-        // 1. Fetch plans
         const res = await axios.get(`${API_URL}/plans`)
         const data = res.data
 
@@ -60,66 +55,36 @@ const UserSubscription = () => {
 
         setAvailablePlans(mappedPlans)
 
-        // 2. Fetch subscription
-        const subRes = await axios.get(`${API_URL}/subscribe`)
-        const sub = subRes.data[0]
-        console.log("Subscription", sub)
-
-        {/*if (!sub || !sub.plan_id) {
-          setError("No active subscription found.")
-          return
-        }*/}
-
-        const plan = mappedPlans.find(p => p.plan_id === sub.plan_id)
-        if (!plan) {
-          setError("Your subscription plan no longer exists.")
-          return
-        }
-
-        setSubscription({
-          user_subscription_id: sub.user_subscription_id,
-          plan,
-          start_date: sub.start_date,
-          end_date: sub.end_date,
-        })
-
-        // 3. Fetch payments
-        const payRes = await axios.get(`${API_URL}/payment`)
-        const allPayments = payRes.data
-
-        const userPayment = allPayments.find((p: any) => p.billing_id === sub.billing_id)
-        if (userPayment && userPayment.due_date && !isNaN(new Date(userPayment.due_date).getTime())) {
-          setPaymentInfo({
-            amount: userPayment.amount ?? 0,
-            due_date: userPayment.due_date,
-          })
-        } else {
-          setPaymentInfo(null)
+        // ดึงข้อมูล subscription หากมี
+        try {
+          const subRes = await axios.get(`${API_URL}/subscribe/me`)
+          const sub = subRes.data.subscription
+          const plan = mappedPlans.find(p => p.plan_id === sub.plan_id)
+          if (sub && plan) {
+            setSubscription({
+              user_subscription_id: sub.user_subscription_id,
+              plan,
+              start_date: sub.start_date,
+              end_date: sub.end_date,
+            })
+          }
+        } catch (err) {
+          // ผู้ใช้ยังไม่มี subscription ก็ปล่อยให้ subscription เป็น null
         }
 
       } catch (err: any) {
-        setError("Failed to load subscription or payment information.")
+        setError("Failed to load subscription plans.")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchData()
+    fetchPlans()
   }, [])
 
   const handleUpgrade = async (planId: number) => {
   setUpgrading(true)
   setError(null)
-
-  // ตรวจสอบว่า subscription ยังไม่หมดอายุ
-  if (subscription && new Date(subscription.end_date) > new Date()) {
-    setError("You cannot upgrade your plan until your current plan expires.")
-    setUpgrading(false)
-    setTimeout(() => {
-      navigate("/subscription")  // หรือเส้นทางที่ต้องการ
-    }, 1000)
-    return 
-  }
 
   try {
     const res = await axios.put(`${API_URL}/subscribe?plan_id=${planId}`)
@@ -172,15 +137,8 @@ const UserSubscription = () => {
                   <Receipt size={24} />
                 </div>
                 <div>
-                  <p className="font-medium">
-                    Amount Due: {paymentInfo ? `${paymentInfo.amount.toFixed(2)}` : "-"}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Due Date:{" "}
-                    {paymentInfo
-                      ? new Date(paymentInfo.due_date).toLocaleDateString()
-                      : "-"}
-                  </p>
+                  <p className="font-medium">Amount Due: </p>
+                  <p className="text-sm text-gray-400">Due Date: </p>
                 </div>
                 <button
                   className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline"
@@ -190,7 +148,6 @@ const UserSubscription = () => {
                 </button>
               </div>
             </div>
-
 
             {/* Plans */}
             <div>
@@ -254,7 +211,6 @@ const UserSubscription = () => {
                                 : "Downgrade"
                               : "Choose Plan"}
                         </button>
-                        
                       )}
                     </div>
                   )
@@ -265,7 +221,6 @@ const UserSubscription = () => {
         )}
       </div>
     </div>
-    
   )
 }
 
