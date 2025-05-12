@@ -1,17 +1,21 @@
+"use client";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
-import { User, Mail, Key, Save } from "lucide-react";
+import { User, Mail, Calendar, MapPin, Key, Save } from "lucide-react";
+import axios from "axios";
+import bcrypt from 'bcryptjs'; 
+
+const API_URL = `/api/v1`;
 
 const AddNewUser = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    firstName: "",
-    lastName: "",
     gender: "",
     birthDate: "",
     region: "",
@@ -19,7 +23,7 @@ const AddNewUser = () => {
     confirmPassword: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "birthDate" && value !== "") {
@@ -33,20 +37,58 @@ const AddNewUser = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(""); // Clear previous errors
+    setSuccess(false);
 
-    // Simulate API call
-    setTimeout(() => {
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Hash the password on the frontend
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(formData.password, salt);
+
+      const response = await axios.post(`${API_URL}/admin/users`, {
+        username: formData.username,
+        email: formData.email,
+        gender: formData.gender,
+        birthDate: formData.birthDate,
+        region: formData.region,
+        password: hashedPassword, // Send the hashed password
+      });
+
       setLoading(false);
       setSuccess(true);
+      setFormData({ // Reset form after successful submission
+        username: "",
+        email: "",
+        gender: "",
+        birthDate: "",
+        region: "",
+        password: "",
+        confirmPassword: "",
+      });
 
       // Reset success message after 3 seconds
       setTimeout(() => {
         setSuccess(false);
       }, 3000);
-    }, 1000);
+
+    } catch (err) {
+      setLoading(false);
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Failed to add user");
+      }
+      console.error("Error adding user:", err);
+    }
   };
 
   return (
@@ -71,6 +113,7 @@ const AddNewUser = () => {
                     value={formData.username}
                     onChange={handleChange}
                     className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
                   />
                 </div>
               </div>
@@ -87,30 +130,9 @@ const AddNewUser = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-sm font-medium mb-2">First Name</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-sm font-medium mb-2">Last Name</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
               </div>
             </div>
 
@@ -123,6 +145,7 @@ const AddNewUser = () => {
                   onChange={handleChange}
                   className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
+                  <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
@@ -130,29 +153,42 @@ const AddNewUser = () => {
 
               <div className="flex-1">
                 <label className="block text-gray-400 text-sm font-medium mb-2">Birth Date</label>
-                <input
-                  type="date"
-                  name="birthDate"
-                  value={formData.birthDate}
-                  onChange={handleChange}
-                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Calendar size={18} className="text-gray-500" />
+                  </div>
+                  <input
+                    type="date"
+                    name="birthDate"
+                    value={formData.birthDate}
+                    onChange={handleChange}
+                    className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
               </div>
 
               <div className="flex-1">
                 <label className="block text-gray-400 text-sm font-medium mb-2">Region</label>
-                <select
-                  name="region"
-                  value={formData.region}
-                  onChange={handleChange}
-                  className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  <option value="Asia">Asia</option>
-                  <option value="Europe">Europe</option>
-                  <option value="North America">North America</option>
-                  <option value="South America">South America</option>
-                  <option value="Africa">Africa</option>
-                </select>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MapPin size={18} className="text-gray-500" />
+                  </div>
+                  <select
+                    name="region"
+                    value={formData.region}
+                    onChange={handleChange}
+                    className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="">Select Region</option>
+                    <option value="AF">Africa</option>
+                    <option value="AN">Antarctica</option>
+                    <option value="AS">Asia</option>
+                    <option value="EU">Europe</option>
+                    <option value="NA">North America</option>
+                    <option value="OC">Oceania</option>
+                    <option value="SA">South America</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -171,6 +207,7 @@ const AddNewUser = () => {
                     value={formData.password}
                     onChange={handleChange}
                     className="bg-gray-700 text-white rounded-lg pl-10 pr-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
                   />
                 </div>
               </div>
@@ -183,6 +220,7 @@ const AddNewUser = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className="bg-gray-700 text-white rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                  required
                 />
               </div>
             </div>
@@ -212,7 +250,8 @@ const AddNewUser = () => {
               </button>
             </div>
 
-            {success && <div className="ml-4 text-green-500">User added successfully!</div>}
+            {success && <div className="mt-4 text-green-500">User added successfully!</div>}
+            {error && <div className="mt-4 text-red-500">{error}</div>}
           </form>
         </div>
       </div>

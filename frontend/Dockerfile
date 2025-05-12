@@ -13,6 +13,7 @@ RUN bun install
 RUN bun add react-chartjs-2 chart.js
 RUN bun add react-heatmap-grid
 
+RUN bun add bcryptjs
 
 # Copy the rest of the project
 COPY . .
