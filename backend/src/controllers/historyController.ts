@@ -15,7 +15,7 @@ export const getWatchHistory = async (req: Request, res: Response): Promise<void
             const query = `
                 SELECT * FROM watch_history
                 WHERE user_id = ?
-                ORDER BY timestamp DESC
+                ORDER BY watched_at DESC
             `;
             
             const [rows]  = await pool.query(query, [self.id]);

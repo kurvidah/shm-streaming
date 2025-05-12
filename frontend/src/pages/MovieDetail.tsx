@@ -110,7 +110,7 @@ const MovieDetail = () => {
             </div>
 
             <Link
-              to={`/watch/${movie.movie_id}`}
+              to={`/watch/${movie.media[0].media_id}`}
               className="inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold transition"
             >
               <Play size={20} className="mr-2" />

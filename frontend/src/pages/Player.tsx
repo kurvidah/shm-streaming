@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Hls from "hls.js";
 import axios from "axios";
 import React from "react";
 
@@ -12,65 +11,102 @@ const Player = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [movieData, setMovieData] = useState<any>(null);
+  const [startMinute, setStartMinute] = useState<number>(0);
+  const [canPlay, setCanPlay] = useState(false); // Add a flag to control when the video can play
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchMovieData = async () => {
+    const fetchMediaData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `/api/movies/${id}/`
-        );
+        const response = await axios.get(`/api/v1/media/${id}/meta`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        console.log(response.data);
         setMovieData(response.data);
+        setStartMinute(response.data.watch_duration || 0);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching movie data:", err);
-        setError("Failed to load movie data");
+        console.error("Error fetching media metadata:", err);
+        setError("Failed to load media");
         setLoading(false);
       }
     };
 
-    fetchMovieData();
+    fetchMediaData();
   }, [id]);
 
   useEffect(() => {
-    if (!loading && movieData && videoRef.current) {
-      const videoElement = videoRef.current;
+    const videoElement = videoRef.current;
+    if (!videoElement || !movieData || loading || !canPlay) return;
 
-      // Check if the stream URL is HLS format
-      if (movieData.stream_url.includes(".m3u8")) {
-        if (Hls.isSupported()) {
-          const hls = new Hls();
-          hls.loadSource(movieData.stream_url);
-          hls.attachMedia(videoElement);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            videoElement
-              .play()
-              .catch((e) => console.error("Error playing video:", e));
-          });
+    const fetchStream = async () => {
+      try {
+        videoElement.src = `/api/v1/media/${id}?token=${localStorage.getItem("token")}&range-minutes=${startMinute}-`;
 
-          // Clean up HLS instance on unmount
-          return () => {
-            hls.destroy();
-          };
-        } else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
-          // For Safari which has native HLS support
-          videoElement.src = movieData.stream_url;
-          videoElement.addEventListener("loadedmetadata", () => {
-            videoElement
-              .play()
-              .catch((e) => console.error("Error playing video:", e));
-          });
-        }
-      } else {
-        // For regular video formats
-        videoElement.src = movieData.stream_url;
-        videoElement
-          .play()
-          .catch((e) => console.error("Error playing video:", e));
+        // Listen for 'canplay' event to ensure the video is ready before playing
+        videoElement.addEventListener("canplay", () => {
+          videoElement
+            .play()
+            .then(() => {
+              console.log("Video started playing");
+            })
+            .catch((error) => {
+              console.error("Error playing video:", error);
+              setError("Playback error");
+            });
+        });
+      } catch (err) {
+        console.error("Error loading video stream:", err);
+        setError("Playback error");
       }
+    };
+
+    fetchStream();
+  }, [movieData, startMinute, loading, canPlay]);
+
+  const handleWatchEnd = async () => {
+    try {
+      const currentTimeMinutes = videoRef.current?.currentTime
+        ? videoRef.current.currentTime / 60
+        : 0;
+
+      await axios.post(
+        `/api/media/${id}/watch-end`,
+        { watched: currentTimeMinutes },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+    } catch (err) {
+      console.error("Failed to send watch-end:", err);
     }
-  }, [loading, movieData]);
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const onBeforeUnload = () => handleWatchEnd();
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    video.addEventListener("pause", handleWatchEnd);
+    video.addEventListener("ended", handleWatchEnd);
+
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      video.removeEventListener("pause", handleWatchEnd);
+      video.removeEventListener("ended", handleWatchEnd);
+    };
+  }, []);
+
+  const handlePlayButtonClick = () => {
+    setCanPlay(true); // Allow the video to start playing once the user clicks
+  };
 
   if (loading) {
     return (
@@ -111,16 +147,16 @@ const Player = () => {
           <h1 className="text-2xl font-bold mb-2">{movieData.title}</h1>
           <p className="text-gray-400 mb-4">{movieData.description}</p>
           <div className="flex space-x-4">
-            <span className="bg-gray-800 px-2 py-1 rounded text-sm">
-              {movieData.year}
-            </span>
-            <span className="bg-gray-800 px-2 py-1 rounded text-sm">
-              {movieData.duration} min
-            </span>
-            <span className="bg-gray-800 px-2 py-1 rounded text-sm">
-              {movieData.rating}
-            </span>
+            <span className="bg-gray-800 px-2 py-1 rounded text-sm">{movieData.year}</span>
+            <span className="bg-gray-800 px-2 py-1 rounded text-sm">{movieData.duration}</span>
+            <span className="bg-gray-800 px-2 py-1 rounded text-sm">{movieData.rating}</span>
           </div>
+          <button
+            onClick={handlePlayButtonClick}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Start Watching
+          </button>
         </div>
       )}
     </div>
