@@ -4,8 +4,11 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../../context/AuthContext"
 import UserSidebar from "../../components/UserSidebar"
 import LoadingSpinner from "../../components/LoadingSpinner"
-import { Check, CreditCard, AlertCircle, Receipt} from "lucide-react"
-import { useNavigate } from "react-router-dom";
+import { Check, AlertCircle, Receipt } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
+
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
 
 interface SubscriptionPlan {
   plan_id: number
@@ -25,8 +28,7 @@ interface UserSubscriptionData {
 }
 
 const UserSubscription = () => {
-  const navigate = useNavigate();
-  
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [subscription, setSubscription] = useState<UserSubscriptionData | null>(null)
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
@@ -34,67 +36,115 @@ const UserSubscription = () => {
   const [error, setError] = useState<string | null>(null)
   const [upgrading, setUpgrading] = useState(false)
 
+  const [paymentInfo, setPaymentInfo] = useState<{
+      amount: number
+      due_date: string
+  } | null>(null)
+
   useEffect(() => {
-    setTimeout(() => {
-      setSubscription({
-        user_subscription_id: 1,
-        plan: {
-          plan_id: 2,
-          plan_name: "Standard Plan",
-          price: 14.99,
-          max_devices: 3,
-          hd_available: true,
-          ultra_hd_available: false,
-          duration_days: 30,
-        },
-        start_date: "2025-03-01T10:00:00Z",
-        end_date: "2025-03-31T10:00:00Z",
-      })
+    const fetchData = async () => {
+      try {
+        // 1. Fetch plans
+        const res = await axios.get(`${API_URL}/plans`)
+        const data = res.data
 
-      setAvailablePlans([
-        {
-          plan_id: 1,
-          plan_name: "Basic Plan",
-          price: 9.99,
-          max_devices: 1,
-          hd_available: true,
-          ultra_hd_available: false,
-          duration_days: 30,
-        },
-        {
-          plan_id: 2,
-          plan_name: "Standard Plan",
-          price: 14.99,
-          max_devices: 3,
-          hd_available: true,
-          ultra_hd_available: false,
-          duration_days: 30,
-        },
-        {
-          plan_id: 3,
-          plan_name: "Premium Plan",
-          price: 19.99,
-          max_devices: 5,
-          hd_available: true,
-          ultra_hd_available: true,
-          duration_days: 30,
-        },
-      ])
+        const mappedPlans: SubscriptionPlan[] = data.rows.map((plan: any) => ({
+          plan_id: plan.plan_id,
+          plan_name: plan.plan_name,
+          price: plan.price,
+          max_devices: plan.max_devices,
+          hd_available: !!plan.hd_available,
+          ultra_hd_available: !!plan.ultra_hd_available,
+          duration_days: plan.duration_days,
+        }))
 
-      setLoading(false)
-    }, 1000)
+        setAvailablePlans(mappedPlans)
+
+        // 2. Fetch subscription
+        const subRes = await axios.get(`${API_URL}/subscribe`)
+        const sub = subRes.data[0]
+        console.log("Subscription", sub)
+
+        {/*if (!sub || !sub.plan_id) {
+          setError("No active subscription found.")
+          return
+        }*/}
+
+        const plan = mappedPlans.find(p => p.plan_id === sub.plan_id)
+        if (!plan) {
+          setError("Your subscription plan no longer exists.")
+          return
+        }
+
+        setSubscription({
+          user_subscription_id: sub.user_subscription_id,
+          plan,
+          start_date: sub.start_date,
+          end_date: sub.end_date,
+        })
+
+        // 3. Fetch payments
+        const payRes = await axios.get(`${API_URL}/payment`)
+        const allPayments = payRes.data
+
+        const userPayment = allPayments.find((p: any) => p.billing_id === sub.billing_id)
+        if (userPayment && userPayment.due_date && !isNaN(new Date(userPayment.due_date).getTime())) {
+          setPaymentInfo({
+            amount: userPayment.amount ?? 0,
+            due_date: userPayment.due_date,
+          })
+        } else {
+          setPaymentInfo(null)
+        }
+
+      } catch (err: any) {
+        setError("Failed to load subscription or payment information.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [])
 
-  const handleUpgrade = (planId: number) => {
-    setUpgrading(true)
+  const handleUpgrade = async (planId: number) => {
+  setUpgrading(true)
+  setError(null)
+
+  // ตรวจสอบว่า subscription ยังไม่หมดอายุ
+  if (subscription && new Date(subscription.end_date) > new Date()) {
+    setError("You cannot upgrade your plan until your current plan expires.")
+    setUpgrading(false)
     setTimeout(() => {
-      const newPlan = availablePlans.find((plan) => plan.plan_id === planId)
-      if (newPlan && subscription) {
-        setSubscription({ ...subscription, plan: newPlan })
-      }
-      setUpgrading(false)
-    }, 1500)
+      navigate("/subscription")  // หรือเส้นทางที่ต้องการ
+    }, 1000)
+    return 
   }
+
+  try {
+    const res = await axios.put(`${API_URL}/subscribe?plan_id=${planId}`)
+    const data = res.data
+
+    const newPlan = availablePlans.find(p => p.plan_id === parseInt(data.subscription.plan_id))
+
+    if (newPlan) {
+      setSubscription({
+        user_subscription_id: data.subscription.user_subscription_id,
+        plan: newPlan,
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + newPlan.duration_days * 86400000).toISOString(),
+      })
+
+      // 🔺 Navigate to billing page after subscription success
+      navigate("/billing")
+    }
+  } catch (err: any) {
+    setError(err.response?.data?.message || "Failed to subscribe to the selected plan.")
+  } finally {
+    setUpgrading(false)
+  }
+}
+
 
   return (
     <div className="flex">
@@ -112,7 +162,7 @@ const UserSubscription = () => {
           </div>
         ) : (
           <>
-            {/* Payment Method */}
+            {/* Billing Section */}
             <div className="mb-8 bg-gray-800 rounded-lg p-6 shadow-lg">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 Billing Invoice
@@ -122,13 +172,25 @@ const UserSubscription = () => {
                   <Receipt size={24} />
                 </div>
                 <div>
-                  <p className="font-medium">Amount Due: </p>
-                  <p className="text-sm text-gray-400">Due Date: </p>
+                  <p className="font-medium">
+                    Amount Due: {paymentInfo ? `${paymentInfo.amount.toFixed(2)}` : "-"}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Due Date:{" "}
+                    {paymentInfo
+                      ? new Date(paymentInfo.due_date).toLocaleDateString()
+                      : "-"}
+                  </p>
                 </div>
-                <button  className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline"
-                onClick={() => navigate("/billing")}>Pay Now</button>
+                <button
+                  className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline"
+                  onClick={() => navigate("/billing")}
+                >
+                  Pay Now
+                </button>
               </div>
             </div>
+
 
             {/* Plans */}
             <div>
@@ -136,12 +198,15 @@ const UserSubscription = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {availablePlans.map((plan) => {
-                  const isCurrent = subscription?.plan.plan_id === plan.plan_id
+                  const isCurrent = subscription?.plan?.plan_id === plan.plan_id
+
                   return (
                     <div
                       key={plan.plan_id}
-                      className={`rounded-lg p-6 transition shadow border-2 border-white${
-                        isCurrent ? "border-red-500 bg-red-500/10" : "border-gray-700 hover:border-red-400"
+                      className={`rounded-lg p-6 transition shadow border-2 ${
+                        isCurrent
+                          ? "border-red-500 bg-red-500/10"
+                          : "border-gray-700 hover:border-red-400"
                       }`}
                     >
                       <h3 className="text-xl font-bold mb-1">{plan.plan_name}</h3>
@@ -168,7 +233,7 @@ const UserSubscription = () => {
                         </li>
                       </ul>
 
-                      {isCurrent ? (
+                      {subscription && isCurrent ? (
                         <button
                           disabled
                           className="w-full bg-red-600 text-white py-2 rounded-lg font-medium cursor-default"
@@ -181,8 +246,15 @@ const UserSubscription = () => {
                           disabled={upgrading}
                           className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg font-medium transition disabled:opacity-50"
                         >
-                          {upgrading ? "Processing..." : plan.price > subscription!.plan.price ? "Upgrade" : "Downgrade"}
+                          {upgrading
+                            ? "Processing..."
+                            : subscription
+                              ? plan.price > subscription.plan.price
+                                ? "Upgrade"
+                                : "Downgrade"
+                              : "Choose Plan"}
                         </button>
+                        
                       )}
                     </div>
                   )
@@ -193,6 +265,7 @@ const UserSubscription = () => {
         )}
       </div>
     </div>
+    
   )
 }
 
