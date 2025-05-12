@@ -1,20 +1,57 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { Play, Star, Clock, Calendar, Film } from "lucide-react";
+import { Play, Star, Clock, Calendar, Film, CirclePlay, Trash2 } from "lucide-react";
 import React from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = `/api/v1`;
 
 const MovieDetail = () => {
+  const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const [movie, setMovie] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSeason, setSelectedSeason] = useState<number>(1);
+  const { user, logout } = useAuth();
+  const isAdmin = user?.role === "ADMIN" || user?.role === "MOD";
+  const [ review, setReview ] = useState<any[]>([]);
 
+
+  // useEffect(() => {
+  //   const fetchMovie = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await axios.get(`${API_URL}/movies/${slug}/`);
+  //       setMovie(response.data);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       console.error("Error fetching movie:", err);
+  //       setError("Failed to load movie details");
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   const fetchReview = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const responseReview = await axios.get(`${API_URL}/reviews?movie_id=${movie.movie_id}`);
+  //       setReview(responseReview.data);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       console.error("Error fetching reviews:", err);
+  //       setError("Failed to load movie reviews");
+  //       setLoading(false);
+  //     }
+
+  //   };
+
+  //   fetchMovie();
+  //   fetchReview();
+  // }, [slug]);
   useEffect(() => {
     const fetchMovie = async () => {
       try {
@@ -28,9 +65,35 @@ const MovieDetail = () => {
         setLoading(false);
       }
     };
-
+  
     fetchMovie();
   }, [slug]);
+  
+  useEffect(() => {
+    const fetchReview = async () => {
+      if (!movie?.movie_id) return;
+  
+      try {
+        setLoading(true);
+        const responseReview = await axios.get(
+          `${API_URL}/reviews?movie_id=${movie.movie_id}`
+        );
+        console.log(responseReview);
+        setReview(responseReview.data.rows || []);
+        console.log(responseReview);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        setReview([]);
+        setError("Failed to load movie reviews");
+        setLoading(false);
+      }
+    };
+  
+    fetchReview();
+  }, [movie?.movie_id]);
+  
+  
 
   if (loading) {
     return <LoadingSpinner />;
@@ -46,6 +109,23 @@ const MovieDetail = () => {
       </div>
     );
   }
+
+  const handleDeleteReview = async ( selectedReviewID: number) => {
+    if (window.confirm(`This action is irreversible. Are you sure you want to delete a review ID: ${selectedReviewID}?`)){
+      try {
+        setLoading(true);
+        setError(null);
+        await axios.delete(`${API_URL}/admin/reviews/${selectedReviewID}`);
+        setReview(review.filter((r) => r.review_id !== selectedReviewID));
+        setLoading(false);
+
+      } catch (err: any) {
+        console.error(`Error deleting a plan witth ID ${selectedReviewID}:`, err.message);
+        setError(`Failed to delete plan with ID ${selectedReviewID}`);
+        setLoading(false);
+      }
+    }
+  };
 
   return (
     <div>
@@ -97,12 +177,12 @@ const MovieDetail = () => {
               <div className="flex items-center">
                 <Star size={16} className="mr-1 text-yellow-500" />
                 <span>
-                  {movie.reviews && movie.reviews.length > 0
+                  { review
                     ? (
-                        movie.reviews.reduce(
+                        review.reduce(
                           (acc: number, review: any) => acc + review.rating,
                           0
-                        ) / movie.reviews.length
+                        ) / review.length
                       ).toFixed(1)
                     : "N/A"}
                 </span>
@@ -138,7 +218,7 @@ const MovieDetail = () => {
             <p className="text-gray-300 mb-8">{movie.description}</p>
 
             {/* Reviews Section */}
-            <div>
+            {/* <div>
               <h2 className="text-2xl font-bold mb-4">Reviews</h2>
 
               {movie.reviews && movie.reviews.length > 0 ? (
@@ -179,7 +259,103 @@ const MovieDetail = () => {
               ) : (
                 <p className="text-gray-400">No reviews yet.</p>
               )}
+            </div> */}
+
+            <div className="flex flex-row gap-8">
+              {/* Left Column - Reviews */}
+              <div className="lg:w-1/2">
+                <h2 className="text-2xl font-bold mb-4">Reviews</h2>
+                { review && review.length > 0 ? (
+                  <div className="space-y-4">
+                    {review.map((r: any) => (
+                      <div
+                        key={r.review_id}
+                        className="bg-gray-800 rounded-lg p-4"
+                      >
+                        {isAdmin ? (<button className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeleteReview(r.review_id)}> 
+                                      <Trash2 size={18} /> 
+                                    </button>
+                                  ) : (null)
+                        }
+
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center">
+                            <div className="font-semibold">
+                              {r.username}
+                            </div>
+                            <div className="ml-2 text-gray-400 text-sm">
+                              {new Date(r.review_date).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                size={16}
+                                className={
+                                  i < r.rating
+                                    ? "text-yellow-500"
+                                    : "text-gray-600"
+                                }
+                                fill={i < r.rating ? "currentColor" : "none"}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-gray-300">{r.review_text}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No reviews yet.</p>
+                )}
+              </div>
+
+              {/* Right Column - Seasons and Episodes */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">Seasons & Episodes</h2>
+                <div className="lg:w-1/2 bg-gray-800 rounded-lg p-4 h-fit">
+                  
+                  {movie.media && movie.media.length > 0 ? (
+                    <>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Select Season</label>
+                        <select
+                          value={selectedSeason}
+                          onChange={(e) => setSelectedSeason(parseInt(e.target.value))}
+                          className="w-full bg-[#334155] text-white px-3 py-2 rounded-md"
+                        >
+                          {[...new Set(movie.media.map((m: any) => m.season))].map((season: number) => (<option key={season} value={season}>Season {season}</option>))}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        {movie.media
+                          .filter((m: any) => m.season === selectedSeason)
+                          .sort((a: any, b: any) => a.episode - b.episode)
+                          .map((m: any) => (
+                            <div key={m.media_id} className="bg-[#1E293B] p-3 rounded-md flex flex-row gap-8">
+                              <div>
+                                <div className="font-semibold">Episode {m.episode}</div>
+                                <div className="text-sm text-gray-400">{m.description}</div>
+                              </div>
+                              <div>
+                                <button className=" text-blue-600 hover:text-shadow-blue-50 cursor-pointer" onClick={() => navigate(`/watch/${m.media_id}`)}>
+                                <CirclePlay size={18} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-gray-400">No media available.</p>
+                  )}
+                </div>
+
+              </div>
+              
             </div>
+
           </div>
         </div>
       </div>
