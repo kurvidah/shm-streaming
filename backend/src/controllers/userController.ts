@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import pool from "../db";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const regionMap: Record<string, string> = {
     AF: "Africa",
@@ -277,7 +278,7 @@ export const updateSelfPassword = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "Current password and new password are required" });
         }
 
-        // Verify old password
+        // Fetch hashed password from database
         const [passwordRows]: any = await pool.execute(
             "SELECT password FROM users WHERE user_id = ?",
             [userPayload.id]
@@ -286,13 +287,24 @@ export const updateSelfPassword = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const storedPassword = passwordRows[0].password;
-        if (storedPassword !== currentPassword) {
+        const storedHashedPassword = passwordRows[0].password;
+
+        // Compare hashed password
+        const isMatch = await bcrypt.compare(currentPassword, storedHashedPassword);
+        if (!isMatch) {
             return res.status(401).json({ error: "Current password is incorrect" });
         }
 
-        // Update to new password
-        await pool.execute("UPDATE users SET password = ? WHERE user_id = ?", [newPassword, userPayload.id]);
+        // Hash new password
+        const saltRounds = 10;
+        const newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        // Update password
+        await pool.execute(
+            "UPDATE users SET password = ? WHERE user_id = ?",
+            [newHashedPassword, userPayload.id]
+        );
+
         res.json({ message: "Password updated" });
     } catch (error) {
         console.error("Update self password error:", error);
