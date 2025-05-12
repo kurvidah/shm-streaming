@@ -25,7 +25,7 @@ const AddNewMedia: React.FC = () => {
     setError(null);
 
     const mediaData = {
-    //   movie_id: parseInt(movieID || "0", 10),
+       movie_id: parseInt(movieID || "0", 10),
       episode: parseInt(episode, 10),
       season: parseInt(season, 10),
       description,
