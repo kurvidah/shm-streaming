@@ -6,7 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { Search } from "lucide-react";
 import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 const Browse = () => {
   const [movies, setMovies] = useState([]);

@@ -8,7 +8,7 @@ import UserSidebar from "../../components/UserSidebar"
 import LoadingSpinner from "../../components/LoadingSpinner"
 
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `/api/v1`;
 
 interface Device {
   device_id: number
