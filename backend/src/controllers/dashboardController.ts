@@ -95,13 +95,13 @@ export const fetchMonthlyRevenue = async (req: Request, res: Response): Promise<
         const queryParams: (number | null)[] = [year];
 
         if (month) {
-            query += ` WHERE m.month_num = ? `;
+            query += ` WHERE m.month = ? `;
             queryParams.push(month);
         }
 
         query += `
-            GROUP BY m.month_num, m.month_name
-            ORDER BY m.month_num;
+            GROUP BY month
+            ORDER BY month;
         `;
 
         const [result] = await pool.query(query, queryParams);
