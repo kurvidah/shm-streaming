@@ -18,7 +18,7 @@ const router = express.Router()
 let allowedFields = {
     users: ["username", "email", "role", "gender", "birthdate", "region"],
     devices: ["device_type", "device_name", "user_id"],
-    media: ["episode", "season", "description", "file_path", "status"],
+    media: ["movie_id", "episode", "season", "description", "file_path", "status"],
     movies: ["title", "description", "release_date", "duration", "rating", "imdb_id"],
     movie_genre: ["movie_id", "genre_id"],
     genres: ["genre_name", "genre_description"],

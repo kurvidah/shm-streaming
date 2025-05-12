@@ -88,8 +88,6 @@ export const fetchMonthlyRevenue = async (req: Request, res: Response): Promise<
                 FROM user_subscription us
                 JOIN subscription_plan sp ON us.plan_id = sp.plan_id
                 WHERE EXTRACT(YEAR FROM us.start_date) = ?
-                GROUP BY month
-                ORDER BY month;
         `;
 
         const queryParams: (number | null)[] = [year];
