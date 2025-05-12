@@ -1,31 +1,30 @@
+
 "use client";
 
-import React from "react";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-import LoadingSpinner from "../../components/LoadingSpinner";
-import { Plus, Edit, Trash2, AlertCircle, Search } from "lucide-react";
+import { Plus, Search, Edit, Trash2, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_URL = `/api/v1`;
 
-interface SubscriptionPlan {
-  plan_id: number;
-  plan_name: string;
-  price: number;
-  max_devices: number;
-  hd_available: boolean;
-  ultra_hd_available: boolean;
-  duration_days: number;
-}
-
 const AdminSubscriptions = () => {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingPlan, setEditingPlan] = useState(null);
+
+  const [newPlan, setNewPlan] = useState({
+    plan_name: "",
+    price: 0,
+    max_devices: 1,
+    hd_available: false,
+    ultra_hd_available: false,
+    duration_days: 30,
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,9 +34,7 @@ const AdminSubscriptions = () => {
         const response = await axios.get(`${API_URL}/admin/plans`);
         setPlans(response.data.rows);
         setLoading(false);
-
-      } catch (err: any) {
-        console.error("Error fetching subscription plans:", err.message);
+      } catch (err) {
         setError("Failed to load subscription plans");
         setLoading(false);
       }
@@ -46,26 +43,78 @@ const AdminSubscriptions = () => {
     fetchSubscriptionPlans();
   }, []);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  const handleDeletePlan = async (selectedPlanID: number) => {
-    if (window.confirm(`This action is irreversible. Are you sure you want to delete a plan ID: ${selectedPlanID}?`)){
+  const handleAddPlan = async () => {
+    try {
+      await axios.post(`${API_URL}/admin/plans`, newPlan);
+      setPlans([...plans, newPlan]);
+      setNewPlan({
+        plan_name: "",
+        price: 0,
+        max_devices: 1,
+        hd_available: false,
+        ultra_hd_available: false,
+        duration_days: 30,
+      });
+    } catch (err) {
+      setError("Failed to add subscription plan");
+    }
+  };
+
+  const handleEditClick = (plan) => {
+    if (editingPlan === plan.plan_id) {
+      // ถ้าคลิกแผนเดิมอีกครั้ง ให้ปิด dropdown และ clear form
+      setEditingPlan(null);
+      setNewPlan({
+        plan_name: "",
+        price: 0,
+        max_devices: 1,
+        hd_available: false,
+        ultra_hd_available: false,
+        duration_days: 30,
+      });
+    } else {
+      // ถ้าเป็นแผนใหม่ ให้เปิด dropdown และโหลดข้อมูลแผนลง form
+      setEditingPlan(plan.plan_id);
+      setNewPlan({ ...plan });
+    }
+  };
+
+
+  const handleCancelEdit = () => {
+    setEditingPlan(null);
+  };
+
+  const handleSaveEdit = async (planId) => {
+    try {
+      await axios.put(`${API_URL}/admin/plans/${planId}`, newPlan);
+      setPlans(
+        plans.map((plan) =>
+          plan.plan_id === planId ? { ...plan, ...newPlan } : plan
+        )
+      );
+      setEditingPlan(null);
+    } catch (err) {
+      setError("Failed to save plan changes");
+    }
+  };
+
+  const handleDeletePlan = async (planId) => {
+    if (window.confirm(`Are you sure you want to delete this plan?`)) {
       try {
-        setLoading(true);
-        setError(null);
-        await axios.delete(`${API_URL}/admin/plans/${selectedPlanID}`);
-        setPlans(plans.filter((plan) => plan.plan_id !== selectedPlanID));
-        setLoading(false);
-
-      } catch (err: any) {
-        console.error(`Error deleting a plan witth ID ${selectedPlanID}:`, err.message);
-        setError(`Failed to delete plan with ID ${selectedPlanID}`);
-        setLoading(false);
-
+        await axios.delete(`${API_URL}/admin/plans/${planId}`);
+        setPlans(plans.filter((plan) => plan.plan_id !== planId));
+      } catch (err) {
+        setError("Failed to delete plan");
       }
     }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setNewPlan({ ...newPlan, [field]: value });
   };
 
   const filteredPlans = plans.filter((plan) =>
@@ -75,14 +124,13 @@ const AdminSubscriptions = () => {
   return (
     <div className="flex">
       <AdminSidebar />
-
       <div className="flex-1 p-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Subscription Plans</h1>
 
-          <button 
+          <button
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition"
-            onClick={() => navigate("/admin/subscription/add")}
+            onClick={() => setEditingPlan("new")}
           >
             <Plus size={20} className="mr-2" />
             Add New Plan
@@ -107,7 +155,7 @@ const AdminSubscriptions = () => {
         </div>
 
         {loading ? (
-          <LoadingSpinner />
+          <div>Loading...</div>
         ) : error ? (
           <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4 flex items-start">
             <AlertCircle size={20} className="mr-2 mt-0.5 flex-shrink-0" />
@@ -140,10 +188,8 @@ const AdminSubscriptions = () => {
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {filteredPlans.map((plan) => (
-                  <tr key={plan.plan_id} className="hover:bg-gray-750">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium">{plan.plan_name}</div>
-                    </td>
+                  <tr key={plan.plan_id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{plan.plan_name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       ${plan.price.toFixed(2)}
                     </td>
@@ -165,13 +211,17 @@ const AdminSubscriptions = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex justify-end space-x-2">
-                        {/* edit plan */}
-                        <button className="p-1 text-gray-400 hover:text-blue-500">
+                        <button
+                          className="p-1 text-gray-400 hover:text-blue-500"
+                          onClick={() => handleEditClick(plan)}
+                        >
                           <Edit size={18} />
                         </button>
 
-                        {/* delete plan */}
-                        <button className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeletePlan(plan.plan_id)}>
+                        <button
+                          className="p-1 text-gray-400 hover:text-red-500"
+                          onClick={() => handleDeletePlan(plan.plan_id)}
+                        >
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -183,29 +233,98 @@ const AdminSubscriptions = () => {
           </div>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-2">Active Subscriptions</h3>
-            <p className="text-3xl font-bold">1,248</p>
-            <p className="text-sm text-gray-400 mt-2">+12% from last month</p>
-          </div>
+        {editingPlan && (
+          <div className="bg-gray-800 p-6 mt-8 rounded-lg">
+            <h3 className="text-2xl font-semibold mb-4">Edit Subscription Plan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="text-gray-300 mb-1">Plan Name</label>
+                <input
+                  type="text"
+                  className="bg-gray-700 text-white rounded-lg px-4 py-2"
+                  value={newPlan.plan_name}
+                  onChange={(e) => handleFieldChange("plan_name", e.target.value)}
+                />
+              </div>
 
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-2">Most Popular Plan</h3>
-            <p className="text-3xl font-bold">Standard</p>
-            <p className="text-sm text-gray-400 mt-2">54% of subscribers</p>
-          </div>
+              <div className="flex flex-col">
+                <label className="text-gray-300 mb-1">Price (USD)</label>
+                <input
+                  type="number"
+                  className="bg-gray-700 text-white rounded-lg px-4 py-2"
+                  value={newPlan.price}
+                  onChange={(e) => handleFieldChange("price", parseFloat(e.target.value))}
+                />
+              </div>
 
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-2">Average Revenue</h3>
-            <p className="text-3xl font-bold">$16.42</p>
-            <p className="text-sm text-gray-400 mt-2">Per subscriber</p>
-          </div>
+              <div className="flex flex-col">
+                <label className="text-gray-300 mb-1">Max Devices</label>
+                <input
+                  type="number"
+                  className="bg-gray-700 text-white rounded-lg px-4 py-2"
+                  value={newPlan.max_devices}
+                  onChange={(e) => handleFieldChange("max_devices", parseInt(e.target.value))}
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-gray-300 mb-1">Features</label>
+                <div className="flex space-x-4 mt-1">
+                  <label className="flex items-center text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      checked={newPlan.hd_available}
+                      onChange={(e) => handleFieldChange("hd_available", e.target.checked)}
+                    />
+                    HD
+                  </label>
+                  <label className="flex items-center text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      checked={newPlan.ultra_hd_available}
+                      onChange={(e) => handleFieldChange("ultra_hd_available", e.target.checked)}
+                    />
+                    Ultra HD
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-gray-300 mb-1">Duration</label>
+                <select
+                  className="bg-gray-700 text-white rounded-lg px-4 py-2"
+                  value={newPlan.duration_days}
+                  onChange={(e) => handleFieldChange("duration_days", parseInt(e.target.value))}
+                >
+                  <option value={30}>Monthly</option>
+                  <option value={365}>Yearly</option>
+                </select>
+              </div>
+            </div>
+
+        <div className="flex justify-end space-x-4 col-span-full">
+          <button
+          onClick={() =>
+          editingPlan === "new"
+          ? handleAddPlan()
+          : handleSaveEdit(editingPlan)
+          }
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+          >
+          Save
+          </button>
+          <button onClick={handleCancelEdit} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg" >
+          Cancel
+          </button>
         </div>
+      </div>
+      )}
       </div>
     </div>
   );
 };
 
 export default AdminSubscriptions;
+
