@@ -84,8 +84,7 @@ export const fetchMonthlyRevenue = async (req: Request, res: Response): Promise<
 
         let query = `
             SELECT 
-                m.month_num,
-                m.month_name,
+                m.month_num AS month,
                 COALESCE(SUM(sp.price), 0) AS total_revenue
             FROM (
                 SELECT 1 AS month_num, 'January' AS month_name UNION ALL
@@ -106,7 +105,7 @@ export const fetchMonthlyRevenue = async (req: Request, res: Response): Promise<
             LEFT JOIN subscription_plan sp
             ON us.plan_id = sp.plan_id
         `;
-        
+
         const queryParams: (number | null)[] = [year];
 
         if (month) {
@@ -120,8 +119,12 @@ export const fetchMonthlyRevenue = async (req: Request, res: Response): Promise<
         `;
 
         const [result] = await pool.query(query, queryParams);
-
-        res.status(200).json(result);
+        console.log(result);
+        const revenueMap: Record<number, number> = {};
+        result.forEach((row: { month: number, total_revenue: number }) => {
+            revenueMap[row.month] = row.total_revenue;
+        });
+        res.status(200).json(revenueMap);
     } catch (error) {
         console.error("Error fetching revenue:", error);
         res.status(500).json({ error: "Internal Server Error" });
