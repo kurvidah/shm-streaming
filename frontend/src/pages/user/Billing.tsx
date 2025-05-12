@@ -7,7 +7,8 @@ import LoadingSpinner from "../../components/LoadingSpinner"
 import { Receipt, CreditCard, AlertCircle } from "lucide-react"
 import axios from "axios"
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
+const API_URL = `/api/v1`;
+
 
 interface Bill {
   billing_id: number
@@ -31,6 +32,7 @@ const UserBill = () => {
     const fetchBill = async () => {
       try {
         const res = await axios.get(`${API_URL}/payment`)
+        console.log("Billing response:", res.data)
         const billingList = res.data
         const latestBill = billingList[billingList.length - 1]
         setBill(latestBill)
@@ -44,6 +46,7 @@ const UserBill = () => {
 
     fetchBill()
   }, [])
+
 
   const handlePay = async () => {
     if (!bill) return;
