@@ -86,7 +86,7 @@ erDiagram
     integer genre_id FK
   }
 
-  media_uploads {
+  media {
     integer media_id PK
     integer movie_id FK
     integer episode
@@ -105,7 +105,7 @@ erDiagram
   users ||--o{ device : registers
   movies ||--o{ watch_history : watched_in
   movies ||--o{ reviews : reviewed_by
-  movies ||--o{ media_uploads : contains
+  movies ||--o{ media : contains
   movies ||--o{ movie_genre : has_genre
   genres ||--o{ movie_genre : categorizes
-  users ||--o{ media_uploads : uploads
+  users ||--o{ media : uploads
