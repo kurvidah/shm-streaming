@@ -20,38 +20,6 @@ const MovieDetail = () => {
   const isAdmin = user?.role === "ADMIN" || user?.role === "MOD";
   const [ review, setReview ] = useState<any[]>([]);
 
-
-  // useEffect(() => {
-  //   const fetchMovie = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const response = await axios.get(`${API_URL}/movies/${slug}/`);
-  //       setMovie(response.data);
-  //       setLoading(false);
-  //     } catch (err) {
-  //       console.error("Error fetching movie:", err);
-  //       setError("Failed to load movie details");
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   const fetchReview = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const responseReview = await axios.get(`${API_URL}/reviews?movie_id=${movie.movie_id}`);
-  //       setReview(responseReview.data);
-  //       setLoading(false);
-  //     } catch (err) {
-  //       console.error("Error fetching reviews:", err);
-  //       setError("Failed to load movie reviews");
-  //       setLoading(false);
-  //     }
-
-  //   };
-
-  //   fetchMovie();
-  //   fetchReview();
-  // }, [slug]);
   useEffect(() => {
     const fetchMovie = async () => {
       try {
@@ -216,50 +184,6 @@ const MovieDetail = () => {
           <div className="md:col-span-2">
             <h2 className="text-2xl font-bold mb-4">Synopsis</h2>
             <p className="text-gray-300 mb-8">{movie.description}</p>
-
-            {/* Reviews Section */}
-            {/* <div>
-              <h2 className="text-2xl font-bold mb-4">Reviews</h2>
-
-              {movie.reviews && movie.reviews.length > 0 ? (
-                <div className="space-y-4">
-                  {movie.reviews.map((review: any) => (
-                    <div
-                      key={review.review_id}
-                      className="bg-gray-800 rounded-lg p-4"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center">
-                          <div className="font-semibold">
-                            {review.user.username}
-                          </div>
-                          <div className="ml-2 text-gray-400 text-sm">
-                            {new Date(review.review_date).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              size={16}
-                              className={
-                                i < review.rating
-                                  ? "text-yellow-500"
-                                  : "text-gray-600"
-                              }
-                              fill={i < review.rating ? "currentColor" : "none"}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-gray-300">{review.review_text}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400">No reviews yet.</p>
-              )}
-            </div> */}
 
             <div className="flex flex-row gap-8">
               {/* Left Column - Reviews */}
