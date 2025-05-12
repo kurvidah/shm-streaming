@@ -108,7 +108,7 @@ router
 router
     .route("/users")
     .get(admin, getUsers)
-    .post(admin, createOne("users", allowedFields['users']))
+    .post(admin, createOne("users", [...allowedFields['users'], "password"]))
 
 router
     .route("/users/:id")
