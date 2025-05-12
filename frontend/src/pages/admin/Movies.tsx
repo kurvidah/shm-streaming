@@ -45,9 +45,26 @@ const AdminMovies = () => {
     fetchMovies();
   }, []);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+  // const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSearchTerm(e.target.value);
+  // };
+
+  const handleSearch = async (searchQuery) => {
+    setSearchTerm(searchQuery);
+    try {
+      const response = await axios.get(`${API_URL}/movies/search?=${encodeURIComponent(searchQuery)}`);
+      setMovies(response.data); // assuming API returns an array of movie objects
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+    }
   };
+
+  // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newTerm = e.target.value;
+  //   setSearchTerm(newTerm);
+  //   handleSearch(newTerm); // Optional: debounce if needed
+  // };
+  
 
   const handleDeleteMovie = async (selectedMovieID: number) => {
     if (window.confirm(`This action is irreversible. Are you sure you want to delete a movie ID: ${selectedMovieID}?`)){
@@ -67,11 +84,11 @@ const AdminMovies = () => {
     }
   };
 
-  const filteredMovies = movies.filter(
-    (movie) =>
-      movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredMovies = movies.filter(
+  //   (movie) =>
+  //     movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   return (
     <div className="flex">
@@ -102,7 +119,8 @@ const AdminMovies = () => {
               placeholder="Search movies..."
               className="w-full bg-gray-800 text-white rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
               value={searchTerm}
-              onChange={handleSearch}
+              onChange={(e) => handleSearch(e.target.value)}
+              
             />
           </div>
         </div>
@@ -137,17 +155,10 @@ const AdminMovies = () => {
               </thead>
 
               <tbody className="divide-y divide-grey-700">
-                {filteredMovies.map((movie) => (
-                  <tr key={movie.movie_id} className="hover:bg-grey-750 hover:bg-gray-300 cursor-pointer" // {/* ทำไมตรงนี้ไม่เวิร์ค */}
+                {movies.map((movie) => (
+                  <tr key={movie.movie_id} className="hover:bg-grey-750 hover:bg-gray-300 cursor-pointer"
                     onClick = {() => {console.log("Navigating to:", `/admin/movies/detail/${movie.movie_id}`); 
                     navigate(`/admin/movies/detail/${movie.movie_id}`);}}
-                    
-                    // {/*onMouseOver={(event) => {
-                    //   event.target.classList.add('bg-gray-300'); // Add a light grey background class
-                    // }}
-                    // onMouseOut={(event) => {
-                    //   event.target.classList.remove('bg-gray-300'); // Remove the light grey background class
-                    // }}*/}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
