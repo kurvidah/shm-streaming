@@ -115,11 +115,7 @@ const UserBill = () => {
             <div>
               <p className="text-sm text-gray-400">Due Date</p>
               <p className="font-medium">
-                {new Date(bill?.due_date).toLocaleDateString("th-TH", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                {new Date(bill?.due_date).toLocaleDateString()}
               </p>
             </div>
             <div>

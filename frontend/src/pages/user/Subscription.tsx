@@ -30,12 +30,16 @@ interface UserSubscriptionData {
 const UserSubscription = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
-  console.log(user)
   const [subscription, setSubscription] = useState<UserSubscriptionData | null>(null)
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [upgrading, setUpgrading] = useState(false)
+
+  const [paymentInfo, setPaymentInfo] = useState<{
+      amount: number
+      due_date: string
+  } | null>(null)
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -55,23 +59,37 @@ const UserSubscription = () => {
 
         setAvailablePlans(mappedPlans)
 
-        // ดึงข้อมูล subscription หากมี
         try {
-          const subRes = await axios.get(`${API_URL}/subscribe/me`)
-          const sub = subRes.data.subscription
-          const plan = mappedPlans.find(p => p.plan_id === sub.plan_id)
-          if (sub && plan) {
-            setSubscription({
-              user_subscription_id: sub.user_subscription_id,
-              plan,
-              start_date: sub.start_date,
-              end_date: sub.end_date,
-            })
-          }
-        } catch (err) {
-          // ผู้ใช้ยังไม่มี subscription ก็ปล่อยให้ subscription เป็น null
-        }
+          const subRes = await axios.get(`${API_URL}/subscribe`)
+          const subData = subRes.data
 
+          if (subData && subData.length > 0) {
+            // เลือกข้อมูลล่าสุดที่มี end_date ล่าสุด
+            const latestSub = subData.sort((a: any, b: any) => {
+              return new Date(b.end_date).getTime() - new Date(a.end_date).getTime()
+            })[0] // เลือก array ล่าสุด
+
+            console.log("Latest subscription:", latestSub)
+
+            const plan = mappedPlans.find(p => p.plan_id === latestSub.plan_id)
+
+            if (plan) {
+              setSubscription({
+                user_subscription_id: latestSub.billing_id, // ใช้ billing_id แทน user_subscription_id
+                plan,
+                start_date: latestSub.start_date,
+                end_date: latestSub.end_date,
+              })
+
+              setPaymentInfo({
+                amount: plan.price,
+                due_date: latestSub.end_date,
+              })
+            }
+          }
+        } catch (err: any) {
+          setError("Failed to fetch user subscription.")
+        }
       } catch (err: any) {
         setError("Failed to load subscription plans.")
       } finally {
@@ -80,36 +98,35 @@ const UserSubscription = () => {
     }
 
     fetchPlans()
-  }, [])
+  }, [user?.id]) // ใช้ user.id เพื่อให้ effect ทำงานเมื่อ user เปลี่ยนแปลง
 
   const handleUpgrade = async (planId: number) => {
-  setUpgrading(true)
-  setError(null)
+    setUpgrading(true)
+    setError(null)
 
-  try {
-    const res = await axios.put(`${API_URL}/subscribe?plan_id=${planId}`)
-    const data = res.data
+    try {
+      const res = await axios.put(`${API_URL}/subscribe?plan_id=${planId}`)
+      const data = res.data
 
-    const newPlan = availablePlans.find(p => p.plan_id === parseInt(data.subscription.plan_id))
+      const newPlan = availablePlans.find(p => p.plan_id === parseInt(data.subscription.plan_id))
 
-    if (newPlan) {
-      setSubscription({
-        user_subscription_id: data.subscription.user_subscription_id,
-        plan: newPlan,
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + newPlan.duration_days * 86400000).toISOString(),
-      })
+      if (newPlan) {
+        setSubscription({
+          user_subscription_id: data.subscription.user_subscription_id,
+          plan: newPlan,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + newPlan.duration_days * 86400000).toISOString(),
+        })
 
-      // 🔺 Navigate to billing page after subscription success
-      navigate("/billing")
+        // 🔺 Navigate to billing page after subscription success
+        navigate("/billing")
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to subscribe to the selected plan.")
+    } finally {
+      setUpgrading(false)
     }
-  } catch (err: any) {
-    setError(err.response?.data?.message || "Failed to subscribe to the selected plan.")
-  } finally {
-    setUpgrading(false)
   }
-}
-
 
   return (
     <div className="flex">
@@ -137,8 +154,12 @@ const UserSubscription = () => {
                   <Receipt size={24} />
                 </div>
                 <div>
-                  <p className="font-medium">Amount Due: </p>
-                  <p className="text-sm text-gray-400">Due Date: </p>
+                  <p className="font-medium">Amount Due: {paymentInfo?.amount != null ? paymentInfo.amount.toFixed(2) : "-"}</p>
+                  <p className="text-sm text-gray-400">Due Date: {" "}
+                    {paymentInfo
+                      ? new Date(paymentInfo.due_date).toLocaleDateString()
+                      : "-"}
+                  </p>
                 </div>
                 <button
                   className="ml-auto text-red-500 hover:text-red-400 text-sm hover:underline"
