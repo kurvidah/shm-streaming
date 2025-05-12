@@ -67,6 +67,28 @@ const AdminMoviesDetail = () =>{
         setSearchTerm(e.target.value);
     };
 
+    const handleDeleteMedia = async (selectedMediaID: number) => {
+        if (window.confirm(`This action is irreversible. Are you sure you want to delete a media ID: ${selectedMediaID}?`)){
+        try {
+            setLoading(true);
+            setError(null);
+            await axios.delete(`${API_URL}/admin/media/${selectedMediaID}`);
+    
+            setMovie(prev => prev ? {
+                ...prev,
+                media: prev.media.filter(m => m.media_id !== selectedMediaID)
+            } : prev);  // check if prev (the previous state) is not null. if it is null, just return prev (don't update anything).
+            setLoading(false);
+    
+        } catch (err: any) {
+            console.error(`Error deleting a plan witth ID ${selectedMediaID}:`, err.message);
+            setError(`Failed to delete plan with ID ${selectedMediaID}`);
+            setLoading(false);
+    
+        }
+        }
+    };
+
 
     return (
         <div className="flex">
@@ -150,11 +172,11 @@ const AdminMoviesDetail = () =>{
                                     <Edit size={18} />
                                 </button>
                                 <button
-                                    className="p-1 text-gray-400 hover:text-red-500"
-                                    onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteMovie(m.media_id);
-                                    }}
+                                    className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeleteMedia(m.media_id)}
+                                    // onClick={(e) => {
+                                    // e.stopPropagation();
+                                    // handleDeleteMovie(m.media_id);
+                                    // }}
                                 >
                                     <Trash2 size={18} />
                                 </button>
