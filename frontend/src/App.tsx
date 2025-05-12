@@ -31,6 +31,7 @@ import AdminSubscriptions from "./pages/admin/Subscriptions";
 import AdminBilling from "./pages/admin/Billing";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAddNewMovie from "./pages/admin/AddNewMovie";
+import AdminAddNewMedia from "./pages/admin/AddNewMedia";
 import AdminAddNewUser from "./pages/admin/AddNewUser";
 import AdminAddNewPlan from "./pages/admin/AddNewPlan";
 
@@ -157,6 +158,14 @@ function AppRoutes() {
         element={
           <AdminRoute>
             <AdminMoviesDetail />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/movies/detail/:movieID/addMedia"
+        element={
+          <AdminRoute>
+            <AdminAddNewMedia />
           </AdminRoute>
         }
       />
