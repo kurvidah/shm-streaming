@@ -114,15 +114,15 @@ const LineChartBox = ({ title, labels, data }: { title: string; labels: string[]
           labels: labels,
           datasets: [
             {
-                label: title,
-                data: data,
-                fill: false,
-                backgroundColor: 'rgba(75,192,192,0.2)',
-                borderColor: 'rgba(75,192,192,1)',
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgba(75,192,192,1)',
-                pointBorderColor: '#fff',
+              label: title,
+              data: data,
+              fill: false,
+              backgroundColor: 'rgba(75,192,192,0.2)',
+              borderColor: 'rgba(75,192,192,1)',
+              borderWidth: 2,
+              pointRadius: 3,
+              pointBackgroundColor: 'rgba(75,192,192,1)',
+              pointBorderColor: '#fff',
             },
           ],
         }}
@@ -225,10 +225,8 @@ const PieChartBox = ({
                   const label = context.label || '';
                   const value = context.parsed || 0;
                   const total = context.dataset.data.reduce((a, b) => Number(a) + Number(b), 0);
-                  const percentage = total > 0
-                    ? ((value / total) * 100).toFixed(2) + '%'
-                    : '0%';
-                  return `${label}: <span class="math-inline">\{value\} \(</span>{percentage})`;
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(2) : '0';
+                  return `${label}: ${value} (${percentage}%)`;
                 },
               },
             },
@@ -271,7 +269,8 @@ const AdminDashboard = () => {
           subscriptionsByMonthYearRes,
           moviesByMonthYearRes,
           revenueByYearRes,
-          topMoviesRes, // New API call for top movies
+          topMoviesRes,
+          monthlyRevenueRes,
         ] = await Promise.all([
           axios.get(`${API_URL}/admin/users`),
           axios.get(`${API_URL}/admin/movies`),
@@ -279,10 +278,12 @@ const AdminDashboard = () => {
           axios.get(`${API_URL}/admin/billings`),
           axios.get(`${API_URL}/admin/subscriptions?month=${selectedMonth}&year=${selectedYear}`),
           axios.get(`${API_URL}/admin/movies?month=${selectedMonth}&year=${selectedYear}`),
-          axios.get(`${API_URL}/admin/billings`),
-	        axios.get(`${API_URL}/admin/movies?month=${selectedMonth}&year=${selectedYear}`),
-          
+          axios.get(`${API_URL}/admin/billings?month=${selectedMonth}&year=${selectedYear}`),
+          axios.get(`${API_URL}/movies?limit=10&sortBy=popularity desc&month=${selectedMonth}&year=${selectedYear}`),
+          axios.get(`${API_URL}/admin/dashboard/revenue?year=${selectedYear}`), // Modified URL
         ]);
+
+        console.log("Response from /api/v1/admin/dashboard/revenue:", monthlyRevenueRes.data);
 
         const users = usersRes.data?.rows || [];
 
@@ -304,25 +305,14 @@ const AdminDashboard = () => {
 
         // Users by Plan (ordered labels)
         const planOrder = ["Basic", "Standard", "Premium", "None"];
-
         const planCount = users.reduce((acc: any, user: any) => {
           const plan = user.active_subscription || "None";
           acc[plan] = (acc[plan] || 0) + 1;
           return acc;
         }, {});
-
         const orderedLabels = planOrder.filter(plan => plan in planCount);
         const orderedData = orderedLabels.map(plan => planCount[plan]);
-
-        setPackageData({
-          labels: orderedLabels,
-          datasets: [
-            {
-              data: orderedData,
-              backgroundColor: ['#f59e0b','#3b82f6', '#10b981', '#ef4444'], // Basic, Standard, Premium, None
-            },
-          ],
-        });
+        setPackageData({ labels: orderedLabels, datasets: [{ data: orderedData, backgroundColor: ['#f59e0b','#3b82f6', '#10b981', '#ef4444'], }] });
 
         // Users by Region
         const regionCount = users.reduce((acc: any, user: any) => {
@@ -330,16 +320,7 @@ const AdminDashboard = () => {
           acc[region] = (acc[region] || 0) + 1;
           return acc;
         }, {});
-        setRegionData({
-          labels: Object.keys(regionCount),
-          datasets: [
-            {
-              label: 'Users by Region',
-              data: Object.values(regionCount),
-              backgroundColor: '#38bdf8',
-            },
-          ],
-        });
+        setRegionData({ labels: Object.keys(regionCount), datasets: [{ label: 'Users by Region', data: Object.values(regionCount), backgroundColor: '#38bdf8', }] });
 
         setStats({
           totalUsers: usersRes.data?.count || 0,
@@ -351,41 +332,47 @@ const AdminDashboard = () => {
           recentActivities: billingsRes.data?.recentActivities || [],
         });
 
-        // Assuming your backend returns the count of new subscriptions and movies directly
         setNewSubscriptions(subscriptionsByMonthYearRes.data?.count || 0);
         setNewMovies(moviesByMonthYearRes.data?.count || 0);
 
-        // Process yearly revenue data for the line chart
-        const yearlyRevenue = revenueByYearRes.data?.monthlyRevenue || {};
-        const revenueLabels = Object.keys(yearlyRevenue).sort((a, b) => parseInt(a) - parseInt(b)); // Sort by month number
-        const revenueData = revenueLabels.map((month) => yearlyRevenue[month]);
+        // --- Process Monthly Revenue Data for Line Chart ---
+        const monthlyRevenue = monthlyRevenueRes.data || {};
+        const monthNames = { 1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec' };
+        const revenueLabels = Object.keys(monthlyRevenue)
+          .sort((a, b) => parseInt(a) - parseInt(b))
+          .map(month => monthNames[parseInt(month)]);
+        const revenueData = Object.keys(monthlyRevenue)
+          .sort((a, b) => parseInt(a) - parseInt(b))
+          .map(month => monthlyRevenue[month] || 0);
 
         setMonthlyRevenueData({
-          labels: revenueLabels.map(month => new Date(selectedYear, parseInt(month) - 1).toLocaleString('default', { month: 'short' })),
+          labels: revenueLabels,
           data: revenueData,
         });
 
-        // Set current monthly revenue and change
-        const currentMonthStr = selectedMonth < 10 ? `0${selectedMonth}` : `${selectedMonth}`;
-        let currentMonthRevenue = 0;
-        billingsRes.data?.rows?.forEach(billing => {
-          const paymentDate = new Date(billing.payment_date);
-          const billingMonth = paymentDate.getMonth() + 1;
-          const billingYear = paymentDate.getFullYear();
-
-          if (billingMonth === selectedMonth && billingYear === selectedYear) {
-            currentMonthRevenue += billing.amount;
-          }
-        });
+        // Set current monthly revenue
+        const currentMonthRevenue = monthlyRevenue[selectedMonth] || 0;
         setCurrentMonthlyRevenue(currentMonthRevenue);
 
-        // Revenue change data is not directly available in the provided API response.
-        // You will need to implement logic to calculate this or have the backend provide it.
-        setRevenueChange("N/A");
-        setPositiveRevenue(true);
+        // Calculate revenue change compared to the previous month
+        let previousMonthRevenue = 0;
+        if (selectedMonth > 1) {
+          previousMonthRevenue = monthlyRevenue[selectedMonth - 1] || 0;
+        } else if (selectedYear > new Date().getFullYear() - 1) {
+          // If it's January, try to get December's revenue from the previous year (if data exists)
+          const previousYear = selectedYear - 1;
+          // Assuming your API can handle fetching data for a specific month and year
+          const previousYearRevenueResponse = await axios.get(`${API_URL}/admin/dashboard/revenue?year=${previousYear}`);
+          previousMonthRevenue = previousYearRevenueResponse.data?.[12] || 0;
+        }
+
+        const change = currentMonthRevenue - previousMonthRevenue;
+        const percentageChange = previousMonthRevenue !== 0 ? ((change / previousMonthRevenue) * 100).toFixed(2) : change.toFixed(2);
+        setRevenueChange(`${percentageChange}%`);
+        setPositiveRevenue(change >= 0);
 
         // Set top movies data
-        setTopMovies(topMoviesRes.data?.topMovies || []);
+        setTopMovies(topMoviesRes.data?.rows || []);
 
       } catch (err: any) {
         console.error("Failed to fetch stats:", err);
@@ -432,12 +419,10 @@ const AdminDashboard = () => {
                 title="Total Revenue"
                 value={`$${stats?.totalRevenue?.toFixed(2)}`}
                 icon={<TrendingUp size={24} className="text-yellow-500" />}
-                change={stats?.revenueChange}
-                positive={stats?.positiveRevenue}
               />
             </div>
 
-            <div className="mb-6">
+            <div className="mb-10">
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-4 justify-items-center">
                 {genderData && (
                   <PieChartBox
@@ -463,7 +448,7 @@ const AdminDashboard = () => {
                   />
                 )}
               </div>
-              <div className="flex gap-4 mb-4">
+              <div className="flex gap-4 mb-4 mt-8 ">
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(Number(e.target.value))}
@@ -481,41 +466,14 @@ const AdminDashboard = () => {
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
                   className="bg-gray-800 text-white rounded px-3 py-2"
                 >
-                  {[new Date().getFullYear() - 1, new Date().getFullYear()].map((y) => (
+                  {Array.from({ length: new Date().getFullYear() - 2023 + 1 }, (_, i) => 2023 + i).map((y) => (
                     <option key={y} value={y}>{y}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Revenue Chart */}
-              <div className="mb-8">
-                {monthlyRevenueData && (
-                  <div className="bg-gray-800 rounded-lg p-6 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-300 mb-4">
-                        Revenue ({selectedYear})
-                      </h3>
-                    </div>
-                    <div>
-                      <LineChartBox
-                        title=""
-                        labels={monthlyRevenueData.labels}
-                        data={monthlyRevenueData.data}
-                      />
-                      <StatCard
-                        title={`Monthly Revenue in ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}`}
-                        value={`$${currentMonthlyRevenue.toFixed(2)}`}
-                        icon={<TrendingUp size={24} className="text-yellow-500" />}
-                        change={revenueChange}
-                        positive={positiveRevenue}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Monthly Data Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Monthly Data Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                 <StatCard
                   title="New Active Subscriptions"
                   value={newSubscriptions}
@@ -529,6 +487,35 @@ const AdminDashboard = () => {
                   positive={newMovies !== 0} // Indicate positive if there are new movies
                 />
               </div>
+
+           {/* Revenue Chart */}
+            <div className="mb-4">
+              {monthlyRevenueData && (
+                <div className="bg-gray-800 rounded-lg p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-300 mb-4">
+                      Revenue ({selectedYear})
+                    </h3>
+                  </div>
+                  <div>
+                    <LineChartBox
+                      title=""
+                      labels={monthlyRevenueData.labels}
+                      data={monthlyRevenueData.data}
+                    />
+                    <StatCard
+                      title={`Monthly Revenue in ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}`}
+                      value={`$${currentMonthlyRevenue.toFixed(2)}`}
+                      icon={<TrendingUp size={24} className="text-yellow-500" />}
+                      change={revenueChange}
+                      positive={positiveRevenue}
+                    />
+                  </div>
+                </div>
+                )}
+              </div>
+
+              
 
               {/* Top 10 Movies */}
               <div className="bg-gray-800 rounded-lg p-6 mb-8">
@@ -554,9 +541,6 @@ const AdminDashboard = () => {
                         <th scope="col" className="px-6 py-3">
                           Rating
                         </th>
-                        <th scope="col" className="px-6 py-3">
-                          Hours Viewed
-                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -568,18 +552,9 @@ const AdminDashboard = () => {
                           <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap dark:text-white">
                             {movie.title}
                           </th>
-                          <td className="px-6 py-4 text-white">
-                            {movie.year}
-                          </td>
-                          <td className="px-6 py-4 text-white">
-                            {movie.genre}
-                          </td>
-                          <td className="px-6 py-4 text-white">
-                            {movie.rating}
-                          </td>
-                          <td className="px-6 py-4 text-white">
-                            {movie.hours_viewed}
-                          </td>
+                          <td className="px-6 py-4 text-white">{movie.release_year}</td>
+                          <td className="px-6 py-4 text-white">{movie.genres.join(", ")}</td>
+                          <td className="px-6 py-4 text-white">{movie.rating}</td>
                         </tr>
                       ))}
                     </tbody>
