@@ -52,7 +52,7 @@ const AdminMovies = () => {
   const handleSearch = async (searchQuery) => {
     setSearchTerm(searchQuery);
     try {
-      const response = await axios.get(`${API_URL}/movies/search?=${encodeURIComponent(searchQuery)}`);
+      const response = await axios.get(`${API_URL}/movies/search?=${searchQuery}`);
       setMovies(response.data); // assuming API returns an array of movie objects
     } catch (error) {
       console.error("Error fetching movies:", error);
@@ -120,7 +120,6 @@ const AdminMovies = () => {
               className="w-full bg-gray-800 text-white rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              
             />
           </div>
         </div>
@@ -156,11 +155,11 @@ const AdminMovies = () => {
 
               <tbody className="divide-y divide-grey-700">
                 {movies.map((movie) => (
-                  <tr key={movie.movie_id} className="hover:bg-grey-750 hover:bg-gray-300 cursor-pointer"
-                    onClick = {() => {console.log("Navigating to:", `/admin/movies/detail/${movie.movie_id}`); 
-                    navigate(`/admin/movies/detail/${movie.movie_id}`);}}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={movie.movie_id} className="bg-gray-750 hover:bg-gray-700 ">
+                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                      onClick = {() => {console.log("Navigating to:", `/admin/movies/detail/${movie.movie_id}`); 
+                      navigate(`/admin/movies/detail/${movie.movie_id}`);}}
+                    >
                       <div className="flex items-center">
                         <img
                           src={movie.poster || "/placeholder.svg"}
@@ -198,7 +197,7 @@ const AdminMovies = () => {
 
 
 
-                        <button className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeleteMovie(movies.movie_id_id)}>
+                        <button className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeleteMovie(movie.movie_id)}>
                           <Trash2 size={18} />
                         </button>
                       </div>
