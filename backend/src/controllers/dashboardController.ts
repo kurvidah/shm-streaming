@@ -83,27 +83,13 @@ export const fetchMonthlyRevenue = async (req: Request, res: Response): Promise<
         const month = req.query.month ? parseInt(req.query.month as string, 10) : null;
 
         let query = `
-            SELECT 
-                m.month_num AS month,
-                COALESCE(SUM(sp.price), 0) AS total_revenue
-            FROM (
-                SELECT 1 AS month_num, 'January' AS month_name UNION ALL
-                SELECT 2, 'February' UNION ALL
-                SELECT 3, 'March' UNION ALL
-                SELECT 4, 'April' UNION ALL
-                SELECT 5, 'May' UNION ALL
-                SELECT 6, 'June' UNION ALL
-                SELECT 7, 'July' UNION ALL
-                SELECT 8, 'August' UNION ALL
-                SELECT 9, 'September' UNION ALL
-                SELECT 10, 'October' UNION ALL
-                SELECT 11, 'November' UNION ALL
-                SELECT 12, 'December'
-            ) AS m
-            LEFT JOIN user_subscription us
-            ON EXTRACT(MONTH FROM us.start_date) = m.month_num AND EXTRACT(YEAR FROM us.start_date) = ?
-            LEFT JOIN subscription_plan sp
-            ON us.plan_id = sp.plan_id
+            SELECT EXTRACT(MONTH FROM us.start_date) as month, 
+            COALESCE(SUM(sp.price), 0) AS total_revenue
+                FROM user_subscription us
+                JOIN subscription_plan sp ON us.plan_id = sp.plan_id
+                WHERE EXTRACT(YEAR FROM us.start_date) = ?
+                GROUP BY month
+                ORDER BY month;
         `;
 
         const queryParams: (number | null)[] = [year];
