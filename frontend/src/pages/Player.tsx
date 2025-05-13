@@ -131,30 +131,39 @@ const Player = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black">
-      
+    <div className="flex flex-col h-screen bg-black text-white">
+
       {movieData && (
-        <div className="p-4 bg-gray-900">
-          <h1 className="text-2xl font-bold mb-2">{movieData.title}</h1>
-          <p className="text-gray-400 mb-4">Description : {movieData.description}</p>
-          <div className="flex space-x-4">
-            <span className="bg-gray-800 px-2 py-1 rounded text-sm">{movieData.year}</span>
-            <span className="bg-gray-800 px-2 py-1 rounded text-sm">{movieData.duration}</span>
-            <span className="bg-gray-800 px-2 py-1 rounded text-sm">{movieData.rating}</span>
+        <div className="p-6 bg-gray-900">
+          <h1 className="text-3xl font-bold mb-4">Description: {movieData.title}</h1>
+          
+          <div className="flex justify-between items-start">
+            {/* Left Side - Description */}
+            <p className="text-gray-300 max-w-3xl leading-relaxed">
+              <span className="text-2xl text-gray-400">
+                {movieData.description || "No description available."}
+              </span>
+            </p>
+
+            {/* Right Side - Button */}
+            <div>
+              <button
+                onClick={handlePlayButtonClick}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              >
+                Start Watching
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handlePlayButtonClick}
-            className="mt-4 bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
-          >
-            Start Watching
-          </button>
         </div>
       )}
 
-      <div className="relative flex-1">
+
+      {/* Video section - centered */}
+      <div className="flex-1 flex items-center justify-center h-0.5 bg-black">
         <video
           ref={videoRef}
-          className="w-full h-full object-contain"
+          className="h-1 object-contain"
           controls
           playsInline
           poster={movieData?.thumbnail_url}
@@ -162,6 +171,7 @@ const Player = () => {
       </div>
 
     </div>
+
   );
 };
 
