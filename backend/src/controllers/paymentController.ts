@@ -2,6 +2,29 @@ import type { Request, Response } from "express";
 import pool from "../db";
 import jwt from "jsonwebtoken";
 
+const getLastActive = async (userId: string, date: Date = new Date()): Promise<any> => {
+    const [userSubRows] = await pool.execute(
+        `
+SELECT us.end_date
+    FROM user_subscription us
+    JOIN billing b ON us.user_subscription_id = b.user_subscription_id
+    WHERE us.user_id = ? AND ? < us.end_date
+    AND b.payment_status = 'COMPLETED'
+    ORDER BY us.end_date DESC
+    LIMIT 1
+           `,
+        [userId, date]
+    );
+
+    if (!Array.isArray(userSubRows) || userSubRows.length === 0) {
+        return null;
+    }
+
+    const userSub = userSubRows[0] as any;
+
+    return userSub;
+}
+
 // @desc    Get all bills
 // @route   GET /api/v1/admin/billings
 // @access  Private
@@ -219,15 +242,30 @@ export const payBill = async (req: Request, res: Response): Promise<void> => {
 
                 if (new Date(subscription.start_date) <= paymentDate) {
                     // Update start_date to payment_date and adjust end_date
-                    const newEndDate = new Date(paymentDate);
-                    newEndDate.setDate(newEndDate.getDate() + subscription.duration_days);
+                    const lastActive = await getLastActive(self.id);
 
-                    await pool.execute(
-                        `UPDATE user_subscription
+                    if (lastActive) {
+                        const newStartDate = new Date(lastActive.end_date);
+                        const newEndDate = new Date(newStartDate);
+                        newEndDate.setDate(newEndDate.getDate() + subscription.duration_days);
+
+                        await pool.execute(
+                            `UPDATE user_subscription
+                     SET start_date = ?, end_date = ? 
+                     WHERE user_subscription_id = (SELECT user_subscription_id FROM billing WHERE billing_id = ?)`,
+                            [newStartDate, newEndDate, billing_id]
+                        );
+                    } else {
+                        const newEndDate = new Date(paymentDate);
+                        newEndDate.setDate(newEndDate.getDate() + subscription.duration_days);
+
+                        await pool.execute(
+                            `UPDATE user_subscription
                  SET start_date = ?, end_date = ? 
                  WHERE user_subscription_id = (SELECT user_subscription_id FROM billing WHERE billing_id = ?)`,
-                        [paymentDate, newEndDate, billing_id]
-                    );
+                            [paymentDate, newEndDate, billing_id]
+                        );
+                    }
                 }
             }
         }

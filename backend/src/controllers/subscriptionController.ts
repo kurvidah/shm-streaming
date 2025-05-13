@@ -31,13 +31,13 @@ async function formatSubscription(row: any): Promise<any> {
 }
 
 // Helper: Get the user's current active plan
-const getLastActive = async (userId: string, date: Date = new Date()): Promise<any> => {
+export const getLastActive = async (userId: string, date: Date = new Date()): Promise<any> => {
     const [userSubRows] = await pool.execute(
         `
 SELECT us.* 
     FROM user_subscription us
     JOIN billing b ON us.user_subscription_id = b.user_subscription_id
-    WHERE us.user_id = ? AND NOW() <= us.end_date
+    WHERE us.user_id = ? AND ? <= us.end_date
     AND b.payment_status = 'COMPLETED'
     ORDER BY us.end_date DESC
     LIMIT 1
@@ -48,6 +48,7 @@ SELECT us.*
     if (!Array.isArray(userSubRows) || userSubRows.length === 0) {
         return null;
     }
+    console.log(userSubRows);
 
     const userSub = userSubRows[0] as any;
     const resBody = await formatSubscription(userSub);
