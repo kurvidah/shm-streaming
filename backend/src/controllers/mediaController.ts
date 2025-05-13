@@ -75,14 +75,22 @@ export const getMediaById = async (req: Request, res: Response): Promise<void> =
 
         // Update watch_duration on each play
         const watchedMinutes = (endByte - startByte) / (fileSize / durationMinutes);
-        await pool.execute(
-            `
-        INSERT INTO watch_history (user_id, media_id, watch_duration)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE watch_duration = watch_duration + ?
-      `,
-            [self.id, media_id, watchedMinutes, watchedMinutes]
+        const [[existing]] = await pool.execute(
+            `SELECT watch_duration FROM watch_history WHERE user_id = ? AND media_id = ?`,
+            [self.id, media_id]
         );
+        
+        if (existing) {
+            await pool.execute(
+                `UPDATE watch_history SET watch_duration = watch_duration + ? WHERE user_id = ? AND media_id = ?`,
+                [watchedMinutes, self.id, media_id]
+            );
+        } else {
+            await pool.execute(
+                `INSERT INTO watch_history (user_id, media_id, watch_duration) VALUES (?, ?, ?)`,
+                [self.id, media_id, watchedMinutes]
+            );
+        }
 
         // Stream response
         res.writeHead(206, {
