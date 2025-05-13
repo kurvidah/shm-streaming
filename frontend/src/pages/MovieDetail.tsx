@@ -40,24 +40,26 @@ const MovieDetail = () => {
   useEffect(() => {
     const fetchReview = async () => {
       if (!movie?.movie_id) return;
-  
+
       try {
         setLoading(true);
         const responseReview = await axios.get(
           `${API_URL}/reviews?movie_id=${movie.movie_id}`
         );
-        console.log(responseReview);
         setReview(responseReview.data.rows || []);
-        console.log(responseReview);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching reviews:", err);
-        setReview([]);
-        setError("Failed to load movie reviews");
-        setLoading(false);
+        if (err.response?.status === 404) {
+          setReview([]);
+          setLoading(false);
+        } else {
+          console.error("Error fetching reviews:", err);
+          setError("Failed to load movie reviews");
+          setLoading(false);
+        }
       }
     };
-  
+
     fetchReview();
   }, [movie?.movie_id]);
   
@@ -157,13 +159,22 @@ const MovieDetail = () => {
               </div>
             </div>
 
-            <Link
-              to={`/watch/${movie.media[0].media_id}`}
-              className="inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold transition"
-            >
-              <Play size={20} className="mr-2" />
-              Watch Now
-            </Link>
+            {movie.media && movie.media.length > 0 ? (
+              <Link
+                to={`/watch/${movie.media[0].media_id}`}
+                className="inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold transition"
+              >
+                <Play size={20} className="mr-2" />
+                Watch Now
+              </Link>
+            ): (
+              <Link
+                className="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-md font-semibold transition"
+              >
+                <Play size={20} className="mr-2" />
+                Coming Soon
+              </Link>
+            )}
           </div>
         </div>
       </div>
