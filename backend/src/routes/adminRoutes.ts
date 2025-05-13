@@ -1,5 +1,5 @@
 import express from "express"
-import { admin, protect } from "../middleware/authMiddleware"
+import { admin, mod, protect } from "../middleware/authMiddleware"
 import {
     getAll,
     getById,
@@ -30,114 +30,114 @@ let allowedFields = {
 
 router
     .route("/billings")
-    .get(admin, getUserBills)
+    .get(mod, getUserBills)
     .post(admin, createOne("billing", allowedFields['billing']))
 
 router
     .route("/billings/:id")
-    .get(admin, getById("billing", "billing_id"))
-    .put(admin, updateOne("billing", allowedFields['billing']))
+    .get(mod, getById("billing", "billing_id"))
+    .put(mod, updateOne("billing", allowedFields['billing']))
     .delete(admin, deleteOne("billing", "billing_id"))
 
 router
     .route("/devices")
-    .get(admin, getAll("devices"))
+    .get(mod, getAll("devices"))
     .post(admin, createOne("devices", allowedFields['devices']))
 
 router
     .route("/devices/:id")
-    .get(admin, getById("devices", "device_id"))
-    .put(admin, updateOne("devices", allowedFields['devices']))
+    .get(mod, getById("devices", "device_id"))
+    .put(mod, updateOne("devices", allowedFields['devices']))
     .delete(admin, deleteOne("devices", 'device_id'))
 
 router
     .route("/media")
-    .get(admin, getAll("media"))
-    .post(admin, createOne("media", allowedFields['media']))
+    .get(mod, getAll("media"))
+    .post(mod, createOne("media", allowedFields['media']))
 
 router
     .route("/media/:id")
-    .get(admin, getById("media", "media_id"))
-    .put(admin, updateOne("media", allowedFields['media']))
+    .get(mod, getById("media", "media_id"))
+    .put(mod, updateOne("media", allowedFields['media']))
     .delete(admin, deleteOne("media", "media_id"))
 
 router
     .route("/movies")
-    .get(admin, getMovies)
-    .post(admin, createMovie)
+    .get(mod, getMovies)
+    .post(mod, createMovie)
 
 router
     .route("/movies/:id")
-    .get(admin, getMovieById)
-    .put(admin, updateMovie)
+    .get(mod, getMovieById)
+    .put(mod, updateMovie)
     .delete(admin, deleteOne("movies", "movie_id"))
 
 router
     .route("/plans")
-    .get(admin, getAll("subscription_plan"))
+    .get(mod, getAll("subscription_plan"))
     .post(admin, createOne("subscription_plan", allowedFields['subscription_plan']))
 
 router
     .route("/plans/:id")
-    .get(admin, getById("subscription_plan", "plan_id"))
+    .get(mod, getById("subscription_plan", "plan_id"))
     .put(admin, updateOne("subscription_plan", allowedFields['subscription_plan']))
     .delete(admin, deleteOne("subscription_plan", "plan_id"))
 
 router
     .route("/reviews")
-    .get(admin, getAll("reviews"))
-    .post(admin, createOne("reviews", allowedFields['reviews']))
+    .get(mod, getAll("reviews"))
+    .post(mod, createOne("reviews", allowedFields['reviews']))
 
 router
     .route("/reviews/:id")
-    .get(admin, getById("reviews", "review_id"))
-    .put(admin, updateOne("reviews", allowedFields['reviews']))
-    .delete(admin, deleteOne("reviews", "review_id"))
+    .get(mod, getById("reviews", "review_id"))
+    .put(mod, updateOne("reviews", allowedFields['reviews']))
+    .delete(mod, deleteOne("reviews", "review_id"))
 
 router
     .route("/subscriptions")
-    .get(admin, getUserSubscriptions)
+    .get(mod, getUserSubscriptions)
     .post(admin, createOne("user_subscription", allowedFields['user_subscription']))
 
 router
     .route("/subscriptions/:id")
-    .get(admin, getById("user_subscription", "user_subscription_id"))
-    .put(admin, updateOne("user_subscription", allowedFields['user_subscription']))
+    .get(mod, getById("user_subscription", "user_subscription_id"))
+    .put(mod, updateOne("user_subscription", allowedFields['user_subscription']))
     .delete(admin, deleteOne("user_subscription", "user_subscription_id"))
 
 router
     .route("/users")
-    .get(admin, getUsers)
+    .get(mod, getUsers)
     .post(admin, createOne("users", [...allowedFields['users'], "password"]))
 
 router
     .route("/users/:id")
-    .get(admin, getById("users", "user_id", ["password"]))
-    .put(admin, updateOne("users", allowedFields['users']))
+    .get(mod, getById("users", "user_id", ["password"]))
+    .put(mod, updateOne("users", allowedFields['users']))
     .delete(admin, deleteOne("users", "user_id"))
 
 router
     .route("/dashboard/summary")
-    .get(admin, fetchDashboardSummary)
+    .get(mod, fetchDashboardSummary)
 
 router
     .route("/dashboard/users-by-gender")
-    .get(admin, fetchUsersByGender)
+    .get(mod, fetchUsersByGender)
 
 router
     .route("/dashboard/users-by-plan")
-    .get(admin, fetchUsersByPlan)
+    .get(mod, fetchUsersByPlan)
 
 router
     .route("/dashboard/users-by-region")
-    .get(admin, fetchUsersByRegion)
+    .get(mod, fetchUsersByRegion)
 
 router
     .route("/dashboard/revenue")
-    .get(admin, fetchMonthlyRevenue)
+    .get(mod, fetchMonthlyRevenue)
 
 router
     .route("/dashboard/active-subscription")
-    .get(admin, fetchActiveSubscriptions)
+    .get(mod, fetchActiveSubscriptions)
 
 export const adminRoutes = router

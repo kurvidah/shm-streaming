@@ -49,7 +49,7 @@ const UserRoute = ({ children }: { children: React.ReactNode }) => {
 // Protected route component for admin routes
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
-  if (!user || !(user.role == 'ADMIN' || user.role == 'MOD')) return <Navigate to="/" replace />;
+  if (!user || !(user.role == 'ADMIN' || user.role == 'MODERATOR')) return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 

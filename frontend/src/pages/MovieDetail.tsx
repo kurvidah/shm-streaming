@@ -17,7 +17,7 @@ const MovieDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const { user, logout } = useAuth();
-  const isAdmin = user?.role === "ADMIN" || user?.role === "MOD";
+  const isAdmin = user?.role === "ADMIN" || user?.role === "MODERATOR";
   const [ review, setReview ] = useState<any[]>([]);
 
   useEffect(() => {

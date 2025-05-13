@@ -7,7 +7,7 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
 
-  const isAdmin = user?.role === "ADMIN" || user?.role === "MOD";
+  const isAdmin = user?.role === "ADMIN" || user?.role === "MODERATOR";
 
   return (
     <nav className="bg-black py-4 px-6 shadow-md">
