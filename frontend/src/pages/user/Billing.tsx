@@ -32,7 +32,6 @@ const UserBill = () => {
     const fetchBill = async () => {
       try {
         const res = await axios.get(`${API_URL}/payment`)
-        console.log("Billing response:", res.data)
         const billingList = res.data
         const latestBill = billingList[billingList.length - 1]
         setBill(latestBill)

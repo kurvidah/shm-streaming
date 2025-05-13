@@ -48,7 +48,6 @@ SELECT us.*
     if (!Array.isArray(userSubRows) || userSubRows.length === 0) {
         return null;
     }
-    console.log(userSubRows);
 
     const userSub = userSubRows[0] as any;
     const resBody = await formatSubscription(userSub);
@@ -190,7 +189,6 @@ export const getActivePlan = async (req: Request, res: Response): Promise<void> 
         if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
             // Verify token
             const self: any = jwt.verify(token || "your_token", process.env.SECRET_KEY || "your_jwt_secret");
-            // console.log("self", self);
 
             // Get all paid plans
             const [planRows] = await pool.execute(`

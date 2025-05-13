@@ -283,8 +283,6 @@ const AdminDashboard = () => {
           axios.get(`${API_URL}/admin/dashboard/revenue?year=${selectedYear}`), // Modified URL
         ]);
 
-        console.log("Response from /api/v1/admin/dashboard/revenue:", monthlyRevenueRes.data);
-
         const users = usersRes.data?.rows || [];
 
         // Users by Gender

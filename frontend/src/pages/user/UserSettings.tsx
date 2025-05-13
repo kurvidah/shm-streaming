@@ -44,10 +44,6 @@ const UserSettings = () => {
       return;
     }
 
-    console.log("Current Password:", formData.currentPassword);
-    console.log("New Password:", formData.newPassword);
-    console.log("Confirm Password:", formData.confirmPassword);
-
     try {
       const response = await axios.put(`${API_URL}/users/update-password`, {
         oldPassword: formData.currentPassword,

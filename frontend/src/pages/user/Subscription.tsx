@@ -69,8 +69,6 @@ const UserSubscription = () => {
               return new Date(b.end_date).getTime() - new Date(a.end_date).getTime()
             })[0] // เลือก array ล่าสุด
 
-            console.log("Latest subscription:", latestSub)
-
             const plan = mappedPlans.find(p => p.plan_id === latestSub.plan_id)
 
             if (plan) {

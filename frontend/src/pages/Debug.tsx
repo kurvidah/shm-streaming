@@ -16,7 +16,6 @@ const Debug = () => {
     const fetchPaths = async () => {
       try {
         const res = await axios.get(`${API_URL}/`);
-        console.log(axios.defaults.headers);
         setAvailablePaths(Object.keys(res.data));
       } catch (err: any) {
         console.error("Failed to fetch available paths:", err);

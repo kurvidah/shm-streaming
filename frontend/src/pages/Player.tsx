@@ -24,7 +24,6 @@ const Player = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        console.log(response.data);
         setMovieData(response.data);
         setStartMinute(response.data.watch_duration || 0);
         setLoading(false);

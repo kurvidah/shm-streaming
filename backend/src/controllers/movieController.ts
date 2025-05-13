@@ -276,7 +276,6 @@ export const getMovieById = async (
             }
             GROUP BY m.movie_id
         `;
-        console.log(movieQuery)
 
         const queryParams = [isNumeric ? id : slugify(id.toLowerCase(), { lower: true })];
 
@@ -387,8 +386,6 @@ export const updateMovie = async (
             imdb_id,
         } = req.body;
         const movieId = Number(req.params.id);
-
-        console.log(req.body.genres);
 
         // Check if movie exists
         const [existingRows] = await pool.execute(

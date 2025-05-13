@@ -50,7 +50,7 @@ const Browse = () => {
 
 
       const response = await axios.get(`${API_URL}/movies`, { params });
-      console.log("Fetching movies with params:", params);
+      // console.log("Fetching movies with params:", params);
 
       setMovies(response.data.rows);
     } catch (err) {

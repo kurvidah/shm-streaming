@@ -14,7 +14,6 @@ const Home = () => {
     const fetchMovies = async () => {
       try {
         const response = await axios.get(`${API_URL}/movies/featured`);
-        console.log(response.data);
         setMovies(response.data.rows);
       } catch (error) {
         console.error("Failed to fetch movies:", error);

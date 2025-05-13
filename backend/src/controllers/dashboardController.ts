@@ -103,7 +103,7 @@ export const fetchMonthlyRevenue = async (req: Request, res: Response): Promise<
         `;
 
         const [result] = await pool.query(query, queryParams);
-        console.log(result);
+
         const revenueMap: Record<number, number> = {};
         result.forEach((row: { month: number, total_revenue: number }) => {
             revenueMap[row.month] = row.total_revenue;

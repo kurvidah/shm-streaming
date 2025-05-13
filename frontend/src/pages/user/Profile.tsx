@@ -102,8 +102,6 @@ const UserProfile = () => {
         payload
       )
 
-      console.log("Update response:", response.data)
-
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (error) {
