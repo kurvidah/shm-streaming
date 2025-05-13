@@ -159,10 +159,10 @@ const Player = () => {
 
 
       {/* Video section - centered */}
-      <div className="flex-1 flex items-center justify-center h-0.5 bg-black">
+      <div className="flex-1 flex items-center justify-center h-full bg-black">
         <video
           ref={videoRef}
-          className="h-1 object-contain"
+          className="h-full w-full object-contain"
           controls
           playsInline
           poster={movieData?.thumbnail_url}
