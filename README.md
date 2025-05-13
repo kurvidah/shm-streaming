@@ -64,7 +64,7 @@ SHM Streaming is a full-stack streaming platform that allows users to browse, wa
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/shm-streaming.git
+   git clone https://github.com/kurvidah/shm-streaming.git
    cd shm-streaming
    ```
 
@@ -88,7 +88,6 @@ SHM Streaming is a full-stack streaming platform that allows users to browse, wa
 4. Access the application:
    - Frontend: [http://localhost:3000](http://localhost:3000)
    - Backend API: [http://localhost:8000/api/](http://localhost:8000/api/)
-   - Admin Panel: [http://localhost:8000/admin/](http://localhost:8000/admin/)
 
 ## Usage
 
@@ -103,7 +102,7 @@ SHM Streaming is a full-stack streaming platform that allows users to browse, wa
 
 ### Backend
 
-- Run the Django development server:
+- Run the Express development server:
   ```bash
   cd backend
   bun install
@@ -112,7 +111,7 @@ SHM Streaming is a full-stack streaming platform that allows users to browse, wa
 
 ### Database
 
-- MySQL is used as the database. The schema and seed data are located in the `db` directory:
+- MariaDB is used as the database. The schema and seed data are located in the `db` directory:
   - `schema.sql`: Defines the database structure.
   - `seed.sql`: Inserts sample data for testing.
 
