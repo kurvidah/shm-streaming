@@ -6,6 +6,7 @@ import UserSidebar from "../../components/UserSidebar"
 import LoadingSpinner from "../../components/LoadingSpinner"
 import { Link } from "react-router-dom"
 import { Clock, Trash2, AlertCircle, Play } from "lucide-react"
+import axios from "axios"
 
 interface WatchHistoryItem {
   id: number
@@ -20,6 +21,8 @@ interface WatchHistoryItem {
   watch_duration: number
 }
 
+const API_URL = `/api/v1`
+
 const UserWatchHistory = () => {
   const { user } = useAuth()
   const [history, setHistory] = useState<WatchHistoryItem[]>([])
@@ -30,64 +33,36 @@ const UserWatchHistory = () => {
     const fetchWatchHistory = async () => {
       try {
         setLoading(true)
+        const res = await axios.get(`${API_URL}/watch-history`)
+        const rows = res.data.rows
 
-        // In a real app, you would fetch this data from your API
-        // const response = await axios.get(`/api/watch-history/`);
-        // setHistory(response.data);
+        const mapped = rows.map((item: any) => ({
+          id: item.media_id,
+          movie: {
+            movie_id: item.media_id,
+            title: item.title,
+            poster: item.poster,
+            duration: item.duration || 100, 
+            slug: item.title.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, ""), // create slug
+          },
+          timestamp: item.watched_at,
+          watch_duration: item.watch_duration,
+        }))
 
-        // For demo purposes
-        setTimeout(() => {
-          setHistory([
-            {
-              id: 1,
-              movie: {
-                movie_id: 1,
-                title: "The Matrix",
-                poster:
-                  "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg",
-                duration: 136,
-                slug: "the-matrix",
-              },
-              timestamp: "2025-03-15T14:30:00Z",
-              watch_duration: 120,
-            },
-            {
-              id: 2,
-              movie: {
-                movie_id: 2,
-                title: "Inception",
-                poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
-                duration: 148,
-                slug: "inception",
-              },
-              timestamp: "2025-03-10T20:15:00Z",
-              watch_duration: 148,
-            },
-            {
-              id: 3,
-              movie: {
-                movie_id: 3,
-                title: "The Godfather",
-                poster:
-                  "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
-                duration: 175,
-                slug: "the-godfather",
-              },
-              timestamp: "2025-03-05T19:00:00Z",
-              watch_duration: 100,
-            },
-          ])
-          setLoading(false)
-        }, 1000)
+        setHistory(mapped)
       } catch (err) {
         console.error("Error fetching watch history:", err)
         setError("Failed to load watch history")
+      } finally {
         setLoading(false)
       }
     }
 
-    fetchWatchHistory()
-  }, [])
+
+    if (user) {
+      fetchWatchHistory()
+    }
+  }, [user])
 
   const handleRemoveFromHistory = (id: number) => {
     setHistory(history.filter((item) => item.id !== id))
@@ -115,13 +90,6 @@ const UserWatchHistory = () => {
       <div className="flex-1 p-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Watch History</h1>
-
-          {history.length > 0 && (
-            <button className="text-gray-400 hover:text-white flex items-center">
-              <Trash2 size={18} className="mr-2" />
-              Clear History
-            </button>
-          )}
         </div>
 
         {loading ? (
@@ -172,12 +140,7 @@ const UserWatchHistory = () => {
                       >
                         {item.movie.title}
                       </Link>
-                      <button
-                        onClick={() => handleRemoveFromHistory(item.id)}
-                        className="text-gray-500 hover:text-red-500 p-1"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+
                     </div>
 
                     <p className="text-gray-400 text-sm mt-1">Watched on {formatDate(item.timestamp)}</p>
@@ -206,4 +169,3 @@ const UserWatchHistory = () => {
 }
 
 export default UserWatchHistory
-
