@@ -13,6 +13,7 @@ import {
   CreditCard,
   DollarSign,
 } from "lucide-react";
+import { json2csv } from "json-2-csv";
 
 interface BillingRecord {
   billing_id: number;
@@ -62,6 +63,35 @@ const AdminBilling = () => {
 
     fetchBillingRecords();
   }, []);
+
+  const handleExport = async () => {
+    try {
+      const exportData = billingRecords.map((record) => ({
+        Username: record.user.username,
+        Email: record.user.email,
+        Plan: record.plan_name,
+        Amount: record.amount,
+        "Payment Method": record.payment_method,
+        "Payment Date": formatDate(record.payment_date),
+        "Due Date": formatDate(record.due_date),
+        "Payment Status": record.payment_status,
+      }));
+
+      const csv = await json2csv(exportData);
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "billing_report.csv";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("CSV Export Error:", err);
+      alert("Failed to export CSV");
+    }
+  };
+
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -114,7 +144,10 @@ const AdminBilling = () => {
       <div className="flex-1 p-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Billing Management</h1>
-          <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center transition">
+          <button
+            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center transition"
+            onClick={handleExport}
+          >
             <Download size={20} className="mr-2" />
             Export Report
           </button>
