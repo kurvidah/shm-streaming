@@ -12,6 +12,9 @@ const API_URL = `/api/v1`;
 
 const AdminMoviesDetail = () =>{
     const navigate = useNavigate();
+    const [editingMediaId, setEditingMediaId] = useState<number | null>(null);
+    const [editedMedia, setEditedMedia] = useState<any>({});
+
 
     const [movie, setMovie] = useState<null | {
         movie_id: number;
@@ -89,6 +92,41 @@ const AdminMoviesDetail = () =>{
         }
     };
 
+    const handleEditClick = (media: any) => {
+    if (editingMediaId === media.media_id) {
+        setEditingMediaId(null);
+        setEditedMedia({});
+    } else {
+        setEditingMediaId(media.media_id);
+        setEditedMedia({ ...media });
+    }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditedMedia((prev: any) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSaveEdit = async () => {
+    try {
+        // You may want to send editedMedia to your API here
+        setMovie((prev) => {
+        if (!prev) return prev;
+        return {
+            ...prev,
+            media: prev.media.map((m) =>
+            m.media_id === editedMedia.media_id ? editedMedia : m
+            ),
+        };
+        });
+        setEditingMediaId(null);
+        setEditedMedia({});
+    } catch (err) {
+        console.error("Error saving media edit:", err);
+    }
+    };
+
+
 
     return (
         <div className="flex">
@@ -144,47 +182,118 @@ const AdminMoviesDetail = () =>{
                     </thead>
                     <tbody className="divide-y divide-grey-700">
                         {movie.media
-                        .filter((m) =>
+                            .filter((m) =>
                             m.description.toLowerCase().includes(searchTerm.toLowerCase())
-                        )
-                        .map((m) => (
-                            <tr key={m.media_id}>
-                            <td className="px-6 py-4">{m.season}</td>
-                            <td className="px-6 py-4">{m.episode}</td>
-                            <td className="px-6 py-4">{m.description}</td>
-                            <td className="px-6 py-4">
-                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                m.status === "APPROVED"
-                                    ? "bg-green-500/20 text-green-500"
-                                    : m.status === "PENDING"
-                                    ? "bg-yellow-500/20 text-yellow-500"
-                                    : "bg-red-500/20 text-red-500"
-                                }`}>
-                                {m.status}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                                <div className="flex justify-end space-x-2">
-                                <button className="p-1 text-gray-400 hover:text-white">
-                                    <Eye size={18} />
-                                </button>
-                                <button className="p-1 text-gray-400 hover:text-blue-500">
-                                    <Edit size={18} />
-                                </button>
-                                <button
-                                    className="p-1 text-gray-400 hover:text-red-500" onClick={() => handleDeleteMedia(m.media_id)}
-                                    // onClick={(e) => {
-                                    // e.stopPropagation();
-                                    // handleDeleteMovie(m.media_id);
-                                    // }}
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                                </div>
-                            </td>
-                            </tr>
-                        ))}
-                    </tbody>
+                            )
+                            .map((m) => (
+                            <React.Fragment key={m.media_id}>
+                                <tr>
+                                <td className="px-6 py-4">{m.season}</td>
+                                <td className="px-6 py-4">{m.episode}</td>
+                                <td className="px-6 py-4">{m.description}</td>
+                                <td className="px-6 py-4">
+                                    <span
+                                    className={`px-2 py-1 rounded-full text-xs ${
+                                        m.status === "APPROVED"
+                                        ? "bg-green-500/20 text-green-500"
+                                        : m.status === "PENDING"
+                                        ? "bg-yellow-500/20 text-yellow-500"
+                                        : "bg-red-500/20 text-red-500"
+                                    }`}
+                                    >
+                                    {m.status}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex justify-end space-x-2">
+                                    <button
+                                        className="p-1 text-gray-400 hover:text-white"
+                                        onClick={() => handleEditClick(m)}
+                                    >
+                                        <Edit size={18} />
+                                    </button>
+                                    <button
+                                        className="p-1 text-gray-400 hover:text-red-500"
+                                        onClick={() => handleDeleteMedia(m.media_id)}
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                    </div>
+                                </td>
+                                </tr>
+
+                                {editingMediaId === m.media_id && (
+                                <tr className="bg-gray-700">
+                                    <td colSpan={5} className="px-6 py-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                        <label className="text-sm text-gray-300">Season</label>
+                                        <input
+                                            type="number"
+                                            name="season"
+                                            value={editedMedia.season}
+                                            onChange={handleInputChange}
+                                            className="w-full mt-1 bg-gray-800 text-white border border-gray-600 rounded px-3 py-2"
+                                        />
+                                        </div>
+                                        <div>
+                                        <label className="text-sm text-gray-300">Episode</label>
+                                        <input
+                                            type="number"
+                                            name="episode"
+                                            value={editedMedia.episode}
+                                            onChange={handleInputChange}
+                                            className="w-full mt-1 bg-gray-800 text-white border border-gray-600 rounded px-3 py-2"
+                                        />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                        <label className="text-sm text-gray-300">Description</label>
+                                        <textarea
+                                            name="description"
+                                            value={editedMedia.description}
+                                            onChange={handleInputChange}
+                                            className="w-full mt-1 h-32 bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 resize-y"
+                                        />
+                                        </div>
+                                        <div>
+                                        <label className="text-sm text-gray-300">Status</label>
+                                        <select
+                                            name="status"
+                                            value={editedMedia.status}
+                                            onChange={handleInputChange}
+                                            className="w-full mt-1 bg-gray-800 text-white border border-gray-600 rounded px-3 py-2"
+                                        >
+                                            <option value="APPROVED">APPROVED</option>
+                                            <option value="PENDING">PENDING</option>
+                                            <option value="REJECTED">REJECTED</option>
+                                        </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex justify-end space-x-2">
+                                        <button
+                                        onClick={handleSaveEdit}
+                                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                                        >
+                                        Save
+                                        </button>
+                                        <button
+                                        onClick={() => {
+                                            setEditingMediaId(null);
+                                            setEditedMedia({});
+                                        }}
+                                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
+                                        >
+                                        Cancel
+                                        </button>
+                                    </div>
+                                    </td>
+                                </tr>
+                                )}
+                            </React.Fragment>
+                            ))}
+                        </tbody>
+
                     </table>
                 </div>
                 ) : (
