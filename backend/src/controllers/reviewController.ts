@@ -58,13 +58,12 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
                 process.env.SECRET_KEY || "your_jwt_secret"
             );
 
-            const user_id = self.user_id; // Extract user_id from the token
+            const user_id = self.id; // Extract user_id from the token
             const {
                 movie_id,
                 media_id,
                 rating,
-                review_text,
-                review_date,
+                review_text
             } = req.body;
 
             if (!review_text || typeof review_text !== "string" || review_text.trim() === "") {
@@ -73,7 +72,7 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
             }
 
             const [result] = await pool.execute(
-                `INSERT INTO reviews (user_id, movie_id, media_id, rating, review_text, review_date)
+                `INSERT INTO reviews (user_id, movie_id, media_id, rating, review_text)
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     user_id,
@@ -81,7 +80,6 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
                     media_id,
                     rating,
                     review_text,
-                    review_date,
                 ]
             );
 
