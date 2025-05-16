@@ -113,7 +113,7 @@ router
 router
     .route("/users/:id")
     .get(mod, getById("users", "user_id", ["password"]))
-    .put(mod, updateOne("users", allowedFields['users']))
+    .put(mod, updateOne("users", allowedFields['users'], "user_id"))
     .delete(admin, deleteOne("users", "user_id"))
 
 router
